@@ -74,15 +74,17 @@ const faqJsonLd = {
             </p>
           </div>
 
+          <div id="form-error" class="hidden bg-[#fef2f2] border border-[#fecaca] rounded-xl px-6 py-5 mb-6">
+            <p id="form-error-msg" class="text-[#991b1b] font-semibold text-sm">
+              Something went wrong. Please try again.
+            </p>
+          </div>
+
           <form
             id="contact-form"
-            action="https://api.web3forms.com/submit"
-            method="POST"
+            novalidate
             class="space-y-5"
           >
-            <input type="hidden" name="access_key" value="REPLACE_WITH_WEB3FORMS_KEY" />
-            <input type="hidden" name="subject" value="New Contact from IWC Website" />
-            <input type="checkbox" name="botcheck" class="hidden" aria-hidden="true" />
 
             <div>
               <label for="name" class="block text-sm font-semibold text-[#374151] mb-1.5">
@@ -129,10 +131,12 @@ const faqJsonLd = {
             </div>
 
             <button
+              id="submit-btn"
               type="submit"
-              class="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold py-3.5 rounded-lg text-sm transition-colors shadow-lg shadow-blue-500/25"
+              class="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold py-3.5 rounded-lg text-sm transition-colors shadow-lg shadow-blue-500/25 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Send Message &rarr;
+              <span id="submit-label">Send Message &rarr;</span>
+              <span id="submit-sending" class="hidden">Sending&hellip;</span>
             </button>
           </form>
         </div>
@@ -222,13 +226,74 @@ const faqJsonLd = {
 </BaseLayout>
 
 <script>
-  // Show success banner if redirected back with ?success=true
-  if (new URLSearchParams(window.location.search).get('success') === 'true') {
-    document.getElementById('form-success')?.classList.remove('hidden');
-    document.getElementById('contact-form')?.classList.add('hidden');
+  // ── Contact form — fetch → /api/contact ──────────────────────────────────
+  const form      = document.getElementById('contact-form')    as HTMLFormElement;
+  const success   = document.getElementById('form-success')    as HTMLElement;
+  const errorBox  = document.getElementById('form-error')      as HTMLElement;
+  const errorMsg  = document.getElementById('form-error-msg')  as HTMLElement;
+  const btn       = document.getElementById('submit-btn')      as HTMLButtonElement;
+  const label     = document.getElementById('submit-label')    as HTMLElement;
+  const sending   = document.getElementById('submit-sending')  as HTMLElement;
+
+  function showError(msg: string) {
+    errorMsg.textContent = msg;
+    errorBox.classList.remove('hidden');
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // FAQ accordion
+  function hideError() {
+    errorBox.classList.add('hidden');
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError();
+
+    const data = {
+      name:     (form.elements.namedItem('name')     as HTMLInputElement).value.trim(),
+      email:    (form.elements.namedItem('email')    as HTMLInputElement).value.trim(),
+      business: (form.elements.namedItem('business') as HTMLInputElement).value.trim(),
+      message:  (form.elements.namedItem('message')  as HTMLTextAreaElement).value.trim(),
+    };
+
+    // Basic client-side validation
+    if (!data.name || !data.email || !data.message) {
+      showError('Please fill in all required fields.');
+      return;
+    }
+
+    // Loading state
+    btn.disabled = true;
+    label.classList.add('hidden');
+    sending.classList.remove('hidden');
+
+    try {
+      const res  = await fetch('/api/contact', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(data),
+      });
+      const json = await res.json();
+
+      if (res.ok && json.success) {
+        form.classList.add('hidden');
+        success.classList.remove('hidden');
+        success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        showError(json.error ?? 'Something went wrong. Please try again.');
+        btn.disabled = false;
+        label.classList.remove('hidden');
+        sending.classList.add('hidden');
+      }
+    } catch {
+      showError('Network error. Please check your connection and try again.');
+      btn.disabled = false;
+      label.classList.remove('hidden');
+      sending.classList.add('hidden');
+    }
+  });
+
+  // ── FAQ accordion ─────────────────────────────────────────────────────────
   document.querySelectorAll<HTMLButtonElement>('.faq-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const answer = btn.nextElementSibling as HTMLElement;

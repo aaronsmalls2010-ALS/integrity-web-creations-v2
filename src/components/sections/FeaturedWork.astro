@@ -1,8 +1,8 @@
 ---
 const work = [
   {
-    name: 'The Friendship Baptist Church',
-    url:  'https://thefriendshipbaptist.com',
+    name:     'The Friendship Baptist Church',
+    url:      'https://thefriendshipbaptist.com',
     category: 'Church',
     location: 'Beaufort, SC',
     image:    '/images/work-friendship-baptist.jpg',
@@ -10,8 +10,8 @@ const work = [
     accent:   'from-[#1e1b4b] to-[#312e81]',
   },
   {
-    name: 'Arena Football Players Union',
-    url:  'https://aflpu.org',
+    name:     'Arena Football Players Union',
+    url:      'https://aflpu.org',
     category: 'Professional Sports Union',
     location: 'Atlanta, GA',
     image:    '/images/work-aflpu.jpg',
@@ -19,8 +19,17 @@ const work = [
     accent:   'from-[#0c1a3a] to-[#1e3a8a]',
   },
   {
-    name: 'Epps Medical',
-    url:  null,
+    name:     'Nora',
+    url:      null,
+    category: 'Travel Agency',
+    location: 'United States',
+    image:    '/images/work-nora.jpg',
+    hasImage: true,
+    accent:   'from-[#0f4c3a] to-[#065f46]',
+  },
+  {
+    name:     'Epps Medical',
+    url:      null,
     category: 'Medical Practice',
     location: 'Savannah, GA',
     image:    null,
@@ -28,8 +37,8 @@ const work = [
     accent:   'from-[#f0fdf4] to-[#dcfce7]',
   },
   {
-    name: 'The Beaufort Marina',
-    url:  null,
+    name:     'The Beaufort Marina',
+    url:      null,
     category: 'Marina',
     location: 'Beaufort, SC',
     image:    null,
@@ -51,8 +60,8 @@ const work = [
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {work.map(item => (
-        <div class="group relative rounded-2xl overflow-hidden border border-[#e2e8f0] aspect-video bg-[#f8fafc]">
+      {work.map((item, i) => (
+        <div class={`group relative rounded-2xl overflow-hidden border border-[#e2e8f0] aspect-video bg-[#f8fafc]${work.length % 2 !== 0 && i === work.length - 1 ? ' md:col-span-2 md:aspect-[21/9]' : ''}`}>
           {item.hasImage ? (
             <img
               src={item.image!}

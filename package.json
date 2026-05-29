@@ -13,8 +13,13 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/vercel": "^10.0.8",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.2",
+    "nodemailer": "^8.0.9",
     "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.0"
   }
 }
