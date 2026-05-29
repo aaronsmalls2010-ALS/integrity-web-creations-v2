@@ -1,0 +1,74 @@
+---
+const testimonials = [
+  {
+    name:     'Dr. Willie Epps',
+    business: 'Epps Medical',
+    location: 'Savannah, GA',
+    initials: 'WE',
+    stars:    5,
+    quote:    "A. Smalls delivered exactly what I needed — a professional, modern site that represents my practice the right way. The personal attention and care he put into understanding my vision was unlike anything I've experienced working with other developers.",
+  },
+  {
+    name:     'James Baron',
+    business: 'Arena Football Players Union',
+    location: 'Atlanta, GA',
+    initials: 'JB',
+    stars:    5,
+    quote:    "Integrity Web Creations built a site that truly represents our organization with the professionalism it deserves. A. Smalls was responsive, detailed, and genuinely invested in getting it right. We couldn't be happier.",
+  },
+  {
+    name:     'Pastor Isiah Smalls',
+    business: 'The Friendship Baptist Church',
+    location: 'Beaufort, SC',
+    initials: 'IS',
+    stars:    5,
+    quote:    "The website A. Smalls created for our church has been a blessing. Visitors find us easily online now, and the site captures the spirit of our congregation. He understood what we needed and delivered beyond our expectations.",
+  },
+  {
+    name:     'Rick & Mandy',
+    business: 'The Beaufort Marina',
+    location: 'Beaufort, SC',
+    initials: 'RM',
+    stars:    5,
+    quote:    "Finally a web developer who actually listens. A. Smalls took the time to understand our marina, our customers, and what we needed to say online. The result is a site we're proud to send people to.",
+  },
+];
+---
+<section class="bg-[#f8fafc] py-24">
+  <div class="max-w-7xl mx-auto px-6">
+
+    <div class="text-center mb-14">
+      <h2 class="font-extrabold text-[#0f172a] mb-4" style="font-size:clamp(22px,3vw,40px);">
+        What Our Clients Say
+      </h2>
+      <p class="text-[#64748b] text-base max-w-xl mx-auto">
+        Real words from real business owners who trusted us with their online presence.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {testimonials.map(t => (
+        <div class="bg-white rounded-2xl border border-[#e2e8f0] p-8 hover:shadow-lg hover:border-[#bfdbfe] transition-all">
+          <div class="flex gap-0.5 mb-5" aria-label={`${t.stars} out of 5 stars`}>
+            {Array.from({ length: t.stars }).map(() => (
+              <i class="fa-solid fa-star text-[#f59e0b] text-sm" aria-hidden="true"></i>
+            ))}
+          </div>
+          <blockquote class="text-[#374151] text-sm leading-relaxed mb-6 italic">
+            &ldquo;{t.quote}&rdquo;
+          </blockquote>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center flex-shrink-0">
+              <span class="text-[#2563eb] font-bold text-sm">{t.initials}</span>
+            </div>
+            <div>
+              <p class="font-semibold text-[#0f172a] text-sm">{t.name}</p>
+              <p class="text-[#64748b] text-xs">{t.business} &middot; {t.location}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>

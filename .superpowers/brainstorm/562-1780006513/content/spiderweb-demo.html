@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IWC Spider Web Hero — Demo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #f0f4ff;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    height: 100vh;
+  }
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  .hero {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 6vw;
+  }
+  .hero-content {
+    max-width: 480px;
+    z-index: 10;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 2.4s forwards;
+  }
+  h1 {
+    font-size: clamp(28px, 4.5vw, 54px);
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+    margin-bottom: 18px;
+    letter-spacing: -1px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 2.6s forwards;
+  }
+  h1 em {
+    font-style: normal;
+    color: #2563eb;
+  }
+  .sub {
+    font-size: 15px;
+    color: #64748b;
+    line-height: 1.65;
+    margin-bottom: 30px;
+    max-width: 380px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 2.8s forwards;
+  }
+  .cta-group {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 3.0s forwards;
+  }
+  .btn-primary {
+    background: #2563eb;
+    color: #fff;
+    padding: 13px 26px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    letter-spacing: 0.2px;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,0.45); }
+  .btn-secondary {
+    background: transparent;
+    color: #374151;
+    padding: 13px 26px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid #cbd5e1;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-secondary:hover { border-color: #2563eb; color: #2563eb; }
+  .replay-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid #e2e8f0;
+    color: #374151;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+    transition: background 0.15s;
+  }
+  .replay-btn:hover { background: #fff; }
+  .label {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.85);
+    border: 1px solid #e2e8f0;
+    backdrop-filter: blur(8px);
+    color: #64748b;
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="label">🕷️ Move your mouse over the web — it reacts to you</div>
+
+<canvas id="c"></canvas>
+
+<div class="hero">
+  <div class="hero-content">
+    <div class="badge">Beaufort, SC · Est. 2010</div>
+    <h1>Agency-Quality<br>Websites.<br><em>Small Business</em><br>Prices.</h1>
+    <p class="sub">Custom-built websites that convert visitors into customers — without the agency price tag. One-on-one service from start to finish.</p>
+    <div class="cta-group">
+      <button class="btn-primary">Get a Free Quote</button>
+      <button class="btn-secondary">See Our Work →</button>
+    </div>
+  </div>
+</div>
+
+<button class="replay-btn" onclick="restartAnim()">↺ Replay</button>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W, H, origin, spokeAngles, ringDists;
+let startTime = null;
+let mouse = { x: -9999, y: -9999 };
+const ANIM_MS = 2600;
+
+// ── Resize ────────────────────────────────────────────────
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  buildWeb();
+}
+
+// ── Build web geometry ────────────────────────────────────
+function buildWeb() {
+  // Wrist: just off the right edge, upper-mid area
+  origin = { x: W * 1.04, y: H * 0.40 };
+
+  // 16 spokes fanning LEFT (angles 95° → 262°)
+  const NUM_SPOKES = 16;
+  const A_START = Math.PI * 0.528; // ~95°
+  const A_END   = Math.PI * 1.455; // ~262°
+  spokeAngles = [];
+  for (let i = 0; i < NUM_SPOKES; i++) {
+    const t = i / (NUM_SPOKES - 1);
+    // Tiny natural irregularity
+    const jitter = Math.sin(i * 7.3 + 1.1) * 0.008;
+    spokeAngles.push(A_START + (A_END - A_START) * t + jitter);
+  }
+
+  // 13 rings, logarithmically spaced (inner rings tighter)
+  const NUM_RINGS = 13;
+  const MAX_R = Math.hypot(W, H) * 0.96;
+  ringDists = [];
+  for (let r = 0; r < NUM_RINGS; r++) {
+    const t = (r + 1) / NUM_RINGS;
+    // Logarithmic + slight random sag per ring
+    const base = MAX_R * (Math.log(1 + t * (Math.E - 1)));
+    const nudge = (Math.sin(r * 3.7) * 0.012 + 1) * base;
+    ringDists.push(nudge);
+  }
+}
+
+// ── Point on a spoke ──────────────────────────────────────
+function pt(angle, dist) {
+  return {
+    x: origin.x + Math.cos(angle) * dist,
+    y: origin.y + Math.sin(angle) * dist
+  };
+}
+
+// ── Mouse-reactive strand draw ────────────────────────────
+function drawStrand(p1, p2, opacity, weight, sag) {
+  // Midpoint
+  const mx = (p1.x + p2.x) * 0.5;
+  const my = (p1.y + p2.y) * 0.5 + (sag || 0);
+
+  // Mouse repulsion near midpoint
+  const dx = mouse.x - mx, dy = mouse.y - my;
+  const dist = Math.hypot(dx, dy);
+  const pull = Math.max(0, 1 - dist / 110) * 14;
+  const cpx = mx + dx * pull * 0.04;
+  const cpy = my + dy * pull * 0.04;
+
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.quadraticCurveTo(cpx, cpy + (sag || 0) * 0.6, p2.x, p2.y);
+  ctx.strokeStyle = `rgba(37, 99, 235, ${opacity})`;
+  ctx.lineWidth = weight;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+}
+
+// ── Add dewdrop nodes ─────────────────────────────────────
+function drawNode(x, y, r, opacity) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(37, 99, 235, ${opacity})`;
+  ctx.fill();
+}
+
+// ── Main draw loop ────────────────────────────────────────
+function draw(ts) {
+  if (!startTime) startTime = ts;
+  const raw = Math.min((ts - startTime) / ANIM_MS, 1);
+  // Ease-out cubic
+  const ease = 1 - Math.pow(1 - raw, 3);
+
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Phase 0: shooting strand from wrist ──────────────────
+  // A fast "zip" line from wrist to left side before web builds
+  const SHOOT_END = 0.12;
+  if (raw < SHOOT_END * 2.5) {
+    const t = Math.min(raw / SHOOT_END, 1);
+    const target = { x: W * 0.1, y: H * 0.35 };
+    const cur = {
+      x: origin.x + (target.x - origin.x) * t,
+      y: origin.y + (target.y - origin.y) * t
+    };
+    ctx.beginPath();
+    ctx.moveTo(origin.x, origin.y);
+    ctx.lineTo(cur.x, cur.y);
+    ctx.strokeStyle = 'rgba(37,99,235,0.55)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+
+  // ── Spokes (begin after shoot phase) ─────────────────────
+  const SPOKE_START = 0.08;
+  spokeAngles.forEach((angle, i) => {
+    const p = Math.max(0, Math.min(1,
+      (ease - SPOKE_START - i * 0.009) / 0.52
+    ));
+    if (p <= 0) return;
+
+    const maxR = ringDists[ringDists.length - 1];
+    const end  = pt(angle, maxR * p);
+
+    // Spokes: slightly thicker, higher opacity near origin
+    drawStrand(origin, end, 0.28, 0.55, 0);
+  });
+
+  // ── Rings (radiate outward ring by ring) ──────────────────
+  const RING_START = 0.22;
+  ringDists.forEach((dist, ri) => {
+    const p = Math.max(0, Math.min(1,
+      (ease - RING_START - ri * 0.055) / 0.38
+    ));
+    if (p <= 0) return;
+
+    const segsTotal = spokeAngles.length - 1;
+    const segsVisible = p * segsTotal;
+    const segsFull = Math.floor(segsVisible);
+    const frac = segsVisible - segsFull;
+
+    // Depth-based opacity: inner rings slightly more visible
+    const depthOp = 0.10 + (1 - ri / ringDists.length) * 0.20;
+    const ringWeight = 0.35 + (1 - ri / ringDists.length) * 0.15;
+
+    for (let s = 0; s < segsFull; s++) {
+      const a1 = spokeAngles[s], a2 = spokeAngles[s + 1];
+      const p1 = pt(a1, dist), p2 = pt(a2, dist);
+      // Sag: proportional to horizontal span, more for lower strands
+      const sag = Math.abs(p2.x - p1.x) * 0.035 + Math.abs(p2.y - p1.y) * 0.01;
+      drawStrand(p1, p2, depthOp, ringWeight, sag);
+    }
+
+    // Partial last segment
+    if (segsFull < segsTotal && frac > 0) {
+      const a1 = spokeAngles[segsFull], a2 = spokeAngles[segsFull + 1];
+      const p1 = pt(a1, dist);
+      const p2full = pt(a2, dist);
+      const p2 = { x: p1.x + (p2full.x - p1.x) * frac, y: p1.y + (p2full.y - p1.y) * frac };
+      const sag = Math.abs(p2full.x - p1.x) * 0.035 * frac;
+      drawStrand(p1, p2, depthOp, ringWeight, sag);
+    }
+
+    // Dewdrop nodes at spoke intersections (appear after ring is drawn)
+    if (p > 0.85) {
+      for (let s = 0; s <= segsFull; s++) {
+        const node = pt(spokeAngles[s], dist);
+        if (node.x > 0 && node.x < W && node.y > 0 && node.y < H) {
+          drawNode(node.x, node.y, 0.9, 0.22 * depthOp * 3);
+        }
+      }
+    }
+  });
+
+  // ── Origin glow ────────────────────────────────────────────
+  if (ease > 0.06) {
+    const g = Math.min(1, (ease - 0.06) / 0.15);
+    // Outer glow
+    const grad = ctx.createRadialGradient(origin.x, origin.y, 0, origin.x, origin.y, 18);
+    grad.addColorStop(0, `rgba(37,99,235,${0.35 * g})`);
+    grad.addColorStop(1, 'rgba(37,99,235,0)');
+    ctx.beginPath();
+    ctx.arc(origin.x, origin.y, 18, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+    // Core dot
+    ctx.beginPath();
+    ctx.arc(origin.x, origin.y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(37,99,235,${0.8 * g})`;
+    ctx.fill();
+  }
+
+  requestAnimationFrame(draw);
+}
+
+// ── Mouse ──────────────────────────────────────────────────
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('resize', resize);
+
+// ── Restart ────────────────────────────────────────────────
+window.restartAnim = function() {
+  startTime = null;
+  // Reset CSS animations on hero content
+  document.querySelectorAll('.badge,.hero-content h1,.sub,.cta-group').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = '';
+  });
+};
+
+resize();
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>

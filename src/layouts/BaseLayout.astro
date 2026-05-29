@@ -1,0 +1,111 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title = 'Integrity Web Creations — Beaufort, SC',
+  description = 'Custom websites built exclusively for your business. Handled, maintained, and grown by a local partner in Beaufort, SC since 2010.',
+  ogImage = '/og-image.png',
+} = Astro.props;
+
+const canonical = Astro.url.href;
+const siteUrl   = 'https://www.integritywebcreations.com';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'ProfessionalService',
+      name: 'Integrity Web Creations',
+      description:
+        'Custom web design, brand identity, SEO, e-commerce, monthly maintenance, and digital marketing for small businesses.',
+      url: siteUrl,
+      telephone: '+18432630072',
+      email: 'asmalls@integritywebcreations.com',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Beaufort',
+        addressRegion: 'SC',
+        addressCountry: 'US',
+      },
+      founder: { '@type': 'Person', name: 'A. Smalls' },
+      foundingDate: '2010',
+      priceRange: '$$',
+      areaServed: ['Beaufort, SC', 'Savannah, GA', 'Atlanta, GA'],
+    },
+    {
+      '@type': 'WebSite',
+      url: siteUrl,
+      name: 'Integrity Web Creations',
+    },
+  ],
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- SEO Primary -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={`${siteUrl}${ogImage}`} />
+    <meta property="og:site_name" content="Integrity Web Creations" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={`${siteUrl}${ogImage}`} />
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome 6.5.1 -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    <!-- Umami Analytics (deferred — replace WEBSITE_ID after deploy) -->
+    <script
+      defer
+      src="https://analytics.integritywebcreations.com/script.js"
+      data-website-id="REPLACE_WITH_WEBSITE_ID"
+    ></script>
+
+    <slot name="head" />
+  </head>
+  <body class="font-sans antialiased bg-white text-[#0f172a]">
+    <slot />
+  </body>
+</html>

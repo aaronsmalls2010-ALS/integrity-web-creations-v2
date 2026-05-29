@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IWC – Spider Web Hero v5</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#f0f4ff; overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; height:100vh; }
+canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+
+/* ── Slider: handles position + slide-in, stays at translate(0,0) when in ── */
+#mouse-slider {
+  position: fixed;
+  top:   -28px;
+  right: -28px;
+  z-index: 20;
+  transform: translate(240px, -240px);   /* off-screen: upper-right */
+  transition: transform 0.62s cubic-bezier(0.34,1.44,0.64,1);
+}
+#mouse-slider.in-position { transform: translate(0,0); }
+
+/* ── Inner wrap: constant 225° = 7:30, buttons face lower-left ── */
+#mouse-wrap {
+  width: 92px;
+  height: 138px;
+  transform: rotate(225deg);
+  transform-origin: center center;
+  filter: drop-shadow(-5px 5px 20px rgba(0,0,0,0.45));
+}
+#mouse-svg { width:92px; height:138px; display:block; }
+#left-btn  { transition: fill 0.08s, filter 0.08s; }
+#mouse-slider.clicking #left-btn {
+  fill: #82bdf5;
+  filter: drop-shadow(0 0 10px rgba(59,130,246,1));
+}
+
+/* ── Hero ── */
+.hero { position:fixed; inset:0; display:flex; align-items:center; padding:0 6vw; pointer-events:none; }
+.hero-content { max-width:480px; z-index:10; pointer-events:all; }
+.badge {
+  display:inline-flex; align-items:center;
+  background:#dbeafe; color:#1d4ed8;
+  font-size:11px; font-weight:600; letter-spacing:2px;
+  padding:5px 14px; border-radius:20px; margin-bottom:20px; text-transform:uppercase;
+  opacity:0; animation:fadeUp 0.6s ease 2.5s forwards;
+}
+h1 {
+  font-size:clamp(26px,4.2vw,52px); font-weight:800; color:#0f172a;
+  line-height:1.1; margin-bottom:18px; letter-spacing:-1px;
+  opacity:0; animation:fadeUp 0.7s ease 2.7s forwards;
+}
+h1 em { font-style:normal; color:#2563eb; }
+.sub {
+  font-size:15px; color:#64748b; line-height:1.65; margin-bottom:28px; max-width:380px;
+  opacity:0; animation:fadeUp 0.7s ease 2.9s forwards;
+}
+.cta-group {
+  display:flex; gap:12px; flex-wrap:wrap;
+  opacity:0; animation:fadeUp 0.7s ease 3.1s forwards;
+}
+.btn-primary {
+  background:#2563eb; color:#fff; padding:13px 26px; border-radius:6px;
+  font-size:14px; font-weight:600; cursor:pointer; border:none;
+  box-shadow:0 4px 14px rgba(37,99,235,0.35); transition:transform .15s,box-shadow .15s;
+}
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(37,99,235,.45); }
+.btn-secondary {
+  background:transparent; color:#374151; padding:13px 26px; border-radius:6px;
+  font-size:14px; font-weight:600; cursor:pointer; border:1.5px solid #cbd5e1;
+  transition:border-color .15s,color .15s;
+}
+.btn-secondary:hover { border-color:#2563eb; color:#2563eb; }
+.label {
+  position:fixed; top:20px; left:50%; transform:translateX(-50%);
+  background:rgba(255,255,255,0.9); border:1px solid #e2e8f0;
+  backdrop-filter:blur(8px); color:#64748b;
+  font-size:11px; padding:6px 16px; border-radius:20px; z-index:100; white-space:nowrap;
+}
+.replay-btn {
+  position:fixed; bottom:24px; right:24px;
+  background:rgba(255,255,255,0.92); border:1px solid #e2e8f0;
+  color:#374151; padding:9px 18px; border-radius:6px;
+  font-size:12px; font-weight:600; cursor:pointer; z-index:100; backdrop-filter:blur(8px);
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="label">🕷️ Move your cursor over the web</div>
+<canvas id="c"></canvas>
+
+<div id="mouse-slider">
+  <div id="mouse-wrap">
+    <svg id="mouse-svg" viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="42" cy="64" rx="31" ry="47" fill="rgba(0,0,0,0.18)" transform="translate(2,4)"/>
+      <path d="M14,52 Q12,16 40,6 Q68,16 66,52 Q66,96 40,112 Q14,96 14,52Z" fill="#5c6a7a"/>
+      <path id="left-btn" d="M14,52 L14,27 Q14,6 40,6 L40,55 L14,55Z" fill="#4a5869"/>
+      <path d="M66,52 L66,27 Q66,6 40,6 L40,55 L66,55Z" fill="#526070"/>
+      <line x1="40" y1="6" x2="40" y2="55" stroke="#28343f" stroke-width="1.6"/>
+      <path d="M14,55 Q20,59 40,59 Q60,59 66,55" stroke="#28343f" stroke-width="1.2" fill="none"/>
+      <rect x="32" y="16" width="16" height="27" rx="8" fill="#243040"/>
+      <rect x="34" y="18" width="12" height="23" rx="6" fill="#1a2530"/>
+      <rect x="34" y="22" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
+      <rect x="34" y="26.5" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
+      <rect x="34" y="31" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
+      <rect x="34" y="35.5" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
+      <rect x="34" y="47" width="12" height="7" rx="3.5" fill="#243040"/>
+      <rect x="36" y="48.5" width="8" height="4" rx="2" fill="#1a2530"/>
+      <path d="M21,32 Q23,15 40,9 Q54,15 56,28" stroke="rgba(255,255,255,0.16)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+    </svg>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-content">
+    <div class="badge">Beaufort, SC · Est. 2010</div>
+    <h1>Agency-Quality<br>Websites.<br><em>Small Business</em><br>Prices.</h1>
+    <p class="sub">Custom-built websites that convert visitors into customers — without the agency price tag. One-on-one service from start to finish.</p>
+    <div class="cta-group">
+      <button class="btn-primary">Get a Free Quote</button>
+      <button class="btn-secondary">See Our Work →</button>
+    </div>
+  </div>
+</div>
+
+<button class="replay-btn" onclick="restartAnim()">↺ Replay</button>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+const slider = document.getElementById('mouse-slider');
+
+let W, H;
+let origin     = { x:0, y:0 };   // set from mouse center after settle
+let spokeAngles = [];
+let ringDists   = [];
+let animStart   = null;
+let cursor      = { x:-9999, y:-9999 };
+
+// Fixed 28 action lines so replay is identical every time
+const ACTION_LINES = Array.from({length:28}, (_,i) => ({
+  angle: (i/28)*Math.PI*2,
+  len:   60 + (i*19)%100,
+  w:     0.7 + (i*0.13)%1.2
+}));
+
+// ── Timeline (seconds) ────────────────────────────────────────
+const T = {
+  MOUSE_ARRIVE : 0.15,   // slider starts moving in
+  MOUSE_SETTLED: 0.80,   // ~0.15 + 0.62 transition = ~0.77
+  BTN_GLOW     : 0.85,
+  CLICK        : 1.05,   // CLICK moment — web starts here too
+  WEB_DONE     : 3.60    // web fully covers screen
+};
+
+// ── Canvas resize ─────────────────────────────────────────────
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  buildWebGeometry();
+}
+
+// ── Web geometry — full screen fan from top-right ─────────────
+function buildWebGeometry() {
+  // 22 spokes from 88° (near-straight-down) to 200° (past-straight-left)
+  // Centered ~144° → bottom-left corner of screen
+  const NS = 22;
+  const A0 = Math.PI * 0.489;  // 88°
+  const A1 = Math.PI * 1.112;  // 200°
+  spokeAngles = [];
+  for (let i=0; i<NS; i++) {
+    const t = i/(NS-1);
+    spokeAngles.push(A0 + (A1-A0)*t + Math.sin(i*6.7+2.3)*0.006);
+  }
+
+  // 16 rings, log-spaced to bottom-left diagonal
+  const NR = 16;
+  const MAX_R = Math.hypot(W, H) * 1.08;
+  ringDists = [];
+  for (let r=0; r<NR; r++) {
+    const t = (r+1)/NR;
+    ringDists.push(MAX_R * Math.log(1 + t*(Math.E-1)) * (1 + Math.sin(r*3.7)*0.010));
+  }
+}
+
+function pt(angle, dist) {
+  return { x: origin.x + Math.cos(angle)*dist, y: origin.y + Math.sin(angle)*dist };
+}
+
+// ── Strand: quadratic bezier with mouse attraction + gravity sag ──
+function strand(p1, p2, rgba, weight, sag) {
+  const mx=(p1.x+p2.x)*.5, my=(p1.y+p2.y)*.5;
+  const dx=cursor.x-mx, dy=cursor.y-my;
+  const pull = Math.max(0, 1-Math.hypot(dx,dy)/150) * 24;
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.quadraticCurveTo(mx+dx*pull*0.04, my+dy*pull*0.04+(sag||0), p2.x, p2.y);
+  ctx.strokeStyle=rgba; ctx.lineWidth=weight; ctx.lineCap='round'; ctx.stroke();
+}
+
+// ── Screen flash ──────────────────────────────────────────────
+function drawScreenFlash(t) {
+  if (t<=0||t>=1) return;
+  const a = t<0.25 ? t/0.25 : 1-(t-0.25)/0.75;
+  ctx.save(); ctx.globalAlpha=a*0.48; ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H); ctx.restore();
+}
+
+// ── Action lines burst from origin ───────────────────────────
+function drawActionLines(t) {
+  if (t<=0||t>=1) return;
+  const fade   = Math.max(0, 1-t/0.55);
+  const extend = Math.min(t/0.14, 1);
+  ACTION_LINES.forEach(l => {
+    const r1=50*extend, r2=(50+l.len)*extend;
+    ctx.beginPath();
+    ctx.moveTo(origin.x+Math.cos(l.angle)*r1, origin.y+Math.sin(l.angle)*r1);
+    ctx.lineTo(origin.x+Math.cos(l.angle)*r2, origin.y+Math.sin(l.angle)*r2);
+    ctx.strokeStyle=`rgba(147,197,253,${fade*0.48})`; ctx.lineWidth=l.w+2; ctx.lineCap='round'; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(origin.x+Math.cos(l.angle)*r1, origin.y+Math.sin(l.angle)*r1);
+    ctx.lineTo(origin.x+Math.cos(l.angle)*r2, origin.y+Math.sin(l.angle)*r2);
+    ctx.strokeStyle=`rgba(37,99,235,${fade*0.80})`; ctx.lineWidth=l.w; ctx.stroke();
+  });
+}
+
+// ── CLICK! starburst ──────────────────────────────────────────
+function drawStarburst(t) {
+  if (t<=0) return;
+  const scale = t<0.22?(t/0.22)*1.30 : t<0.52?1.30-(t-0.22)/0.30*0.30 : t<0.80?1.0 : 1-(t-0.80)/0.20;
+  if (scale<=0) return;
+  const alpha = t<0.72?1:1-(t-0.72)/0.28;
+  if (alpha<=0) return;
+  const cx=origin.x-88, cy=origin.y+82; // inset so burst is fully on screen
+  ctx.save(); ctx.globalAlpha=alpha; ctx.translate(cx,cy); ctx.rotate(-0.18); ctx.scale(scale,scale);
+  ctx.beginPath();
+  for (let i=0;i<24;i++) {
+    const r=i%2===0?64:33, a=(i*Math.PI/12)-Math.PI/2;
+    i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+  }
+  ctx.closePath(); ctx.fillStyle='#FFE000'; ctx.strokeStyle='#111'; ctx.lineWidth=2.6; ctx.fill(); ctx.stroke();
+  ctx.save(); ctx.clip();
+  for (let dx=-64;dx<64;dx+=10) for (let dy=-64;dy<64;dy+=10) {
+    ctx.beginPath(); ctx.arc(dx,dy,2.5,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.08)'; ctx.fill();
+  }
+  ctx.restore();
+  ctx.font='900 21px Impact,Arial Black,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.strokeStyle='rgba(255,220,0,0.5)'; ctx.lineWidth=3.5; ctx.strokeText('CLICK!',0,1);
+  ctx.fillStyle='#111'; ctx.fillText('CLICK!',0,1);
+  ctx.restore();
+}
+
+// ── Origin shockwave glow ─────────────────────────────────────
+function drawOriginGlow(t) {
+  if (t<=0) return;
+  [0,0.13,0.26].forEach(off=>{
+    const p=clamp01((t-off)/0.54); if(p<=0)return;
+    ctx.beginPath(); ctx.arc(origin.x,origin.y,100*p,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(37,99,235,${(1-p)*0.60})`; ctx.lineWidth=(1-p)*5; ctx.stroke();
+  });
+  const op=Math.min(1,t*3)*0.88;
+  const g=ctx.createRadialGradient(origin.x,origin.y,0,origin.x,origin.y,36);
+  g.addColorStop(0,`rgba(147,197,253,${op*.85})`); g.addColorStop(.4,`rgba(37,99,235,${op*.40})`); g.addColorStop(1,'rgba(37,99,235,0)');
+  ctx.beginPath(); ctx.arc(origin.x,origin.y,36,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+  ctx.beginPath(); ctx.arc(origin.x,origin.y,4.5,0,Math.PI*2); ctx.fillStyle=`rgba(37,99,235,${op})`; ctx.fill();
+}
+
+// ── WEB: radial frontier — grows evenly outward from origin ───
+//   At any moment in time, everything within `frontierR` is drawn.
+//   Spokes are truncated at frontierR.
+//   Rings appear fully once the frontier reaches their distance.
+//   A soft glow pulse marks the expanding edge.
+// ─────────────────────────────────────────────────────────────
+function drawWeb(t) {
+  // Ease: starts fast (explosive), decelerates smoothly
+  const ease = 1 - Math.pow(1-t, 2.2);
+  const maxR  = ringDists[ringDists.length-1];
+  const frontierR = maxR * ease;
+  if (frontierR < 2) return;
+
+  const SOFT = maxR * 0.06; // fade-in band just behind the frontier
+
+  // ── Spokes ─────────────────────────────────────────────────
+  spokeAngles.forEach(angle => {
+    const visR = Math.min(frontierR, maxR);
+    if (visR < 2) return;
+    const endPt = pt(angle, visR);
+    // Glow halo
+    strand(origin, endPt, 'rgba(147,197,253,0.16)', 3.8, 0);
+    // Core
+    strand(origin, endPt, 'rgba(37,99,235,0.44)',   1.7, 0);
+  });
+
+  // ── Frontier glow dots (one per spoke tip) ─────────────────
+  if (frontierR < maxR * 0.99) {
+    spokeAngles.forEach(angle => {
+      const tip = pt(angle, Math.min(frontierR, maxR));
+      // small radial bloom at each spoke tip
+      const tg = ctx.createRadialGradient(tip.x,tip.y,0, tip.x,tip.y,10);
+      tg.addColorStop(0,'rgba(147,197,253,0.70)');
+      tg.addColorStop(1,'rgba(37,99,235,0)');
+      ctx.beginPath(); ctx.arc(tip.x,tip.y,10,0,Math.PI*2);
+      ctx.fillStyle=tg; ctx.fill();
+    });
+  }
+
+  // ── Rings ──────────────────────────────────────────────────
+  ringDists.forEach((dist, ri) => {
+    if (dist > frontierR) return; // not yet reached
+
+    // Fade-in: ring is semi-transparent just as frontier crosses it,
+    // then quickly reaches full opacity
+    const fadeIn = clamp01((frontierR - dist) / SOFT);
+    if (fadeIn <= 0) return;
+
+    const df   = 1 - ri/ringDists.length;         // depth factor: inner rings more opaque
+    const opG  = (0.08 + df*0.13) * fadeIn;
+    const opC  = (0.18 + df*0.30) * fadeIn;
+    const wG   = 3.0  - df*0.6;
+    const wC   = 1.25 - df*0.15;
+
+    for (let s=0; s<spokeAngles.length-1; s++) {
+      const p1=pt(spokeAngles[s],dist), p2=pt(spokeAngles[s+1],dist);
+      const sag = Math.abs(p2.x-p1.x)*0.038 + Math.abs(p2.y-p1.y)*0.010;
+      strand(p1, p2, `rgba(147,197,253,${opG})`, wG, sag*1.4);
+      strand(p1, p2, `rgba(37,99,235,${opC})`,   wC, sag);
+    }
+
+    // Intersection nodes (dewdrops)
+    if (fadeIn > 0.55) {
+      spokeAngles.forEach(angle => {
+        const n = pt(angle, dist);
+        if (n.x<-30||n.x>W+30||n.y<-30||n.y>H+30) return;
+        ctx.beginPath(); ctx.arc(n.x,n.y,1.9,0,Math.PI*2);
+        ctx.fillStyle=`rgba(37,99,235,${0.42*df*fadeIn})`; ctx.fill();
+      });
+    }
+  });
+}
+
+// ── Master render loop ────────────────────────────────────────
+function render(ts) {
+  if (!animStart) animStart = ts;
+  const e = (ts-animStart)/1000; // seconds elapsed
+
+  ctx.clearRect(0,0,W,H);
+
+  // Comic book click effects
+  drawScreenFlash( clamp01((e-T.CLICK)/0.40) );
+  drawOriginGlow(  clamp01((e-T.CLICK)/0.85) );
+  drawActionLines( clamp01((e-T.CLICK)/0.56) );
+  drawStarburst(   clamp01((e-T.CLICK)/1.00) );
+
+  // Web: uniform radial growth from CLICK moment
+  const webT = clamp01((e-T.CLICK)/(T.WEB_DONE-T.CLICK));
+  if (webT > 0) drawWeb(webT);
+
+  // Button glow window
+  const glowing = e>=T.BTN_GLOW && e<T.CLICK+0.22;
+  slider.classList.toggle('clicking', glowing);
+
+  requestAnimationFrame(render);
+}
+
+function clamp01(v) { return Math.max(0, Math.min(1,v)); }
+
+// ── Slide mouse in, then lock origin to its visual center ─────
+function startMouseSlideIn() {
+  setTimeout(() => {
+    slider.classList.add('in-position');
+    // After the CSS transition finishes, read the actual screen center
+    slider.addEventListener('transitionend', () => {
+      const r = document.getElementById('mouse-wrap').getBoundingClientRect();
+      origin = { x: r.left + r.width/2, y: r.top + r.height/2 };
+      buildWebGeometry();
+    }, { once: true });
+  }, T.MOUSE_ARRIVE * 1000);
+}
+
+// ── Replay ────────────────────────────────────────────────────
+window.restartAnim = function() {
+  animStart = null;
+  slider.classList.remove('in-position','clicking');
+  document.querySelectorAll('.badge,h1,.sub,.cta-group').forEach(el=>{
+    el.style.animation='none'; void el.offsetHeight; el.style.animation='';
+  });
+  startMouseSlideIn();
+};
+
+window.addEventListener('mousemove', e=>{ cursor.x=e.clientX; cursor.y=e.clientY; });
+window.addEventListener('resize', ()=>{ resize(); });
+
+// Initial estimate so geometry is ready immediately
+resize();
+origin = { x: W - 18, y: 41 };
+buildWebGeometry();
+startMouseSlideIn();
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

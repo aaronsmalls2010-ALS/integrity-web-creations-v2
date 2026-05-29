@@ -1,0 +1,34 @@
+---
+import BaseLayout    from '../layouts/BaseLayout.astro';
+import Nav           from '../components/Nav.astro';
+import Footer        from '../components/Footer.astro';
+import TrustStats    from '../components/sections/TrustStats.astro';
+import Testimonials  from '../components/sections/Testimonials.astro';
+import FeaturedWork  from '../components/sections/FeaturedWork.astro';
+import BottomCTA     from '../components/sections/BottomCTA.astro';
+---
+<BaseLayout
+  title="Our Clients | Integrity Web Creations — Beaufort, SC"
+  description="From churches to sports unions to medical practices — real testimonials from real businesses across the Southeast served by Integrity Web Creations."
+>
+  <Nav />
+  <main class="pt-16">
+
+    <section class="bg-[#f0f4ff] py-20">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <h1 class="font-extrabold text-[#0f172a] mb-4" style="font-size:clamp(26px,4.2vw,52px);">
+          Our Clients
+        </h1>
+        <p class="text-[#64748b] text-lg leading-relaxed max-w-xl mx-auto">
+          From churches to professional sports unions, from medical practices to marinas &mdash; we serve businesses that serve people.
+        </p>
+      </div>
+    </section>
+
+    <TrustStats />
+    <Testimonials />
+    <FeaturedWork />
+    <BottomCTA />
+  </main>
+  <Footer />
+</BaseLayout>

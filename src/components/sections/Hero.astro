@@ -1,0 +1,59 @@
+---
+import SpiderWebHero from '../SpiderWebHero.astro';
+---
+<section class="relative min-h-screen bg-[#f0f4ff] flex items-center overflow-hidden">
+
+  <!-- Spider web animation -->
+  <SpiderWebHero />
+
+  <!-- Hero content: left portion, above canvas -->
+  <div class="relative z-10 max-w-7xl mx-auto px-6 w-full py-28 mt-16">
+    <div class="max-w-[500px]">
+
+      <!-- Location badge -->
+      <div
+        class="inline-flex items-center bg-[#dbeafe] text-[#1d4ed8] text-[11px] font-semibold tracking-[2px] uppercase px-4 py-1.5 rounded-full mb-5 opacity-0 animate-fade-up"
+        style="animation-delay:2.5s;"
+      >
+        Beaufort, SC &mdash; Your Local Web Partner Since 2010
+      </div>
+
+      <!-- Headline -->
+      <h1
+        class="font-extrabold text-[#0f172a] leading-[1.1] mb-5 opacity-0 animate-fade-up"
+        style="font-size:clamp(26px,4.2vw,52px);letter-spacing:-1px;animation-delay:2.7s;"
+      >
+        Your Business.<br />Every Screen.<br />Every Home.
+      </h1>
+
+      <!-- Subheadline -->
+      <p
+        class="text-[#64748b] text-base leading-relaxed max-w-[400px] mb-8 opacity-0 animate-fade-up"
+        style="animation-delay:2.9s;"
+      >
+        A custom website, built exclusively for your business &mdash; handled, maintained, and grown by a local partner who knows your name, not just your account number.
+      </p>
+
+      <!-- CTA buttons -->
+      <div
+        class="flex flex-wrap gap-3 opacity-0 animate-fade-up"
+        style="animation-delay:3.1s;"
+      >
+        <a
+          href="/contact"
+          class="inline-flex items-center bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-7 py-3.5 rounded-md transition-all shadow-lg hover:-translate-y-0.5 no-underline text-sm"
+        >
+          Let&rsquo;s Talk &rarr;
+        </a>
+        <a
+          href="/why-we-matter"
+          class="inline-flex items-center border border-[#cbd5e1] text-[#374151] hover:border-[#2563eb] hover:text-[#2563eb] font-semibold px-7 py-3.5 rounded-md transition-colors no-underline text-sm"
+        >
+          Why You Need This
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+</section>

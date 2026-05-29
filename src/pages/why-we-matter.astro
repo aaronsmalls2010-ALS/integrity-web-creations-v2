@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav        from '../components/Nav.astro';
+import Footer     from '../components/Footer.astro';
+import BottomCTA  from '../components/sections/BottomCTA.astro';
+---
+<BaseLayout
+  title="Why You Need a Great Website | Integrity Web Creations"
+  description="75% of consumers judge business credibility by website design. Learn why your web presence directly impacts your revenue — and what to do about it."
+>
+  <Nav />
+  <main class="pt-16">
+
+    <section class="bg-[#f0f4ff] py-24">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <h1 class="font-extrabold text-[#0f172a] mb-5" style="font-size:clamp(26px,4.2vw,52px);">
+          Why Your Website Matters More Than You Think
+        </h1>
+        <p class="text-[#64748b] text-lg leading-relaxed max-w-2xl mx-auto">
+          For most potential customers, your website is your first impression &mdash; and first impressions form in under 0.05 seconds.
+        </p>
+      </div>
+    </section>
+
+    <section class="bg-white py-20">
+      <div class="max-w-5xl mx-auto px-6">
+
+        <h2 class="font-extrabold text-[#0f172a] text-center mb-12" style="font-size:clamp(22px,3vw,40px);">
+          What the Data Shows
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-20">
+          {[
+            {
+              stat: '75%',
+              label: 'of consumers judge business credibility based on website design',
+              source: 'Stanford Web Credibility Research',
+            },
+            {
+              stat: '0.05s',
+              label: 'is all it takes for users to form an opinion about your website',
+              source: 'Behaviour & Information Technology',
+            },
+            {
+              stat: '88%',
+              label: 'of online consumers are less likely to return after a bad user experience',
+              source: 'Gomez Reports',
+            },
+          ].map(item => (
+            <div class="p-8 border border-[#e2e8f0] rounded-2xl hover:border-[#2563eb] hover:shadow-lg transition-all">
+              <div class="text-4xl font-extrabold text-[#2563eb] mb-3">{item.stat}</div>
+              <p class="text-[#374151] text-sm leading-relaxed mb-3">{item.label}</p>
+              <p class="text-[#94a3b8] text-xs italic">{item.source}</p>
+            </div>
+          ))}
+        </div>
+
+        <h2 class="font-extrabold text-[#0f172a] text-center mb-10" style="font-size:clamp(22px,3vw,40px);">
+          The Real Cost of a Bad Website
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-[#fef2f2] border border-[#fecaca] rounded-2xl p-8">
+            <div class="flex items-center gap-2 mb-5">
+              <i class="fa-solid fa-circle-xmark text-[#ef4444] text-lg"></i>
+              <h3 class="font-bold text-[#0f172a]">A Bad Website Costs You</h3>
+            </div>
+            <ul class="space-y-3">
+              {[
+                'Customers who leave before they ever call',
+                "Credibility you can't get back",
+                "Google rankings you can't compete for",
+                'Revenue going to competitors with better sites',
+                "The appearance that you're not serious about your business",
+              ].map(item => (
+                <li class="flex items-start gap-2 text-sm text-[#374151]">
+                  <i class="fa-solid fa-xmark text-[#ef4444] mt-0.5 flex-shrink-0"></i>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-8">
+            <div class="flex items-center gap-2 mb-5">
+              <i class="fa-solid fa-circle-check text-[#22c55e] text-lg"></i>
+              <h3 class="font-bold text-[#0f172a]">A Great Website Earns You</h3>
+            </div>
+            <ul class="space-y-3">
+              {[
+                'Instant credibility that converts visitors to customers',
+                'Google visibility that brings customers to you',
+                'A 24/7 salesperson working while you sleep',
+                'A competitive advantage over local businesses',
+                'The confidence that comes from being proud of your online presence',
+              ].map(item => (
+                <li class="flex items-start gap-2 text-sm text-[#374151]">
+                  <i class="fa-solid fa-check text-[#22c55e] mt-0.5 flex-shrink-0"></i>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <BottomCTA />
+  </main>
+  <Footer />
+</BaseLayout>

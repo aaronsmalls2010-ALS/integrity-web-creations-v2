@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav        from '../components/Nav.astro';
+import Footer     from '../components/Footer.astro';
+import About      from '../components/sections/About.astro';
+import BottomCTA  from '../components/sections/BottomCTA.astro';
+---
+<BaseLayout
+  title="About A. Smalls | Integrity Web Creations — Beaufort, SC"
+  description="Meet A. Smalls — USC Computer Engineering grad (2010) and founder of Integrity Web Creations. Building professional web presence for small businesses since 2010."
+>
+  <Nav />
+  <main class="pt-16">
+
+    <section class="bg-[#f0f4ff] py-24">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <h1 class="font-extrabold text-[#0f172a] mb-5" style="font-size:clamp(26px,4.2vw,52px);">
+          About Integrity Web Creations
+        </h1>
+        <p class="text-[#64748b] text-lg leading-relaxed max-w-2xl mx-auto">
+          Built on a simple belief: every small business in America deserves a professional web presence &mdash; not just the ones who can afford an agency.
+        </p>
+      </div>
+    </section>
+
+    <About />
+
+    <section class="bg-[#f8fafc] py-24">
+      <div class="max-w-4xl mx-auto px-6">
+        <h2 class="font-extrabold text-[#0f172a] mb-12 text-center" style="font-size:clamp(22px,3vw,40px);">
+          The IWC Story
+        </h2>
+        <div class="space-y-8">
+          {[
+            {
+              year: '2010',
+              event: 'Founded IWC after graduating from USC with a Computer Engineering degree. Returned to Beaufort, SC with a mission: make the same quality web presence big companies pay for accessible to small local businesses.',
+            },
+            {
+              year: '2010–2018',
+              event: "Grew IWC while serving clients across Beaufort, Savannah, and the Southeast. Built websites for churches, professional organizations, medical practices, marinas, and local businesses.",
+            },
+            {
+              year: '2018–2025',
+              event: "A chapter of family — stepping back from public-facing work to be fully present at home. IWC's existing clients remained supported throughout this period.",
+            },
+            {
+              year: '2026',
+              event: 'Returning with renewed focus, modern skills (Astro, Tailwind, TypeScript), and the same commitment to integrity that has defined this business since day one.',
+            },
+          ].map(item => (
+            <div class="flex gap-6 items-start">
+              <div class="flex-shrink-0 text-[#2563eb] font-extrabold text-sm w-24 pt-0.5 text-right">
+                {item.year}
+              </div>
+              <div class="flex-1 pb-8 border-b border-[#e2e8f0] last:border-0">
+                <p class="text-[#374151] text-sm leading-relaxed">{item.event}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <BottomCTA />
+  </main>
+  <Footer />
+</BaseLayout>

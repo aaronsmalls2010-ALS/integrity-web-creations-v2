@@ -1,0 +1,50 @@
+---
+const stats = [
+  { value: 15,  suffix: '+',  label: 'Years of Experience' },
+  { value: 1,   suffix: 'M+', label: 'Views Generated Across Client Sites' },
+  { value: 100, suffix: '%',  label: 'Client Satisfaction' },
+];
+---
+<section class="bg-white py-20">
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+      {stats.map(stat => (
+        <div class="flex flex-col items-center gap-2">
+          <span
+            class="text-5xl font-extrabold text-[#2563eb] tabular-nums stat-counter"
+            data-target={stat.value}
+            data-suffix={stat.suffix}
+          >0</span>
+          <p class="text-[#64748b] text-sm font-medium max-w-[160px] leading-snug">{stat.label}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const counters = document.querySelectorAll<HTMLElement>('.stat-counter');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      observer.unobserve(entry.target);
+
+      const el     = entry.target as HTMLElement;
+      const target = parseInt(el.dataset.target ?? '0');
+      const suffix = el.dataset.suffix ?? '';
+      const start  = performance.now();
+
+      function update(now: number) {
+        const progress = Math.min((now - start) / 1800, 1);
+        const eased    = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(eased * target) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+
+      requestAnimationFrame(update);
+    });
+  }, { threshold: 0.4 });
+
+  counters.forEach(c => observer.observe(c));
+</script>
