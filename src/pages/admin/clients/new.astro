@@ -1,0 +1,34 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="New Client">
+  <h1 class="text-2xl font-bold">New client</h1>
+  <form id="f" class="mt-6 grid max-w-xl grid-cols-2 gap-3">
+    <input name="name" placeholder="Name *" required class="col-span-2 rounded border p-2" />
+    <input name="business_name" placeholder="Business" class="rounded border p-2" />
+    <input name="email" type="email" placeholder="Email" class="rounded border p-2" />
+    <input name="phone" placeholder="Phone" class="rounded border p-2" />
+    <input name="address_line1" placeholder="Address" class="rounded border p-2" />
+    <input name="city" placeholder="City" class="rounded border p-2" />
+    <input name="state" placeholder="State" class="rounded border p-2" />
+    <input name="postal_code" placeholder="ZIP" class="rounded border p-2" />
+    <textarea name="notes" placeholder="Notes" class="col-span-2 rounded border p-2"></textarea>
+    <p id="err" class="col-span-2 hidden text-sm text-red-600"></p>
+    <button class="col-span-2 rounded bg-blue-700 p-2 font-semibold text-white">Save</button>
+  </form>
+  <script>
+    document.getElementById('f')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target as HTMLFormElement);
+      const body = Object.fromEntries(fd.entries());
+      const res = await fetch('/api/admin/clients', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const j = await res.json();
+      const err = document.getElementById('err')!;
+      if (res.ok) window.location.href = `/admin/clients/${j.client.id}`;
+      else { err.textContent = j.error; err.classList.remove('hidden'); }
+    });
+  </script>
+</AdminLayout>

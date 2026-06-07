@@ -1,0 +1,23 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listClients } from '../../../lib/db/clients';
+const clients = await listClients(Astro.cookies);
+---
+<AdminLayout title="Clients">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Clients</h1>
+    <a href="/admin/clients/new" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">New client</a>
+  </div>
+  <table class="mt-6 w-full text-sm">
+    <thead><tr class="text-left text-slate-500"><th class="p-2">Name</th><th>Business</th><th>Email</th><th>Status</th></tr></thead>
+    <tbody>
+      {clients.map((c) => (
+        <tr class="border-t hover:bg-slate-50">
+          <td class="p-2"><a class="font-medium text-blue-700" href={`/admin/clients/${c.id}`}>{c.name}</a></td>
+          <td>{c.business_name}</td><td>{c.email}</td><td>{c.status}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</AdminLayout>

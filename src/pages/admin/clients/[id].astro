@@ -1,0 +1,45 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getClient } from '../../../lib/db/clients';
+const c = await getClient(Astro.cookies, Astro.params.id!);
+---
+<AdminLayout title={c.name}>
+  <h1 class="text-2xl font-bold">{c.name}</h1>
+  <form id="f" class="mt-6 grid max-w-xl grid-cols-2 gap-3" data-id={c.id}>
+    <input name="name" value={c.name} required class="col-span-2 rounded border p-2" />
+    <input name="business_name" value={c.business_name ?? ''} class="rounded border p-2" />
+    <input name="email" value={c.email ?? ''} class="rounded border p-2" />
+    <input name="phone" value={c.phone ?? ''} class="rounded border p-2" />
+    <input name="address_line1" value={c.address_line1 ?? ''} class="rounded border p-2" />
+    <input name="city" value={c.city ?? ''} class="rounded border p-2" />
+    <input name="state" value={c.state ?? ''} class="rounded border p-2" />
+    <input name="postal_code" value={c.postal_code ?? ''} class="rounded border p-2" />
+    <textarea name="notes" class="col-span-2 rounded border p-2">{c.notes ?? ''}</textarea>
+    <p id="err" class="col-span-2 hidden text-sm text-red-600"></p>
+    <div class="col-span-2 flex gap-2">
+      <button class="rounded bg-blue-700 px-4 py-2 font-semibold text-white">Save</button>
+      <button type="button" id="archive" class="rounded bg-slate-200 px-4 py-2">Archive</button>
+    </div>
+  </form>
+  <section class="mt-10"><h2 class="font-semibold text-slate-500">Invoices</h2><p class="text-sm text-slate-400">Appears in Phase 2.</p></section>
+  <script>
+    const form = document.getElementById('f') as HTMLFormElement;
+    const id = form.dataset.id;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = Object.fromEntries(new FormData(form).entries());
+      const res = await fetch(`/api/admin/clients/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const err = document.getElementById('err')!;
+      if (res.ok) location.reload();
+      else { err.textContent = (await res.json()).error; err.classList.remove('hidden'); }
+    });
+    document.getElementById('archive')!.addEventListener('click', async () => {
+      if (!confirm('Archive this client?')) return;
+      await fetch(`/api/admin/clients/${id}`, { method: 'DELETE' });
+      window.location.href = '/admin/clients';
+    });
+  </script>
+</AdminLayout>
