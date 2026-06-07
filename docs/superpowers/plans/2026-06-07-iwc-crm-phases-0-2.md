@@ -13,6 +13,21 @@
 
 ---
 
+## ⚙️ ARCHITECTURE UPDATE (2026-06-07) — read before any task
+
+The CRM **reuses an existing Supabase project** instead of a new one (cost decision). These deltas OVERRIDE the task text below wherever they conflict:
+
+- **Project:** `umami-analytics`, ref **`oumrxmzstbcukvtylmcc`**, region us-east-1. URL `https://oumrxmzstbcukvtylmcc.supabase.co`. (Org: Integrity Web Creations `xczhqjekanvhsqzsbkcx`.)
+- **Dedicated schema:** ALL CRM tables, functions, and the settings row live in a new **`crm`** Postgres schema — never `public` (that schema belongs to umami). Every `create table` is `crm.<name>`; the number RPC is `crm.allocate_invoice_number()`.
+- **PostgREST exposure:** `crm` must be added to the project's Exposed Schemas (Dashboard → Settings → API → Exposed schemas: add `crm`) so supabase-js can reach it. One-time manual step in Task 0.1.
+- **Client default schema:** both Supabase clients (Task 0.7) pass `db: { schema: 'crm' }` so `.from('clients')` resolves to `crm.clients` with no per-call `.schema()`.
+- **`is_admin()`** helper lives in `public` (so storage.objects policies can call it); CRM RLS policies call `public.is_admin()`.
+- **No project creation / no separate dev project.** Task 0.1 becomes: retrieve URL + keys for the existing project, write `.env`, add `crm` to exposed schemas. Service-role key is fetched from the Dashboard (MCP does not expose it) and is only required from Phase 2 onward.
+- **Task 0.10 (seed user):** the project's Supabase Auth (`auth.users`) is unused by umami (umami uses direct Postgres + its own `public.user` table), so creating the single admin user + disabling public signups is safe and does not affect umami.
+- **Pre-existing fix applied:** migration `enable_rls_umami_tables` enabled RLS on all 18 umami `public.*` tables (they were exposed). Do not add policies to them — deny-all via PostgREST is intended; umami bypasses RLS via its direct connection.
+
+---
+
 ## Conventions (read once before starting)
 
 - **Money:** never floats. Integers in cents everywhere; format only at the view edge via `formatUSD()`.
