@@ -1,0 +1,9 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+const admin = Astro.locals.admin!;
+---
+<AdminLayout title="Dashboard">
+  <h1 class="text-2xl font-bold">Dashboard</h1>
+  <p class="mt-2 text-slate-600">Signed in as {admin.email}. Metrics arrive in Phase 5.</p>
+</AdminLayout>

@@ -1,0 +1,18 @@
+---
+export const prerender = false;
+import Sidebar from '../components/admin/Sidebar.astro';
+import '../styles/global.css';
+const { title } = Astro.props;
+const path = Astro.url.pathname;
+---
+<html lang="en"><head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>{title} — IWC Admin</title>
+</head>
+<body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+  <div class="flex min-h-screen">
+    <Sidebar path={path} />
+    <main class="flex-1 p-8"><slot /></main>
+  </div>
+</body></html>
