@@ -1,0 +1,28 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listInvoices } from '../../../lib/db/invoices';
+import { formatUSD } from '../../../lib/money';
+const invoices = await listInvoices(Astro.cookies);
+---
+<AdminLayout title="Invoices">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Invoices</h1>
+    <a href="/admin/invoices/new" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">New invoice</a>
+  </div>
+  <table class="mt-6 w-full text-sm">
+    <thead><tr class="text-left text-slate-500"><th class="p-2">Number</th><th>Client</th><th>Status</th><th>Total</th><th>Balance</th><th>Due</th></tr></thead>
+    <tbody>
+      {invoices.map((inv: any) => (
+        <tr class="border-t hover:bg-slate-50">
+          <td class="p-2"><a class="font-medium text-blue-700" href={`/admin/invoices/${inv.id}`}>{inv.invoice_number ?? 'DRAFT'}</a></td>
+          <td>{inv.client?.name}</td>
+          <td><span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold uppercase">{inv.status}</span></td>
+          <td>{formatUSD(inv.total_cents)}</td>
+          <td>{formatUSD(inv.balance_cents)}</td>
+          <td>{inv.due_date}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</AdminLayout>

@@ -2,7 +2,12 @@
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getClient } from '../../../lib/db/clients';
+import { getServerClient } from '../../../lib/supabase/server';
+import { formatUSD } from '../../../lib/money';
 const c = await getClient(Astro.cookies, Astro.params.id!);
+const { data: clientInvoices } = await getServerClient(Astro.cookies)
+  .from('invoices').select('id, invoice_number, status, total_cents, balance_cents')
+  .eq('client_id', c.id).order('created_at', { ascending: false });
 ---
 <AdminLayout title={c.name}>
   <h1 class="text-2xl font-bold">{c.name}</h1>
@@ -22,7 +27,24 @@ const c = await getClient(Astro.cookies, Astro.params.id!);
       <button type="button" id="archive" class="rounded bg-slate-200 px-4 py-2">Archive</button>
     </div>
   </form>
-  <section class="mt-10"><h2 class="font-semibold text-slate-500">Invoices</h2><p class="text-sm text-slate-400">Appears in Phase 2.</p></section>
+  <section class="mt-10">
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold">Invoices</h2>
+      <a href="/admin/invoices/new" class="text-sm text-blue-700">+ New invoice</a>
+    </div>
+    <table class="mt-2 w-full text-sm">
+      <tbody>
+        {(clientInvoices ?? []).map((inv: any) => (
+          <tr class="border-t">
+            <td class="py-1"><a class="text-blue-700" href={`/admin/invoices/${inv.id}`}>{inv.invoice_number ?? 'DRAFT'}</a></td>
+            <td>{inv.status}</td>
+            <td>{formatUSD(inv.total_cents)}</td>
+            <td>Bal {formatUSD(inv.balance_cents)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
   <script>
     const form = document.getElementById('f') as HTMLFormElement;
     const id = form.dataset.id;

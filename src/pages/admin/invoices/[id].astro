@@ -1,0 +1,80 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getInvoice } from '../../../lib/db/invoices';
+import { formatUSD } from '../../../lib/money';
+const inv: any = await getInvoice(Astro.cookies, Astro.params.id!);
+const base = Astro.url.origin;
+---
+<AdminLayout title={inv.invoice_number ?? 'Draft invoice'}>
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">{inv.invoice_number ?? 'DRAFT'} · {inv.client.name}</h1>
+    <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold uppercase">{inv.status}</span>
+  </div>
+
+  <table class="mt-6 w-full text-sm">
+    <thead><tr class="text-left text-slate-500"><th>Description</th><th>Qty</th><th>Unit</th><th class="text-right">Amount</th></tr></thead>
+    <tbody>
+      {inv.lines.sort((a:any,b:any)=>a.sort_order-b.sort_order).map((l:any) => (
+        <tr class="border-t"><td>{l.description}</td><td>{l.quantity}</td><td>{formatUSD(l.unit_price_cents)}</td><td class="text-right">{formatUSD(l.amount_cents)}</td></tr>
+      ))}
+    </tbody>
+  </table>
+  <div class="mt-4 text-right text-sm">
+    <div>Subtotal: {formatUSD(inv.subtotal_cents)}</div>
+    <div>Discount: −{formatUSD(inv.discount_cents)}</div>
+    <div>Tax: {formatUSD(inv.tax_cents)}</div>
+    <div class="text-lg font-bold">Total: {formatUSD(inv.total_cents)}</div>
+    <div>Balance: {formatUSD(inv.balance_cents)}</div>
+  </div>
+
+  {inv.public_token && (
+    <p class="mt-4 text-sm">Public link: <a class="text-blue-700" href={`/i/${inv.public_token}`}>{base}/i/{inv.public_token}</a></p>
+  )}
+
+  <div class="mt-6 flex flex-wrap gap-2" data-id={inv.id}>
+    {inv.status === 'draft' && <a href={`/admin/invoices/new`} class="hidden"></a>}
+    {inv.status === 'draft' && <button id="send" class="rounded bg-green-700 px-4 py-2 text-sm font-semibold text-white">Send</button>}
+    {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && <button id="pay" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">Record payment</button>}
+    {inv.status !== 'draft' && <a href={`/api/admin/invoices/${inv.id}/pdf`} class="rounded bg-slate-200 px-4 py-2 text-sm">Download PDF</a>}
+    <button id="dup" class="rounded bg-slate-200 px-4 py-2 text-sm">Duplicate</button>
+    <button id="void" class="rounded bg-red-100 px-4 py-2 text-sm text-red-700">{inv.status === 'draft' ? 'Delete' : 'Void'}</button>
+  </div>
+
+  <section class="mt-8">
+    <h2 class="font-semibold">Payments</h2>
+    <ul class="mt-2 text-sm">
+      {inv.payments.map((p:any) => <li>{formatUSD(p.amount_cents)} · {p.method} · {new Date(p.paid_at).toLocaleDateString()} {p.reference ? `· ${p.reference}`:''}</li>)}
+    </ul>
+  </section>
+
+  <script>
+    const wrap = document.querySelector('[data-id]') as HTMLElement;
+    const id = wrap.dataset.id!;
+    document.getElementById('send')?.addEventListener('click', async () => {
+      if (!confirm('Send invoice? This locks it and assigns a number.')) return;
+      const r = await fetch(`/api/admin/invoices/${id}/send`, { method: 'POST' });
+      if (r.ok) location.reload(); else alert((await r.json()).error);
+    });
+    document.getElementById('dup')?.addEventListener('click', async () => {
+      const r = await fetch(`/api/admin/invoices/${id}/duplicate`, { method: 'POST' });
+      const j = await r.json(); if (r.ok) location.href = `/admin/invoices/${j.invoice.id}`;
+    });
+    document.getElementById('void')?.addEventListener('click', async () => {
+      if (!confirm('Are you sure?')) return;
+      const r = await fetch(`/api/admin/invoices/${id}/void`, { method: 'POST' });
+      if (r.ok) location.href = '/admin/invoices';
+    });
+    document.getElementById('pay')?.addEventListener('click', async () => {
+      const amt = prompt('Amount paid (USD):'); if (!amt) return;
+      const method = prompt('Method (check/zelle/cash/other):', 'check') ?? 'other';
+      const [w, f=''] = amt.replace(/,/g,'').split('.');
+      const amount_cents = Number(w)*100 + Number((f+'00').slice(0,2));
+      const r = await fetch('/api/admin/payments', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoice_id: id, amount_cents, method }),
+      });
+      if (r.ok) location.reload(); else alert((await r.json()).error);
+    });
+  </script>
+</AdminLayout>

@@ -1,0 +1,125 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listClients } from '../../../lib/db/clients';
+import { listServices } from '../../../lib/db/services';
+const clients = await listClients(Astro.cookies);
+const services = await listServices(Astro.cookies);
+---
+<AdminLayout title="New Invoice">
+  <h1 class="text-2xl font-bold">New invoice</h1>
+  <form id="inv" class="mt-6 max-w-3xl space-y-4">
+    <div class="grid grid-cols-3 gap-3">
+      <select name="client_id" required class="rounded border p-2">
+        <option value="">Select client…</option>
+        {clients.map((c) => <option value={c.id}>{c.name}</option>)}
+      </select>
+      <input type="date" name="issue_date" required class="rounded border p-2" />
+      <input type="date" name="due_date" required class="rounded border p-2" />
+    </div>
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-slate-500"><th>Description</th><th class="w-20">Qty</th><th class="w-28">Unit $</th><th class="w-12">Tax</th><th class="w-24 text-right">Amount</th><th></th></tr></thead>
+      <tbody id="lines"></tbody>
+    </table>
+    <div class="flex gap-2">
+      <button type="button" id="addLine" class="rounded bg-slate-200 px-3 py-1 text-sm">+ Line</button>
+      <select id="presetPicker" class="rounded border p-1 text-sm">
+        <option value="">Add from preset…</option>
+        {services.map((s) => (
+          <option value={s.id} data-desc={s.name} data-price={(s.default_unit_price_cents/100).toFixed(2)} data-tax={String(s.taxable)}>{s.name} — ${(s.default_unit_price_cents/100).toFixed(2)}</option>
+        ))}
+      </select>
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <input name="tax_rate" type="number" step="0.001" placeholder="Tax rate (e.g. 0.07)" value="0" class="rounded border p-2" />
+      <input id="discount" type="text" placeholder="Discount $" value="0" class="rounded border p-2" />
+      <div class="text-right font-semibold" id="totalPreview">Total: $0.00</div>
+    </div>
+    <textarea name="notes" placeholder="Notes / terms" class="w-full rounded border p-2"></textarea>
+    <p id="err" class="hidden text-sm text-red-600"></p>
+    <button class="rounded bg-blue-700 px-4 py-2 font-semibold text-white">Save draft</button>
+  </form>
+
+  <script>
+    import { dollarsToCents, formatUSD } from '../../../lib/money';
+
+    const linesEl = document.getElementById('lines')!;
+    const taxRateEl = document.querySelector('[name=tax_rate]') as HTMLInputElement;
+    const discountEl = document.getElementById('discount') as HTMLInputElement;
+    const totalPreview = document.getElementById('totalPreview')!;
+
+    function safeCents(v: string): number { try { return dollarsToCents(v || '0'); } catch { return 0; } }
+
+    function recompute() {
+      let subtotal = 0, taxable = 0;
+      linesEl.querySelectorAll('tr').forEach((tr) => {
+        const qty = Number((tr.querySelector('.qty') as HTMLInputElement).value || '0');
+        const unit = safeCents((tr.querySelector('.unit') as HTMLInputElement).value);
+        const amt = Math.round(qty * unit);
+        (tr.querySelector('.amount') as HTMLElement).textContent = formatUSD(amt);
+        subtotal += amt;
+        if ((tr.querySelector('.tax') as HTMLInputElement).checked) taxable += amt;
+      });
+      const rate = Number(taxRateEl.value || '0');
+      const discount = safeCents(discountEl.value);
+      const tax = Math.round(taxable * rate);
+      totalPreview.textContent = 'Total: ' + formatUSD(Math.max(0, subtotal - discount + tax));
+    }
+
+    function addRow(desc = '', price = '', tax = false) {
+      const tr = document.createElement('tr');
+      tr.className = 'border-t';
+      tr.innerHTML = `
+        <td><input class="desc w-full rounded border p-1" value="${desc.replace(/"/g, '&quot;')}" /></td>
+        <td><input class="qty w-full rounded border p-1" type="number" step="0.01" value="1" /></td>
+        <td><input class="unit w-full rounded border p-1" value="${price}" /></td>
+        <td class="text-center"><input class="tax" type="checkbox" ${tax ? 'checked' : ''} /></td>
+        <td class="amount text-right">$0.00</td>
+        <td><button type="button" class="rm text-red-600">×</button></td>`;
+      linesEl.appendChild(tr);
+      tr.querySelector('.rm')!.addEventListener('click', () => { tr.remove(); recompute(); });
+      tr.querySelectorAll('input').forEach((i) => i.addEventListener('input', recompute));
+      recompute();
+    }
+
+    document.getElementById('addLine')!.addEventListener('click', () => addRow());
+    document.getElementById('presetPicker')!.addEventListener('change', (e) => {
+      const sel = e.target as HTMLSelectElement;
+      const opt = sel.selectedOptions[0];
+      if (!opt.value) return;
+      addRow(opt.dataset.desc, opt.dataset.price, opt.dataset.tax === 'true');
+      sel.value = '';
+    });
+    taxRateEl.addEventListener('input', recompute);
+    discountEl.addEventListener('input', recompute);
+    addRow();
+
+    document.getElementById('inv')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const lines = Array.from(linesEl.querySelectorAll('tr')).map((tr) => ({
+        description: (tr.querySelector('.desc') as HTMLInputElement).value,
+        quantity: Number((tr.querySelector('.qty') as HTMLInputElement).value || '0'),
+        unit_price_cents: safeCents((tr.querySelector('.unit') as HTMLInputElement).value),
+        taxable: (tr.querySelector('.tax') as HTMLInputElement).checked,
+      })).filter((l) => l.description.trim() !== '');
+      const err = document.getElementById('err')!;
+      if (lines.length === 0) { err.textContent = 'Add at least one line item with a description.'; err.classList.remove('hidden'); return; }
+      const body = {
+        client_id: (form.elements.namedItem('client_id') as HTMLSelectElement).value,
+        issue_date: (form.elements.namedItem('issue_date') as HTMLInputElement).value,
+        due_date: (form.elements.namedItem('due_date') as HTMLInputElement).value,
+        tax_rate: Number(taxRateEl.value || '0'),
+        discount_cents: safeCents(discountEl.value),
+        notes: (form.elements.namedItem('notes') as HTMLTextAreaElement).value,
+        lines,
+      };
+      const res = await fetch('/api/admin/invoices', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const j = await res.json();
+      if (res.ok) window.location.href = `/admin/invoices/${j.invoice.id}`;
+      else { err.textContent = j.error; err.classList.remove('hidden'); }
+    });
+  </script>
+</AdminLayout>
