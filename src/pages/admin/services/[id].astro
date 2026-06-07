@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getService } from '../../../lib/db/services';
+import { centsToDollars } from '../../../lib/money';
+const s = await getService(Astro.cookies, Astro.params.id!);
+---
+<AdminLayout title={s.name}>
+  <h1 class="text-2xl font-bold">{s.name}</h1>
+  <form id="f" class="mt-6 grid max-w-xl grid-cols-2 gap-3" data-id={s.id}>
+    <input name="name" value={s.name} required class="col-span-2 rounded border p-2" />
+    <textarea name="description" class="col-span-2 rounded border p-2">{s.description ?? ''}</textarea>
+    <input name="price" value={centsToDollars(s.default_unit_price_cents)} class="rounded border p-2" />
+    <input name="default_quantity" type="number" step="0.01" value={s.default_quantity} class="rounded border p-2" />
+    <label class="col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" name="taxable" checked={s.taxable} /> Taxable</label>
+    <label class="col-span-2 flex items-center gap-2 text-sm"><input type="checkbox" name="active" checked={s.active} /> Active</label>
+    <p id="err" class="col-span-2 hidden text-sm text-red-600"></p>
+    <div class="col-span-2 flex gap-2">
+      <button class="rounded bg-blue-700 px-4 py-2 font-semibold text-white">Save</button>
+      <button type="button" id="deactivate" class="rounded bg-slate-200 px-4 py-2">Deactivate</button>
+    </div>
+  </form>
+  <script>
+    const form = document.getElementById('f') as HTMLFormElement;
+    const id = form.dataset.id;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        name: (form.elements.namedItem('name') as HTMLInputElement).value,
+        description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
+        price: (form.elements.namedItem('price') as HTMLInputElement).value,
+        default_quantity: (form.elements.namedItem('default_quantity') as HTMLInputElement).value,
+        taxable: (form.elements.namedItem('taxable') as HTMLInputElement).checked,
+        active: (form.elements.namedItem('active') as HTMLInputElement).checked,
+      };
+      const res = await fetch(`/api/admin/services/${id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const err = document.getElementById('err')!;
+      if (res.ok) location.reload();
+      else { err.textContent = (await res.json()).error; err.classList.remove('hidden'); }
+    });
+    document.getElementById('deactivate')!.addEventListener('click', async () => {
+      if (!confirm('Deactivate this service?')) return;
+      await fetch(`/api/admin/services/${id}`, { method: 'DELETE' });
+      window.location.href = '/admin/services';
+    });
+  </script>
+</AdminLayout>

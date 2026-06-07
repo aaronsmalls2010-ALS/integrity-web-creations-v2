@@ -1,0 +1,26 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listServices } from '../../../lib/db/services';
+import { formatUSD } from '../../../lib/money';
+const services = await listServices(Astro.cookies, true);
+---
+<AdminLayout title="Services">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Services</h1>
+    <a href="/admin/services/new" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">New service</a>
+  </div>
+  <table class="mt-6 w-full text-sm">
+    <thead><tr class="text-left text-slate-500"><th class="p-2">Name</th><th>Price</th><th>Taxable</th><th>Active</th></tr></thead>
+    <tbody>
+      {services.map((s) => (
+        <tr class="border-t hover:bg-slate-50">
+          <td class="p-2"><a class="font-medium text-blue-700" href={`/admin/services/${s.id}`}>{s.name}</a></td>
+          <td>{formatUSD(s.default_unit_price_cents)}</td>
+          <td>{s.taxable ? 'Yes' : 'No'}</td>
+          <td>{s.active ? 'Yes' : 'No'}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</AdminLayout>
