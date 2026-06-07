@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /i/
 
 Sitemap: https://www.integritywebcreations.com/sitemap-index.xml
