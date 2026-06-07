@@ -13,7 +13,9 @@ export async function updateSettings(cookies: AstroCookies, patch: Record<string
 }
 export async function uploadLogo(cookies: AstroCookies, file: File) {
   const sb = getServerClient(cookies);
-  const path = `logo-${Date.now()}-${file.name}`;
+  // Sanitize the storage key — never trust the client-supplied filename; keep only a safe extension.
+  const ext = (file.name.split('.').pop() ?? '').replace(/[^a-z0-9]/gi, '').toLowerCase() || 'bin';
+  const path = `logo-${Date.now()}.${ext}`;
   const { error } = await sb.storage.from('branding').upload(path, file, { upsert: true });
   if (error) throw error;
   await updateSettings(cookies, { logo_storage_path: path });
