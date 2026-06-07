@@ -1,7 +1,7 @@
 import type { AstroCookies } from 'astro';
 import { getServerClient } from './supabase/server';
 
-const ALLOWLIST = () => import.meta.env.ADMIN_ALLOWLIST_EMAIL as string;
+const ALLOWLIST = () => import.meta.env.ADMIN_ALLOWLIST_EMAIL as string | undefined;
 
 export interface AdminSession {
   email: string;
@@ -12,7 +12,8 @@ export interface AdminSession {
 export async function getAdminSession(cookies: AstroCookies): Promise<AdminSession | null> {
   const sb = getServerClient(cookies);
   const { data: { user } } = await sb.auth.getUser();
-  if (!user || user.email !== ALLOWLIST()) return null;
+  const allow = ALLOWLIST();
+  if (!allow || !user || user.email?.toLowerCase() !== allow.toLowerCase()) return null;
 
   const { data: aalData } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   const current = aalData?.currentLevel ?? 'aal1';

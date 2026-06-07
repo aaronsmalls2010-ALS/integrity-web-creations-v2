@@ -21,7 +21,8 @@ const { path } = Astro.props;
 </nav>
 <script>
   document.getElementById('logout')?.addEventListener('click', async () => {
-    await fetch('/api/admin/auth/logout', { method: 'POST' });
-    window.location.href = '/admin/login';
+    try { await fetch('/api/admin/auth/logout', { method: 'POST' }); }
+    catch { /* ignore network error; still redirect */ }
+    finally { window.location.href = '/admin/login'; }
   });
 </script>

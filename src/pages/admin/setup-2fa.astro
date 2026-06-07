@@ -15,16 +15,22 @@ export const prerender = false;
   <script>
     let factorId: string | null = null;
     const err = document.getElementById('err')!;
-    document.getElementById('enroll')!.addEventListener('click', async () => {
+    const enrollBtn = document.getElementById('enroll') as HTMLButtonElement;
+    const verifyBtn = document.getElementById('verify') as HTMLButtonElement;
+    verifyBtn.disabled = true;
+    enrollBtn.addEventListener('click', async () => {
       const res = await fetch('/api/admin/auth/mfa-enroll', { method: 'POST' });
       const j = await res.json();
       if (!res.ok) { err.textContent = j.error; err.classList.remove('hidden'); return; }
       factorId = j.factorId;
       const img = document.getElementById('qr') as HTMLImageElement;
       img.src = j.qr; img.classList.remove('hidden');
+      enrollBtn.disabled = true;
+      verifyBtn.disabled = false;
     });
-    document.getElementById('verify')!.addEventListener('click', async () => {
+    verifyBtn.addEventListener('click', async () => {
       err.classList.add('hidden');
+      if (!factorId) { err.textContent = 'Enroll first'; err.classList.remove('hidden'); return; }
       const code = (document.getElementById('code') as HTMLInputElement).value.trim();
       const res = await fetch('/api/admin/auth/mfa-verify', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

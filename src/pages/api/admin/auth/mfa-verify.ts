@@ -10,7 +10,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   if (!body.factorId || !body.code) return badRequest('Missing factorId or code');
   const sb = getServerClient(cookies);
   const challenge = await sb.auth.mfa.challenge({ factorId: body.factorId });
-  if (challenge.error) return unprocessable(challenge.error.message);
+  if (challenge.error) return unprocessable('Invalid code');
   const verify = await sb.auth.mfa.verify({
     factorId: body.factorId,
     challengeId: challenge.data.id,

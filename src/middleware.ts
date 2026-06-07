@@ -8,7 +8,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   if (!pathname.startsWith('/admin') && !pathname.startsWith('/api/admin')) {
     return next();
   }
-  if (PUBLIC_ADMIN_PATHS.includes(pathname) || pathname === '/api/admin/auth/login') {
+  if (PUBLIC_ADMIN_PATHS.includes(pathname) || pathname.startsWith('/api/admin/auth/')) {
     return next();
   }
 
