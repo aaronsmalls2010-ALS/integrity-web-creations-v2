@@ -47,8 +47,8 @@ export function ownerAlertEmail(kind: 'viewed' | 'paid', inv: any) {
   const bill = inv.bill_to_snapshot ?? {};
   const who = bill.name ?? bill.business_name ?? 'A client';
   const subject = kind === 'paid'
-    ? `💸 Paid: Invoice ${inv.invoice_number} (${formatUSD(inv.total_cents)})`
-    : `👀 Viewed: Invoice ${inv.invoice_number}`;
+    ? `Paid: Invoice ${inv.invoice_number} (${formatUSD(inv.total_cents)})`
+    : `Viewed: Invoice ${inv.invoice_number}`;
   const verb = kind === 'paid' ? `paid invoice ${inv.invoice_number} (${formatUSD(inv.total_cents)})` : `viewed invoice ${inv.invoice_number}`;
   const htmlBody = shell(`<p>${esc(who)} just ${kind === 'paid' ? `paid invoice ${esc(inv.invoice_number)} (${formatUSD(inv.total_cents)})` : `viewed invoice ${esc(inv.invoice_number)}`}.</p>`);
   const textBody = `${who} just ${verb}.`;
