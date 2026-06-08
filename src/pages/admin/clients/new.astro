@@ -3,24 +3,55 @@ export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="New Client">
-  <h1 class="text-2xl font-bold">New client</h1>
-  <form id="f" class="mt-6 grid max-w-xl grid-cols-2 gap-3">
-    <input name="name" placeholder="Name *" required class="col-span-2 rounded border p-2" />
-    <input name="business_name" placeholder="Business" class="rounded border p-2" />
-    <input name="email" type="email" placeholder="Email" class="rounded border p-2" />
-    <input name="phone" placeholder="Phone" class="rounded border p-2" />
-    <input name="address_line1" placeholder="Address" class="rounded border p-2" />
-    <input name="city" placeholder="City" class="rounded border p-2" />
-    <input name="state" placeholder="State" class="rounded border p-2" />
-    <input name="postal_code" placeholder="ZIP" class="rounded border p-2" />
-    <textarea name="notes" placeholder="Notes" class="col-span-2 rounded border p-2"></textarea>
-    <p id="err" class="col-span-2 hidden text-sm text-red-600"></p>
-    <button class="col-span-2 rounded bg-blue-700 p-2 font-semibold text-white">Save</button>
+  <h1 class="text-2xl font-bold text-[#e6edf5]">New client</h1>
+  <form id="f" class="mt-6 grid max-w-xl grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="sm:col-span-2">
+      <label class="lbl" for="name">Name *</label>
+      <input id="name" name="name" placeholder="Full name" required class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="business_name">Business</label>
+      <input id="business_name" name="business_name" placeholder="Company or DBA" class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="email">Email</label>
+      <input id="email" name="email" type="email" placeholder="client@example.com" class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="phone">Phone</label>
+      <input id="phone" name="phone" placeholder="(555) 000-0000" class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="address_line1">Address</label>
+      <input id="address_line1" name="address_line1" placeholder="123 Main St" class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="city">City</label>
+      <input id="city" name="city" placeholder="City" class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="state">State</label>
+      <input id="state" name="state" placeholder="MS" class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="postal_code">ZIP</label>
+      <input id="postal_code" name="postal_code" placeholder="39501" class="input" />
+    </div>
+    <div class="sm:col-span-2">
+      <label class="lbl" for="notes">Notes</label>
+      <textarea id="notes" name="notes" placeholder="Internal notes about this client" class="input"></textarea>
+    </div>
+    <p id="err" class="sm:col-span-2 hidden text-sm text-[#ff6b6b]" role="alert"></p>
+    <button type="submit" class="sm:col-span-2 btn-primary">Save</button>
   </form>
   <script>
     document.getElementById('f')!.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const fd = new FormData(e.target as HTMLFormElement);
+      const form = e.target as HTMLFormElement;
+      const btn = form.querySelector('button[type=submit],button:not([type])') as HTMLButtonElement;
+      const prevText = btn.textContent!;
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const fd = new FormData(form);
       const body = Object.fromEntries(fd.entries());
       const res = await fetch('/api/admin/clients', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -28,7 +59,7 @@ import AdminLayout from '../../../layouts/AdminLayout.astro';
       const j = await res.json();
       const err = document.getElementById('err')!;
       if (res.ok) window.location.href = `/admin/clients/${j.client.id}`;
-      else { err.textContent = j.error; err.classList.remove('hidden'); }
+      else { err.textContent = j.error; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; }
     });
   </script>
 </AdminLayout>

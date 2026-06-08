@@ -10,36 +10,63 @@ const { data: clientInvoices } = await getServerClient(Astro.cookies)
   .eq('client_id', c.id).order('created_at', { ascending: false });
 ---
 <AdminLayout title={c.name}>
-  <h1 class="text-2xl font-bold">{c.name}</h1>
-  <form id="f" class="mt-6 grid max-w-xl grid-cols-2 gap-3" data-id={c.id}>
-    <input name="name" value={c.name} required class="col-span-2 rounded border p-2" />
-    <input name="business_name" value={c.business_name ?? ''} class="rounded border p-2" />
-    <input name="email" value={c.email ?? ''} class="rounded border p-2" />
-    <input name="phone" value={c.phone ?? ''} class="rounded border p-2" />
-    <input name="address_line1" value={c.address_line1 ?? ''} class="rounded border p-2" />
-    <input name="city" value={c.city ?? ''} class="rounded border p-2" />
-    <input name="state" value={c.state ?? ''} class="rounded border p-2" />
-    <input name="postal_code" value={c.postal_code ?? ''} class="rounded border p-2" />
-    <textarea name="notes" class="col-span-2 rounded border p-2">{c.notes ?? ''}</textarea>
-    <p id="err" class="col-span-2 hidden text-sm text-red-600"></p>
-    <div class="col-span-2 flex gap-2">
-      <button class="rounded bg-blue-700 px-4 py-2 font-semibold text-white">Save</button>
-      <button type="button" id="archive" class="rounded bg-slate-200 px-4 py-2">Archive</button>
+  <h1 class="text-2xl font-bold text-[#e6edf5]">{c.name}</h1>
+  <form id="f" class="mt-6 grid max-w-xl grid-cols-1 sm:grid-cols-2 gap-4" data-id={c.id}>
+    <div class="sm:col-span-2">
+      <label class="lbl" for="name">Name *</label>
+      <input id="name" name="name" value={c.name} required class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="business_name">Business</label>
+      <input id="business_name" name="business_name" value={c.business_name ?? ''} class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="email">Email</label>
+      <input id="email" name="email" value={c.email ?? ''} class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="phone">Phone</label>
+      <input id="phone" name="phone" value={c.phone ?? ''} class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="address_line1">Address</label>
+      <input id="address_line1" name="address_line1" value={c.address_line1 ?? ''} class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="city">City</label>
+      <input id="city" name="city" value={c.city ?? ''} class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="state">State</label>
+      <input id="state" name="state" value={c.state ?? ''} class="input" />
+    </div>
+    <div>
+      <label class="lbl" for="postal_code">ZIP</label>
+      <input id="postal_code" name="postal_code" value={c.postal_code ?? ''} class="input" />
+    </div>
+    <div class="sm:col-span-2">
+      <label class="lbl" for="notes">Notes</label>
+      <textarea id="notes" name="notes" class="input">{c.notes ?? ''}</textarea>
+    </div>
+    <p id="err" class="sm:col-span-2 hidden text-sm text-[#ff6b6b]" role="alert"></p>
+    <div class="sm:col-span-2 flex gap-2">
+      <button type="submit" class="btn-primary">Save</button>
+      <button type="button" id="archive" class="btn-ghost" style="color:#ff6b6b">Archive</button>
     </div>
   </form>
   <section class="mt-10">
     <div class="flex items-center justify-between">
-      <h2 class="font-semibold">Invoices</h2>
-      <a href="/admin/invoices/new" class="text-sm text-blue-700">+ New invoice</a>
+      <h2 class="font-semibold text-[#e6edf5]">Invoices</h2>
+      <a href="/admin/invoices/new" class="text-sm text-[#00e5ff]">+ New invoice</a>
     </div>
     <table class="mt-2 w-full text-sm">
       <tbody>
         {(clientInvoices ?? []).map((inv: any) => (
-          <tr class="border-t">
-            <td class="py-1"><a class="text-blue-700" href={`/admin/invoices/${inv.id}`}>{inv.invoice_number ?? 'DRAFT'}</a></td>
-            <td>{inv.status}</td>
-            <td>{formatUSD(inv.total_cents)}</td>
-            <td>Bal {formatUSD(inv.balance_cents)}</td>
+          <tr class="border-t border-white/10">
+            <td class="py-1"><a class="text-[#00e5ff]" href={`/admin/invoices/${inv.id}`}>{inv.invoice_number ?? 'DRAFT'}</a></td>
+            <td class="text-[#9fb3c8]">{inv.status}</td>
+            <td class="text-[#e6edf5]">{formatUSD(inv.total_cents)}</td>
+            <td class="text-[#9fb3c8]">Bal {formatUSD(inv.balance_cents)}</td>
           </tr>
         ))}
       </tbody>
@@ -50,13 +77,16 @@ const { data: clientInvoices } = await getServerClient(Astro.cookies)
     const id = form.dataset.id;
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const btn = form.querySelector('button[type=submit],button:not([type])') as HTMLButtonElement;
+      const prevText = btn.textContent!;
+      btn.disabled = true; btn.textContent = 'Saving…';
       const body = Object.fromEntries(new FormData(form).entries());
       const res = await fetch(`/api/admin/clients/${id}`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
       const err = document.getElementById('err')!;
       if (res.ok) location.reload();
-      else { err.textContent = (await res.json()).error; err.classList.remove('hidden'); }
+      else { err.textContent = (await res.json()).error; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; }
     });
     document.getElementById('archive')!.addEventListener('click', async () => {
       if (!confirm('Archive this client?')) return;
