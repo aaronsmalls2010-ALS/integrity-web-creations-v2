@@ -11,9 +11,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const password = body.password ?? '';
   const allow = import.meta.env.ADMIN_ALLOWLIST_EMAIL as string | undefined;
   if (!allow) return serverError('Server misconfigured');
-  if (email !== allow.toLowerCase()) return unprocessable('Invalid credentials');
+  if (email !== allow.trim().toLowerCase()) {
+    console.error('[login] allowlist mismatch — input vs allow:', JSON.stringify(email), JSON.stringify(allow));
+    return unprocessable('Invalid credentials');
+  }
   const sb = getServerClient(cookies);
   const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) return unprocessable('Invalid credentials');
+  if (error) {
+    console.error('[login] signInWithPassword error:', error.status, error.message);
+    return unprocessable('Invalid credentials');
+  }
   return json({ success: true });
 };

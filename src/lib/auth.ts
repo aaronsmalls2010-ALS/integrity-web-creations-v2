@@ -13,7 +13,7 @@ export async function getAdminSession(cookies: AstroCookies): Promise<AdminSessi
   const sb = getServerClient(cookies);
   const { data: { user } } = await sb.auth.getUser();
   const allow = ALLOWLIST();
-  if (!allow || !user || user.email?.toLowerCase() !== allow.toLowerCase()) return null;
+  if (!allow || !user || user.email?.toLowerCase() !== allow.trim().toLowerCase()) return null;
 
   const { data: aalData } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
   const current = aalData?.currentLevel ?? 'aal1';
