@@ -150,10 +150,19 @@ export async function getInvoiceByToken(token: string) {
 
 export async function markViewed(token: string) {
   const sb = getAdminClient();
-  const { data } = await sb.from('invoices').select('id,status,viewed_at').eq('public_token', token).single();
-  const row = data as any;
+  const { data } = await sb.from('invoices').select('id,status,viewed_at,invoice_number,total_cents,bill_to_snapshot').eq('public_token', token).single();
+  const row: any = data;
   if (row && row.status === 'sent' && !row.viewed_at) {
     await sb.from('invoices').update({ status: 'viewed', viewed_at: new Date().toISOString() }).eq('id', row.id);
     await sb.from('activity_log').insert({ entity_type: 'invoice', entity_id: row.id, action: 'viewed', detail: {} });
+    try {
+      const { sendEmail } = await import('../email/postmark');
+      const { ownerAlertEmail } = await import('../email/content');
+      const owner = import.meta.env.ADMIN_ALLOWLIST_EMAIL;
+      if (owner) {
+        const oa = ownerAlertEmail('viewed', row);
+        await sendEmail({ to: owner, subject: oa.subject, htmlBody: oa.htmlBody, textBody: oa.textBody });
+      }
+    } catch (err) { console.error('[markViewed] owner alert failed (non-fatal):', err); }
   }
 }

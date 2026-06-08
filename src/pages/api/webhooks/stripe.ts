@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { getStripe } from '../../../lib/stripe/client';
 import { getAdminClient } from '../../../lib/supabase/admin';
 import { applyPayments, type InvoiceStatus } from '../../../lib/invoice/status';
+import { sendEmail } from '../../../lib/email/postmark';
+import { receiptEmail, ownerAlertEmail } from '../../../lib/email/content';
 
 export const prerender = false;
 
@@ -51,6 +53,23 @@ export const POST: APIRoute = async ({ request }) => {
             stripe_payment_intent_id: pi,
           }).eq('id', invoiceId);
           await sb.from('activity_log').insert({ entity_type: 'invoice', entity_id: invoiceId, action: 'payment_recorded', detail: { method: 'stripe', amount_cents: amount, event: event.id } });
+          try {
+            const { data: fresh } = await sb.from('invoices').select('*').eq('id', invoiceId).single();
+            const f: any = fresh;
+            if (f) {
+              const baseUrl = new URL(request.url).origin;
+              const to = f.bill_to_snapshot?.email;
+              if (to) {
+                const e = receiptEmail(f, amount, baseUrl);
+                await sendEmail({ to, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody });
+              }
+              const owner = import.meta.env.ADMIN_ALLOWLIST_EMAIL;
+              if (f.status === 'paid' && owner) {
+                const oa = ownerAlertEmail('paid', f);
+                await sendEmail({ to: owner, subject: oa.subject, htmlBody: oa.htmlBody, textBody: oa.textBody });
+              }
+            }
+          } catch (err) { console.error('[stripe webhook] email failed (non-fatal):', err); }
         }
       }
     }
