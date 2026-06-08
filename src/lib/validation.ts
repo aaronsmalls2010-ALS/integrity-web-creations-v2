@@ -27,3 +27,22 @@ export const serviceSchema = z.object({
   active: z.boolean().default(true),
 });
 export type ServiceInput = z.infer<typeof serviceSchema>;
+
+export const recurringLineSchema = z.object({
+  description: z.string().trim().min(1).max(500),
+  quantity: z.number().positive().default(1),
+  unit_price_cents: z.number().int().nonnegative(),
+  taxable: z.boolean().default(false),
+});
+
+export const recurringSchema = z.object({
+  client_id: z.string().uuid(),
+  name: z.string().trim().min(1).max(200),
+  interval: z.enum(['monthly', 'quarterly', 'annual']),
+  interval_count: z.number().int().positive().default(1),
+  next_run_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'next_run_date must be YYYY-MM-DD'),
+  auto_send: z.boolean().default(false),
+  active: z.boolean().default(true),
+  line_items: z.array(recurringLineSchema).min(1, 'At least one line item is required'),
+});
+export type RecurringInput = z.infer<typeof recurringSchema>;
