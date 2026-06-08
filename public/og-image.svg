@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#000d1a"/>
+      <stop offset="100%" stop-color="#001529"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0066ff"/>
+      <stop offset="100%" stop-color="#00e5ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="3" fill="url(#accent)"/>
+  <text x="100" y="220" font-family="system-ui,-apple-system,sans-serif" font-size="28" font-weight="600" letter-spacing="4" fill="#00e5ff" text-transform="uppercase">BEAUFORT, SC — YOUR LOCAL WEB PARTNER</text>
+  <text x="100" y="310" font-family="system-ui,-apple-system,sans-serif" font-size="72" font-weight="800" fill="white" letter-spacing="-2">integrity</text>
+  <text x="100" y="380" font-family="system-ui,-apple-system,sans-serif" font-size="72" font-weight="800" fill="url(#accent)" letter-spacing="-2">WEB CREATIONS</text>
+  <text x="100" y="450" font-family="system-ui,-apple-system,sans-serif" font-size="26" fill="rgba(255,255,255,0.6)" font-weight="300">Custom Web Design · Brand Identity · SEO · E-Commerce</text>
+  <line x1="100" y1="490" x2="400" y2="490" stroke="url(#accent)" stroke-width="2" opacity="0.4"/>
+  <text x="100" y="540" font-family="system-ui,-apple-system,sans-serif" font-size="22" fill="rgba(255,255,255,0.45)" font-weight="400">(843) 263-0072 · integritywebcreations.com</text>
+</svg>
