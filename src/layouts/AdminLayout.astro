@@ -8,9 +8,10 @@ const path = Astro.url.pathname;
 <html lang="en"><head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>{title} — IWC Admin</title>
 </head>
-<body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+<body class="min-h-screen bg-[#000d1a] font-sans text-[#e6edf5]">
   <div class="flex min-h-screen">
     <Sidebar path={path} />
     <main class="flex-1 p-8"><slot /></main>

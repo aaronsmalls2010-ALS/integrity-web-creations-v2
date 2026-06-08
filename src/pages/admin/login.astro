@@ -2,14 +2,18 @@
 export const prerender = false;
 ---
 <html lang="en"><head><meta charset="utf-8" /><title>Admin Login — IWC</title>
-<meta name="robots" content="noindex" /></head>
-<body class="min-h-screen grid place-items-center bg-slate-100 font-sans">
-  <form id="f" class="w-80 rounded-xl bg-white p-6 shadow space-y-3">
-    <h1 class="text-lg font-bold">IWC Admin</h1>
-    <input id="email" type="email" placeholder="Email" required class="w-full rounded border p-2" />
-    <input id="password" type="password" placeholder="Password" required class="w-full rounded border p-2" />
-    <p id="err" class="text-sm text-red-600 hidden"></p>
-    <button class="w-full rounded bg-blue-700 p-2 font-semibold text-white">Sign in</button>
+<meta name="robots" content="noindex" />
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" /></head>
+<body class="min-h-screen grid place-items-center bg-[#000d1a] font-sans text-[#e6edf5]">
+  <form id="f" class="w-80 rounded-2xl border border-white/[0.08] bg-[#0d1b2c] p-8 shadow-2xl shadow-black/40 space-y-4">
+    <p class="text-center text-sm font-bold tracking-[0.5px] text-white">
+      <span style="color:#00e5ff">integrity</span> WEB CREATIONS
+    </p>
+    <h1 class="text-center text-lg font-bold text-[#e6edf5]">Admin Sign in</h1>
+    <input id="email" type="email" placeholder="Email" required class="w-full rounded-lg border border-[#243040] bg-[#0a1626] p-2.5 text-[#e6edf5] placeholder-[#8aa0b6] outline-none transition focus:border-[#00e5ff] focus:ring-2 focus:ring-[#00e5ff]/30" />
+    <input id="password" type="password" placeholder="Password" required class="w-full rounded-lg border border-[#243040] bg-[#0a1626] p-2.5 text-[#e6edf5] placeholder-[#8aa0b6] outline-none transition focus:border-[#00e5ff] focus:ring-2 focus:ring-[#00e5ff]/30" />
+    <p id="err" class="text-sm text-red-400 hidden"></p>
+    <button class="w-full rounded-lg p-2.5 font-semibold text-[#001018] transition hover:opacity-90" style="background-image:linear-gradient(135deg,#0066ff,#00e5ff)">Sign in</button>
   </form>
   <script>
     const f = document.getElementById('f');
