@@ -6,7 +6,8 @@ import vercel from '@astrojs/vercel';
 
 export default defineConfig({
   site: 'https://www.integritywebcreations.com',
-  adapter: vercel(),
+  // maxDuration: 60s — PDF route needs extra time for serverless Chromium cold start
+  adapter: vercel({ maxDuration: 60 }),
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()],

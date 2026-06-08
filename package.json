@@ -16,11 +16,13 @@
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
     "@astrojs/vercel": "^10.0.8",
+    "@sparticuz/chromium": "^149.0.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.107.0",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.2",
     "nodemailer": "^8.0.9",
+    "puppeteer-core": "^25.1.0",
     "tailwindcss": "^4.3.0",
     "zod": "^4.4.3"
   },
