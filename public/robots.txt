@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /i/
 
-Sitemap: https://www.integritywebcreations.com/sitemap-index.xml
+Sitemap: https://www.integritywebcreations.com/sitemap.xml

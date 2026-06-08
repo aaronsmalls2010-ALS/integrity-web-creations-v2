@@ -30,5 +30,8 @@
   "devDependencies": {
     "@types/nodemailer": "^8.0.0",
     "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "path-to-regexp": "6.3.0"
   }
 }
