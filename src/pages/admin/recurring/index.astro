@@ -1,0 +1,31 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listSchedules } from '../../../lib/db/recurring';
+import { formatUSD } from '../../../lib/money';
+const schedules = (await listSchedules(Astro.cookies)) as any[];
+const total = (items: any[]) => (items ?? []).reduce((s: number, l: any) => s + Math.round(l.quantity * l.unit_price_cents), 0);
+---
+<AdminLayout title="Recurring">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Recurring schedules</h1>
+    <a href="/admin/recurring/new" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">New schedule</a>
+  </div>
+  <table class="mt-6 w-full text-sm">
+    <thead><tr class="text-left text-slate-500"><th class="p-2">Name</th><th>Client</th><th>Interval</th><th>Next run</th><th>Amount</th><th>Mode</th><th>Active</th></tr></thead>
+    <tbody>
+      {schedules.map((s) => (
+        <tr class="border-t hover:bg-slate-50">
+          <td class="p-2"><a class="text-blue-700" href={`/admin/recurring/${s.id}`}>{s.name}</a></td>
+          <td>{s.client?.name}</td>
+          <td>{s.interval_count > 1 ? `${s.interval_count}× ` : ''}{s.interval}</td>
+          <td>{s.next_run_date}</td>
+          <td>{formatUSD(total(s.line_items))}</td>
+          <td>{s.auto_send ? 'Auto-send' : 'Draft'}</td>
+          <td>{s.active ? 'Yes' : 'No'}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {schedules.length === 0 && <p class="mt-3 text-sm text-slate-400">No recurring schedules yet.</p>}
+</AdminLayout>
