@@ -13,4 +13,7 @@ describe('toCSV', () => {
   it('treats null/undefined as empty', () => {
     expect(toCSV(['x'], [[null as any]])).toBe('x\r\n');
   });
+  it('neutralizes formula-injection characters with a leading single quote', () => {
+    expect(toCSV(['x'], [['=SUM(A1)']])).toBe("x\r\n'=SUM(A1)");
+  });
 });

@@ -46,3 +46,20 @@ export const recurringSchema = z.object({
   line_items: z.array(recurringLineSchema).min(1, 'At least one line item is required'),
 });
 export type RecurringInput = z.infer<typeof recurringSchema>;
+
+export const settingsSchema = z.object({
+  business_name: z.string().trim().min(1, 'Business name is required').max(200),
+  address_line1: z.string().trim().max(200).optional(),
+  address_line2: z.string().trim().max(200).optional(),
+  city: z.string().trim().max(100).optional(),
+  state: z.string().trim().max(50).optional(),
+  postal_code: z.string().trim().max(20).optional(),
+  reply_to: z.string().trim().max(200).optional(),
+  from_email: z.string().trim().max(200).optional(),
+  invoice_number_prefix: z.string().trim().max(20).optional(),
+  default_due_days: z.number().int().min(0).max(365),
+  default_tax_rate: z.number().min(0).max(1),
+  default_terms: z.string().trim().max(5000).optional(),
+  payment_instructions: z.string().trim().max(5000).optional(),
+});
+export type SettingsInput = z.infer<typeof settingsSchema>;
