@@ -38,7 +38,7 @@ const base = Astro.url.origin;
     {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && <button id="pay" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">Record payment</button>}
     {inv.status !== 'draft' && <a href={`/api/admin/invoices/${inv.id}/pdf`} class="rounded bg-slate-200 px-4 py-2 text-sm">Download PDF</a>}
     <button id="dup" class="rounded bg-slate-200 px-4 py-2 text-sm">Duplicate</button>
-    <button id="void" class="rounded bg-red-100 px-4 py-2 text-sm text-red-700">{inv.status === 'draft' ? 'Delete' : 'Void'}</button>
+    {inv.status !== 'paid' && inv.status !== 'void' && <button id="void" class="rounded bg-red-100 px-4 py-2 text-sm text-red-700">{inv.status === 'draft' ? 'Delete' : 'Void'}</button>}
   </div>
 
   <section class="mt-8">
