@@ -7,43 +7,53 @@ export const prerender = false;
 <title>Admin Sign in — Integrity Web Creations</title>
 <meta name="robots" content="noindex" />
 <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>
+  :root{--dark:#000d1a;--dark2:#001529;--cyan:#00e5ff;--bright:#0066ff;--dim:#00bfff;--blue:#0052cc;}
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;
+    background:radial-gradient(1100px 560px at 50% -8%,rgba(0,229,255,.13),transparent 60%),linear-gradient(135deg,#000d1a,#001529);
+    color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;}
+  .wrap{width:100%;max-width:420px;}
+  .brand{text-align:center;margin-bottom:28px;}
+  .mark{width:56px;height:56px;margin:0 auto 16px;display:grid;place-items:center;border-radius:14px;
+    background:#000d1a;border:1px solid rgba(255,255,255,.1);box-shadow:0 0 40px rgba(0,229,255,.18);}
+  .mark span{font-size:30px;font-weight:800;background:linear-gradient(135deg,#0066ff,#00e5ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;}
+  .logo{font-size:1.25rem;font-weight:700;letter-spacing:.5px;}
+  .logo .accent{color:var(--cyan);}
+  .tagline{margin-top:6px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:2.5px;color:var(--dim);}
+  .c-form{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:40px;}
+  .c-form h1{margin:0 0 22px;text-align:center;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.62);}
+  .fg{margin-bottom:18px;}
+  label{display:block;font-size:.82em;color:rgba(255,255,255,.62);margin-bottom:8px;font-weight:500;}
+  input{width:100%;background:rgba(255,255,255,.052);border:1px solid rgba(255,255,255,.1);color:#fff;
+    padding:14px 18px;border-radius:12px;font-size:.93em;font-family:inherit;outline:none;transition:all .3s ease;-webkit-appearance:none;}
+  input::placeholder{color:rgba(255,255,255,.28);}
+  input:focus{border-color:var(--cyan);background:rgba(0,229,255,.04);box-shadow:0 0 25px rgba(0,229,255,.1);}
+  .btn-submit{width:100%;background:linear-gradient(135deg,#0052cc,#00bfff);color:#fff;padding:16px;border-radius:12px;
+    font-size:1em;font-weight:600;cursor:pointer;border:none;margin-top:6px;transition:all .3s ease;box-shadow:0 0 38px rgba(0,82,204,.4);}
+  .btn-submit:hover{transform:translateY(-2px);}
+  .err{color:#ff6b6b;font-size:.85em;margin:0 0 14px;}
+  .hidden{display:none;}
+  .foot{text-align:center;margin-top:22px;font-size:.75rem;color:rgba(255,255,255,.35);}
+</style>
 </head>
-<body class="min-h-screen grid place-items-center px-4 font-sans text-white"
-  style="background: radial-gradient(1100px 560px at 50% -8%, rgba(0,229,255,0.13), transparent 60%), linear-gradient(135deg,#000d1a,#001529);">
-
-  <main class="w-full max-w-sm">
-    <!-- Brand -->
-    <div class="mb-8 text-center">
-      <div class="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-xl border border-white/10"
-        style="background:#000d1a; box-shadow:0 0 40px rgba(0,229,255,0.18)">
-        <span class="text-3xl font-extrabold"
-          style="background:linear-gradient(135deg,#0066ff,#00e5ff);-webkit-background-clip:text;background-clip:text;color:transparent">I</span>
-      </div>
-      <p class="text-xl font-bold tracking-[0.5px] text-white">
-        <span style="color:#00e5ff">integrity</span> WEB CREATIONS
-      </p>
-      <p class="mt-1 text-[11px] font-semibold uppercase tracking-[2.5px] text-[#00bfff]">
-        Custom Web Design · Beaufort, SC
-      </p>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark"><span>I</span></div>
+      <div class="logo"><span class="accent">integrity</span> WEB CREATIONS</div>
+      <div class="tagline">Custom Web Design · Beaufort, SC</div>
     </div>
-
-    <!-- Login card -->
-    <form id="f" class="rounded-2xl border border-white/10 p-7 space-y-4"
-      style="background:rgba(13,27,44,0.72); backdrop-filter:blur(12px); box-shadow:0 24px 60px rgba(0,0,0,0.45)">
-      <h1 class="text-center text-sm font-semibold uppercase tracking-[2px] text-[#8aa0b6]">Admin Sign in</h1>
-      <input id="email" type="email" placeholder="Email" required autocomplete="username"
-        class="w-full rounded-lg border border-[#243040] bg-[#0a1626] p-3 text-white placeholder-[#8aa0b6] outline-none transition focus:border-[#00e5ff] focus:ring-2 focus:ring-[#00e5ff]/30" />
-      <input id="password" type="password" placeholder="Password" required autocomplete="current-password"
-        class="w-full rounded-lg border border-[#243040] bg-[#0a1626] p-3 text-white placeholder-[#8aa0b6] outline-none transition focus:border-[#00e5ff] focus:ring-2 focus:ring-[#00e5ff]/30" />
-      <p id="err" class="hidden text-sm text-red-400"></p>
-      <button class="w-full rounded-lg p-3 font-semibold text-[#001018] transition hover:opacity-90"
-        style="background-image:linear-gradient(135deg,#0066ff,#00e5ff); box-shadow:0 8px 24px rgba(0,102,255,0.35)">
-        Sign in
-      </button>
+    <form id="f" class="c-form">
+      <h1>Admin Sign in</h1>
+      <div class="fg"><label for="email">Email</label><input id="email" type="email" required autocomplete="username" /></div>
+      <div class="fg"><label for="password">Password</label><input id="password" type="password" required autocomplete="current-password" /></div>
+      <p id="err" class="err hidden"></p>
+      <button class="btn-submit">Sign in</button>
     </form>
-
-    <p class="mt-6 text-center text-xs text-[#5b7088]">© Integrity Web Creations</p>
-  </main>
+    <p class="foot">© Integrity Web Creations</p>
+  </div>
 
   <script>
     const f = document.getElementById('f');
