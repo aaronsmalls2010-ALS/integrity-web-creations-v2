@@ -11,9 +11,29 @@ const path = Astro.url.pathname;
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>{title} — IWC Admin</title>
 </head>
-<body class="min-h-screen bg-[#000d1a] font-sans text-[#e6edf5]">
+<body class="min-h-screen bg-[#000d1a] text-[#e6edf5]" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+  <header class="flex items-center justify-between border-b border-white/[0.08] bg-[#0a1626] px-4 py-3 lg:hidden">
+    <span class="text-sm font-bold tracking-[0.5px]"><span style="color:#00e5ff">integrity</span> WEB CREATIONS</span>
+    <button id="navToggle" aria-label="Open menu" aria-expanded="false" class="rounded-md p-2 text-[#e6edf5] focus-visible:outline-2 focus-visible:outline-[#00e5ff]">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
+    </button>
+  </header>
   <div class="flex min-h-screen">
-    <Sidebar path={path} />
-    <main class="flex-1 p-8"><slot /></main>
+    <div id="navOverlay" class="fixed inset-0 z-30 hidden bg-black/50 lg:hidden"></div>
+    <aside id="navDrawer" class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full transform border-r border-white/[0.08] bg-[#0a1626] transition-transform duration-200 lg:static lg:z-auto lg:w-56 lg:translate-x-0">
+      <Sidebar path={path} />
+    </aside>
+    <main class="flex-1 p-4 sm:p-8"><slot /></main>
   </div>
+  <script>
+    const t = document.getElementById('navToggle');
+    const d = document.getElementById('navDrawer');
+    const o = document.getElementById('navOverlay');
+    const open = () => { d?.classList.remove('-translate-x-full'); o?.classList.remove('hidden'); document.body.style.overflow = 'hidden'; t?.setAttribute('aria-expanded', 'true'); };
+    const close = () => { d?.classList.add('-translate-x-full'); o?.classList.add('hidden'); document.body.style.overflow = ''; t?.setAttribute('aria-expanded', 'false'); };
+    t?.addEventListener('click', open);
+    o?.addEventListener('click', close);
+    d?.addEventListener('click', (e) => { if ((e.target as HTMLElement).tagName === 'A') close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  </script>
 </body></html>
