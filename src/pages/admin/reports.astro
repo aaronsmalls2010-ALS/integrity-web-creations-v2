@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getMonthlyIncome, getOutstandingInvoices } from '../../lib/db/reports';
+import { agingBucket } from '../../lib/reports/aging';
+import { formatUSD } from '../../lib/money';
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+const year = Number(today.slice(0, 4));
+const months = await getMonthlyIncome(Astro.cookies, year);
+const outstanding = await getOutstandingInvoices(Astro.cookies);
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const yearTotal = months.reduce((s, c) => s + c, 0);
+---
+<AdminLayout title="Reports">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold">Reports</h1>
+    <div class="flex gap-2">
+      <a href="/api/admin/reports/export?type=income" class="rounded bg-slate-200 px-3 py-2 text-sm">Income CSV</a>
+      <a href="/api/admin/reports/export?type=outstanding" class="rounded bg-slate-200 px-3 py-2 text-sm">Outstanding CSV</a>
+    </div>
+  </div>
+  <section class="mt-6">
+    <h2 class="font-semibold">Income {year} (cash basis) — total {formatUSD(yearTotal)}</h2>
+    <table class="mt-2 max-w-md w-full text-sm">
+      <thead><tr class="text-left text-slate-500"><th class="p-2">Month</th><th class="text-right">Collected</th></tr></thead>
+      <tbody>
+        {months.map((c, idx) => (
+          <tr class="border-t"><td class="p-2">{MONTHS[idx]}</td><td class="text-right">{formatUSD(c)}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+  <section class="mt-8">
+    <h2 class="font-semibold">Outstanding / aging</h2>
+    <table class="mt-2 w-full text-sm">
+      <thead><tr class="text-left text-slate-500"><th class="p-2">Number</th><th>Client</th><th>Due</th><th>Age</th><th class="text-right">Balance</th></tr></thead>
+      <tbody>
+        {outstanding.map((i: any) => (
+          <tr class="border-t">
+            <td class="p-2">{i.invoice_number}</td><td>{i.client?.name}</td><td>{i.due_date}</td>
+            <td>{i.due_date ? agingBucket(i.due_date, today) : '—'}</td>
+            <td class="text-right">{formatUSD(i.balance_cents)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    {outstanding.length === 0 && <p class="mt-2 text-sm text-slate-400">Nothing outstanding.</p>}
+  </section>
+</AdminLayout>

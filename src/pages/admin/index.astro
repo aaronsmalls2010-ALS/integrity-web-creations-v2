@@ -1,9 +1,47 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getDashboard } from '../../lib/db/reports';
+import { formatUSD } from '../../lib/money';
 const admin = Astro.locals.admin!;
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+const m = await getDashboard(Astro.cookies, today);
 ---
 <AdminLayout title="Dashboard">
   <h1 class="text-2xl font-bold">Dashboard</h1>
-  <p class="mt-2 text-slate-600">Signed in as {admin.email}. Metrics arrive in Phase 5.</p>
+  <p class="mt-1 text-sm text-slate-500">Signed in as {admin.email}</p>
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div class="rounded-xl border bg-white p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Outstanding</p>
+      <p class="mt-1 text-2xl font-bold">{formatUSD(m.outstandingCents)}</p>
+    </div>
+    <div class="rounded-xl border bg-white p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Overdue</p>
+      <p class="mt-1 text-2xl font-bold text-red-600">{formatUSD(m.overdueCents)}</p>
+      <p class="text-xs text-slate-400">{m.overdueCount} invoice(s)</p>
+    </div>
+    <div class="rounded-xl border bg-white p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Paid this month</p>
+      <p class="mt-1 text-2xl font-bold text-green-700">{formatUSD(m.paidThisMonthCents)}</p>
+    </div>
+  </div>
+  <div class="mt-6 flex flex-wrap gap-2">
+    <a href="/admin/invoices/new" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">New invoice</a>
+    <a href="/admin/clients/new" class="rounded bg-slate-200 px-4 py-2 text-sm">New client</a>
+    <a href="/admin/reports" class="rounded bg-slate-200 px-4 py-2 text-sm">Reports</a>
+  </div>
+  <section class="mt-8">
+    <h2 class="font-semibold">Recent invoices</h2>
+    <table class="mt-2 w-full text-sm">
+      <thead><tr class="text-left text-slate-500"><th class="p-2">Number</th><th>Client</th><th>Status</th><th>Total</th><th>Balance</th></tr></thead>
+      <tbody>
+        {m.recent.map((i: any) => (
+          <tr class="border-t hover:bg-slate-50">
+            <td class="p-2"><a class="text-blue-700" href={`/admin/invoices/${i.id}`}>{i.invoice_number ?? 'DRAFT'}</a></td>
+            <td>{i.client?.name}</td><td>{i.status}</td><td>{formatUSD(i.total_cents)}</td><td>{formatUSD(i.balance_cents)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
 </AdminLayout>
