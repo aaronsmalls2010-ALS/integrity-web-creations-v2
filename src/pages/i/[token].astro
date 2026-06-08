@@ -1,0 +1,31 @@
+---
+export const prerender = false;
+import { getInvoiceByToken, markViewed } from '../../lib/db/invoices';
+import { formatUSD } from '../../lib/money';
+const token = Astro.params.token!;
+const inv: any = await getInvoiceByToken(token);
+if (!inv || inv.status === 'void') return new Response('Not found', { status: 404 });
+await markViewed(token);
+const issuer = inv.issuer_snapshot ?? {};
+const bill = inv.bill_to_snapshot ?? {};
+---
+<html lang="en"><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>Invoice {inv.invoice_number}</title></head>
+<body style="font-family:Arial,sans-serif;max-width:720px;margin:40px auto;padding:0 16px;color:#0f172a">
+  <h1>{issuer.business_name}</h1>
+  <p>Invoice <strong>{inv.invoice_number}</strong> · Issued {inv.issue_date} · Due {inv.due_date}</p>
+  <p><strong>Bill to:</strong> {bill.name}{bill.business_name ? ` · ${bill.business_name}` : ''}</p>
+  <table style="width:100%;border-collapse:collapse;margin-top:16px">
+    <thead><tr><th align="left">Description</th><th>Qty</th><th>Unit</th><th align="right">Amount</th></tr></thead>
+    <tbody>
+      {inv.lines.sort((a:any,b:any)=>a.sort_order-b.sort_order).map((l:any) => (
+        <tr><td>{l.description}</td><td align="center">{l.quantity}</td><td align="center">{formatUSD(l.unit_price_cents)}</td><td align="right">{formatUSD(l.amount_cents)}</td></tr>
+      ))}
+    </tbody>
+  </table>
+  <p style="text-align:right;margin-top:16px;font-size:18px"><strong>Total due: {formatUSD(inv.balance_cents)}</strong></p>
+  <p style="color:#475569;font-size:13px">{issuer.payment_instructions}</p>
+  <p><a href={`/i/${token}/pdf`}>Download PDF</a></p>
+</body></html>
