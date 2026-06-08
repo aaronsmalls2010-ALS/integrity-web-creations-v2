@@ -8,19 +8,29 @@ const services = await listServices(Astro.cookies, true);
 <AdminLayout title="Services">
   <div class="flex items-center justify-between">
     <h1 class="text-2xl font-bold">Services</h1>
-    <a href="/admin/services/new" class="rounded bg-blue-700 px-4 py-2 text-sm font-semibold text-white">New service</a>
+    <a href="/admin/services/new" class="btn-primary">New service</a>
   </div>
-  <table class="mt-6 w-full text-sm">
-    <thead><tr class="text-left text-slate-500"><th class="p-2">Name</th><th>Price</th><th>Taxable</th><th>Active</th></tr></thead>
-    <tbody>
-      {services.map((s) => (
-        <tr class="border-t hover:bg-slate-50">
-          <td class="p-2"><a class="font-medium text-blue-700" href={`/admin/services/${s.id}`}>{s.name}</a></td>
-          <td>{formatUSD(s.default_unit_price_cents)}</td>
-          <td>{s.taxable ? 'Yes' : 'No'}</td>
-          <td>{s.active ? 'Yes' : 'No'}</td>
+  <div class="overflow-x-auto">
+    <table class="mt-6 w-full text-sm">
+      <thead>
+        <tr class="text-left text-[#9fb3c8]">
+          <th scope="col" class="p-2">Name</th>
+          <th scope="col">Price</th>
+          <th scope="col">Taxable</th>
+          <th scope="col">Active</th>
         </tr>
-      ))}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {services.map((s) => (
+          <tr class="border-t border-white/[0.08] hover:bg-white/5">
+            <td class="p-2"><a class="font-medium text-[#00e5ff] hover:underline" href={`/admin/services/${s.id}`}>{s.name}</a></td>
+            <td>{formatUSD(s.default_unit_price_cents)}</td>
+            <td>{s.taxable ? 'Yes' : 'No'}</td>
+            <td>{s.active ? 'Yes' : 'No'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  {services.length === 0 && <p class="mt-4 text-sm text-[#9fb3c8]">No services yet — create your first one.</p>}
 </AdminLayout>
