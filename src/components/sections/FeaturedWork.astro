@@ -7,6 +7,7 @@ const work = [
     location: 'Beaufort, SC',
     image:    '/images/work-friendship-baptist.jpg',
     hasImage: true,
+    accent:   'from-[#1e1b4b] to-[#312e81]',
   },
   {
     name:     'Arena Football Players Union',
@@ -15,6 +16,7 @@ const work = [
     location: 'Atlanta, GA',
     image:    '/images/work-aflpu.jpg',
     hasImage: true,
+    accent:   'from-[#0c1a3a] to-[#1e3a8a]',
   },
   {
     name:     'Nora',
@@ -23,6 +25,7 @@ const work = [
     location: 'United States',
     image:    '/images/work-nora.jpg',
     hasImage: true,
+    accent:   'from-[#0f4c3a] to-[#065f46]',
   },
   {
     name:     'Epps Medical',
@@ -31,6 +34,7 @@ const work = [
     location: 'Savannah, GA',
     image:    null,
     hasImage: false,
+    accent:   'from-[#f0fdf4] to-[#dcfce7]',
   },
   {
     name:     'The Beaufort Marina',
@@ -39,67 +43,59 @@ const work = [
     location: 'Beaufort, SC',
     image:    null,
     hasImage: false,
+    accent:   'from-[#eff6ff] to-[#dbeafe]',
   },
 ];
 ---
-<section class="relative py-32 bg-bg overflow-hidden">
+<section class="bg-white py-24">
+  <div class="max-w-7xl mx-auto px-6">
 
-  <!-- Section divider -->
-  <div class="absolute top-0 left-0 right-0 section-line" aria-hidden="true"></div>
-
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
-
-    <!-- Section header -->
-    <div class="text-center mb-20">
-      <span class="reveal-up text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 block mb-4">
-        Portfolio
-      </span>
-      <h2 class="reveal-up font-display font-bold text-white mb-5" style="font-size:clamp(28px,3.5vw,48px);">
-        Built for <span class="text-metallic">Real Businesses</span>
+    <div class="text-center mb-14">
+      <h2 class="font-extrabold text-[#0f172a] mb-4" style="font-size:clamp(22px,3vw,40px);">
+        Built for Real Businesses
       </h2>
-      <p class="reveal-up text-muted text-base max-w-xl mx-auto leading-relaxed">
+      <p class="text-[#64748b] text-base max-w-xl mx-auto leading-relaxed">
         From local churches to professional sports unions &mdash; real sites, real results, real businesses you can visit.
       </p>
     </div>
 
-    <!-- Work grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5" data-stagger>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       {work.map((item, i) => (
-        <div class={`group relative rounded-lg overflow-hidden border border-white/[0.04] aspect-video bg-surface hover:border-white/[0.08] transition-all duration-500${work.length % 2 !== 0 && i === work.length - 1 ? ' md:col-span-2 md:aspect-[21/9]' : ''}`}>
+        <div class={`group relative rounded-2xl overflow-hidden border border-[#e2e8f0] aspect-video bg-[#f8fafc]${work.length % 2 !== 0 && i === work.length - 1 ? ' md:col-span-2 md:aspect-[21/9]' : ''}`}>
           {item.hasImage ? (
             <img
               src={item.image!}
               alt={`${item.name} website`}
-              class="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
+              class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.03]"
               loading="lazy"
             />
           ) : (
-            <div class="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-surface to-bg-2">
-              <div class="w-14 h-14 rounded-lg border border-white/[0.06] flex items-center justify-center">
-                <i class="fa-solid fa-globe text-steel/40 text-2xl"></i>
+            <div class={`w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br ${item.accent}`}>
+              <div class="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
+                <i class="fa-solid fa-globe text-white/80 text-2xl"></i>
               </div>
               <div class="text-center px-4">
-                <p class="text-silver/60 font-semibold text-sm">{item.name}</p>
-                <p class="text-steel/30 text-[10px] mt-1 tracking-[0.2em] uppercase">Screenshot coming soon</p>
+                <p class="text-white/90 font-semibold text-sm">{item.name}</p>
+                <p class="text-white/60 text-xs mt-0.5">Screenshot coming soon</p>
               </div>
             </div>
           )}
 
           <!-- Hover overlay -->
-          <div class="absolute inset-0 bg-gradient-to-t from-bg/95 via-bg/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-7">
-            <span class="text-cyan/60 text-[10px] font-semibold uppercase tracking-[0.25em]">
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+            <span class="text-[#93c5fd] text-xs font-semibold uppercase tracking-wider">
               {item.category} &middot; {item.location}
             </span>
-            <h3 class="text-white font-display font-bold text-xl mt-2 tracking-wide">{item.name}</h3>
+            <h3 class="text-white font-bold text-lg mt-1">{item.name}</h3>
             {item.url && (
               <a
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center gap-1.5 text-silver text-sm mt-3 no-underline hover:text-white transition-colors"
+                class="inline-flex items-center gap-1.5 text-[#93c5fd] text-sm mt-2 no-underline hover:text-white transition-colors"
               >
                 {item.url.replace('https://', '')}
-                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
               </a>
             )}
           </div>

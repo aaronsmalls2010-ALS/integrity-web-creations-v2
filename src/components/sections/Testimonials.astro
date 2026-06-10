@@ -34,50 +34,36 @@ const testimonials = [
   },
 ];
 ---
-<section class="relative py-32 bg-bg overflow-hidden">
+<section class="bg-[#f8fafc] py-24">
+  <div class="max-w-7xl mx-auto px-6">
 
-  <div class="max-w-7xl mx-auto px-6 lg:px-8">
-
-    <!-- Section header -->
-    <div class="text-center mb-20">
-      <span class="reveal-up text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 block mb-4">
-        Testimonials
-      </span>
-      <h2 class="reveal-up font-display font-bold text-white mb-5" style="font-size:clamp(28px,3.5vw,48px);">
-        What Our Clients <span class="text-metallic">Say</span>
+    <div class="text-center mb-14">
+      <h2 class="font-extrabold text-[#0f172a] mb-4" style="font-size:clamp(22px,3vw,40px);">
+        What Our Clients Say
       </h2>
-      <p class="reveal-up text-muted text-base max-w-xl mx-auto">
+      <p class="text-[#64748b] text-base max-w-xl mx-auto">
         Real words from real business owners who trusted us with their online presence.
       </p>
     </div>
 
-    <!-- Testimonial grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" data-stagger>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       {testimonials.map(t => (
-        <div class="group glass-card rounded-lg p-8 hover:border-cyan/15 transition-all duration-500 relative overflow-hidden">
-          <!-- Quote mark -->
-          <div class="absolute top-6 right-8 text-white/[0.03] font-display text-8xl leading-none select-none">&ldquo;</div>
-
-          <div class="relative">
-            <!-- Stars -->
-            <div class="flex gap-1 mb-5" aria-label={`${t.stars} out of 5 stars`}>
-              {Array.from({ length: t.stars }).map(() => (
-                <i class="fa-solid fa-star text-[#c9a94c] text-[10px]" aria-hidden="true"></i>
-              ))}
+        <div class="bg-white rounded-2xl border border-[#e2e8f0] p-8 hover:shadow-lg hover:border-[#bfdbfe] transition-all">
+          <div class="flex gap-0.5 mb-5" aria-label={`${t.stars} out of 5 stars`}>
+            {Array.from({ length: t.stars }).map(() => (
+              <i class="fa-solid fa-star text-[#f59e0b] text-sm" aria-hidden="true"></i>
+            ))}
+          </div>
+          <blockquote class="text-[#374151] text-sm leading-relaxed mb-6 italic">
+            &ldquo;{t.quote}&rdquo;
+          </blockquote>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-[#eff6ff] flex items-center justify-center flex-shrink-0">
+              <span class="text-[#2563eb] font-bold text-sm">{t.initials}</span>
             </div>
-
-            <blockquote class="text-muted/80 text-sm leading-relaxed mb-8 italic">
-              &ldquo;{t.quote}&rdquo;
-            </blockquote>
-
-            <div class="flex items-center gap-3.5">
-              <div class="w-10 h-10 rounded-full border border-white/[0.08] flex items-center justify-center flex-shrink-0">
-                <span class="text-metallic text-xs font-bold">{t.initials}</span>
-              </div>
-              <div>
-                <p class="font-semibold text-white text-sm tracking-wide">{t.name}</p>
-                <p class="text-steel text-[11px] tracking-wide">{t.business} &middot; {t.location}</p>
-              </div>
+            <div>
+              <p class="font-semibold text-[#0f172a] text-sm">{t.name}</p>
+              <p class="text-[#64748b] text-xs">{t.business} &middot; {t.location}</p>
             </div>
           </div>
         </div>

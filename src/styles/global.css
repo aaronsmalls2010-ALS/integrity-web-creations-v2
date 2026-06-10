@@ -1,183 +1,40 @@
 @import "tailwindcss";
 
-/* ── Premium Dark Theme ── */
+/* ── Theme: Inter font ── */
 @theme {
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Playfair Display', 'Georgia', serif;
-
-  /* Deep navy foundations */
-  --color-bg: #000d1a;
-  --color-bg-2: #001529;
-  --color-surface: #0a1626;
-  --color-card: #0d1b2c;
-  --color-line: rgba(255,255,255,0.08);
-
-  /* Metallic silver palette */
-  --color-silver: #c0cad8;
-  --color-silver-bright: #e0e7ee;
-  --color-chrome: #d4dce6;
-  --color-steel: #8899aa;
-
-  /* Accent: subtle cyan-blue glow */
-  --color-primary: #0066ff;
-  --color-cyan: #00e5ff;
-  --color-primary-2: #0052cc;
-  --color-cyan-2: #00bfff;
-  --color-glow: rgba(0,229,255,0.15);
-
-  /* Text hierarchy */
-  --color-text: #e6edf5;
-  --color-muted: #9fb3c8;
-
-  /* Functional */
-  --color-danger: #ff6b6b;
-  --color-success: #34d399;
 }
 
-/* ── Base resets ── */
+/* ── Hero content fade-up animation ── */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation-name: fade-up;
+  animation-duration: 0.7s;
+  animation-timing-function: ease;
+  animation-fill-mode: both;
+}
+
+/* ── Smooth scroll ── */
 html {
-  scroll-behavior: auto; /* Lenis handles smooth scroll */
+  scroll-behavior: smooth;
 }
 
-html.lenis, html.lenis body {
-  height: auto;
+@theme {
+  --color-bg:#000d1a; --color-bg-2:#001529; --color-surface:#0a1626; --color-card:#0d1b2c;
+  --color-line:rgba(255,255,255,0.08);
+  --color-primary:#0066ff; --color-cyan:#00e5ff; --color-primary-2:#0052cc; --color-cyan-2:#00bfff;
+  --color-text:#e6edf5; --color-muted:#9fb3c8; --color-danger:#ff6b6b; --color-success:#34d399;
 }
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-::selection {
-  background: rgba(0,229,255,0.25);
-  color: #fff;
-}
-
-body {
-  overflow-x: hidden;
-}
-
-/* ── Metallic text gradient ── */
-.text-metallic {
-  background: linear-gradient(
-    135deg,
-    #8899aa 0%,
-    #c0cad8 25%,
-    #e8edf3 45%,
-    #ffffff 50%,
-    #e0e7ee 55%,
-    #b0bec5 75%,
-    #8899aa 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.text-metallic-bright {
-  background: linear-gradient(
-    135deg,
-    #b0bec5 0%,
-    #d4dce6 20%,
-    #ffffff 45%,
-    #f0f4f8 55%,
-    #d4dce6 80%,
-    #b0bec5 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── Metallic border ── */
-.border-metallic {
-  border-image: linear-gradient(135deg, #334155, #64748b, #94a3b8, #64748b, #334155) 1;
-}
-
-/* ── Glow effects ── */
-.glow-cyan {
-  box-shadow: 0 0 20px rgba(0,229,255,0.15), 0 0 60px rgba(0,229,255,0.05);
-}
-
-.glow-text-cyan {
-  text-shadow: 0 0 20px rgba(0,229,255,0.4), 0 0 40px rgba(0,229,255,0.15);
-}
-
-/* ── Glass morphism ── */
-.glass {
-  background: rgba(10,22,38,0.6);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-  border: 1px solid rgba(255,255,255,0.06);
-}
-
-.glass-card {
-  background: linear-gradient(135deg, rgba(13,27,44,0.8), rgba(10,22,38,0.6));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.06);
-}
-
-/* ── Reveal animations (driven by GSAP) ── */
-.reveal-up {
-  opacity: 0;
-  transform: translateY(40px);
-}
-
-.reveal-left {
-  opacity: 0;
-  transform: translateX(-60px);
-}
-
-.reveal-right {
-  opacity: 0;
-  transform: translateX(60px);
-}
-
-.reveal-scale {
-  opacity: 0;
-  transform: scale(0.92);
-}
-
-.char-reveal .char {
-  opacity: 0;
-  transform: translateY(100%);
-  display: inline-block;
-}
-
-/* ── Section divider line ── */
-.section-line {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 20%, rgba(0,229,255,0.12) 50%, rgba(255,255,255,0.08) 80%, transparent);
-}
-
-/* ── Magnetic button base ── */
-.magnetic-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-/* ── Custom scrollbar ── */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #000d1a;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.18);
-}
-
-/* ── Admin theme (unchanged) ── */
 @layer components {
   .btn-primary{background-image:linear-gradient(135deg,var(--color-primary-2),var(--color-cyan-2));color:#fff;border:0;border-radius:.625rem;padding:.625rem 1.1rem;font-weight:600;cursor:pointer;transition:transform .2s,opacity .2s;display:inline-block;text-decoration:none;}
   .btn-primary:hover{transform:translateY(-1px);opacity:.95;}
