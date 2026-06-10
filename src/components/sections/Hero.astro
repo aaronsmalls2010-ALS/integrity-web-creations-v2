@@ -1,53 +1,58 @@
 ---
 import SpiderWebHero from '../SpiderWebHero.astro';
 ---
-<section class="relative min-h-screen bg-[#f0f4ff] flex items-center overflow-hidden">
+<section class="relative min-h-screen flex items-center overflow-hidden bg-bg">
+
+  <!-- Gradient overlay -->
+  <div class="absolute inset-0 z-0" aria-hidden="true">
+    <div class="absolute inset-0 bg-gradient-to-b from-bg via-bg/95 to-bg"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-bg to-transparent"></div>
+    <!-- Subtle radial glow -->
+    <div class="absolute top-1/3 right-1/4 w-[800px] h-[800px] rounded-full bg-cyan/[0.02] blur-[120px]"></div>
+  </div>
 
   <!-- Spider web animation -->
   <SpiderWebHero />
 
-  <!-- Hero content: left portion, above canvas -->
-  <div class="relative z-10 max-w-7xl mx-auto px-6 w-full py-28 mt-16">
-    <div class="max-w-[500px]">
+  <!-- Hero content -->
+  <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full py-28 mt-16">
+    <div class="max-w-2xl">
 
       <!-- Location badge -->
-      <div
-        class="inline-flex items-center bg-[#dbeafe] text-[#1d4ed8] text-[11px] font-semibold tracking-[2px] uppercase px-4 py-1.5 rounded-full mb-5 opacity-0 animate-fade-up"
-        style="animation-delay:2.5s;"
-      >
-        Beaufort, SC &mdash; Your Local Web Partner Since 2010
+      <div class="hero-badge inline-flex items-center gap-2 border border-white/[0.06] px-5 py-2 mb-8 opacity-0">
+        <span class="w-1.5 h-1.5 rounded-full bg-cyan/60 animate-pulse"></span>
+        <span class="text-steel text-[10px] font-medium tracking-[0.35em] uppercase">
+          Beaufort, SC &mdash; Since 2010
+        </span>
       </div>
 
       <!-- Headline -->
       <h1
-        class="font-extrabold text-[#0f172a] leading-[1.1] mb-5 opacity-0 animate-fade-up"
-        style="font-size:clamp(26px,4.2vw,52px);letter-spacing:-1px;animation-delay:2.7s;"
+        class="hero-headline font-display font-bold text-white leading-[1.05] mb-6 opacity-0"
+        style="font-size:clamp(36px,5.5vw,72px);letter-spacing:-0.02em;"
       >
-        Your Business.<br />Every Screen.<br />Every Home.
+        Your Business.<br />
+        <span class="text-metallic">Every Screen.</span><br />
+        Every Home.
       </h1>
 
       <!-- Subheadline -->
-      <p
-        class="text-[#64748b] text-base leading-relaxed max-w-[400px] mb-8 opacity-0 animate-fade-up"
-        style="animation-delay:2.9s;"
-      >
-        A custom website, built exclusively for your business &mdash; handled, maintained, and grown by a local partner who knows your name, not just your account number.
+      <p class="hero-sub text-muted text-lg leading-relaxed max-w-lg mb-10 opacity-0">
+        A custom website, built exclusively for your business &mdash; designed, maintained, and grown by a dedicated partner who knows your name, not just your account number.
       </p>
 
       <!-- CTA buttons -->
-      <div
-        class="flex flex-wrap gap-3 opacity-0 animate-fade-up"
-        style="animation-delay:3.1s;"
-      >
+      <div class="hero-cta flex flex-wrap gap-4 opacity-0">
         <a
           href="/contact"
-          class="inline-flex items-center bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-7 py-3.5 rounded-md transition-all shadow-lg hover:-translate-y-0.5 no-underline text-sm"
+          class="magnetic-btn group inline-flex items-center gap-3 bg-gradient-to-r from-white/[0.08] to-white/[0.04] border border-white/10 hover:border-cyan/30 text-white font-semibold px-8 py-4 transition-all duration-500 no-underline text-sm tracking-[0.1em] uppercase hover:shadow-[0_0_30px_rgba(0,229,255,0.12)]"
         >
-          Let&rsquo;s Talk &rarr;
+          Let&rsquo;s Talk
+          <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
         <a
           href="/why-we-matter"
-          class="inline-flex items-center border border-[#cbd5e1] text-[#374151] hover:border-[#2563eb] hover:text-[#2563eb] font-semibold px-7 py-3.5 rounded-md transition-colors no-underline text-sm"
+          class="magnetic-btn inline-flex items-center text-steel hover:text-white text-sm font-medium tracking-[0.1em] uppercase px-8 py-4 transition-all duration-300 no-underline border border-transparent hover:border-white/[0.06]"
         >
           Why You Need This
         </a>
@@ -56,4 +61,33 @@ import SpiderWebHero from '../SpiderWebHero.astro';
     </div>
   </div>
 
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3 opacity-0 hero-scroll">
+    <span class="text-steel/40 text-[9px] tracking-[0.4em] uppercase">Scroll</span>
+    <div class="w-px h-10 bg-gradient-to-b from-steel/30 to-transparent relative overflow-hidden">
+      <div class="absolute top-0 left-0 w-full h-3 bg-cyan/40 animate-scroll-line"></div>
+    </div>
+  </div>
+
 </section>
+
+<style>
+  @keyframes scroll-line {
+    0%   { transform: translateY(-12px); }
+    100% { transform: translateY(40px); }
+  }
+  .animate-scroll-line {
+    animation: scroll-line 2s ease-in-out infinite;
+  }
+</style>
+
+<script>
+  import { gsap } from 'gsap';
+
+  const tl = gsap.timeline({ delay: 1.8 });
+  tl.to('.hero-badge',    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' })
+    .to('.hero-headline',  { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=0.5')
+    .to('.hero-sub',       { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.6')
+    .to('.hero-cta',       { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out' }, '-=0.5')
+    .to('.hero-scroll',    { opacity: 1, duration: 1, ease: 'power2.out' }, '-=0.3');
+</script>

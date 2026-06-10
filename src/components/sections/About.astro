@@ -6,54 +6,66 @@ const values = [
   { icon: 'fa-arrows-rotate', name: 'Partnership',  desc: 'We grow with you. Your success is our success — month after month.' },
 ];
 ---
-<section class="bg-white py-24">
-  <div class="max-w-7xl mx-auto px-6">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<section class="relative py-32 bg-bg overflow-hidden">
 
-      <!-- Photo placeholder (left) -->
-      <div class="relative">
-        <div class="aspect-[4/5] bg-gradient-to-br from-[#f0f4ff] to-[#dbeafe] rounded-2xl overflow-hidden flex items-center justify-center max-w-sm mx-auto lg:mx-0">
-          <div class="text-center px-8">
-            <div class="w-20 h-20 rounded-full bg-[#dbeafe] flex items-center justify-center mx-auto mb-4">
-              <i class="fa-solid fa-user text-[#2563eb] text-2xl"></i>
+  <!-- Section divider -->
+  <div class="absolute top-0 left-0 right-0 section-line" aria-hidden="true"></div>
+
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+
+      <!-- Photo / placeholder (left) -->
+      <div class="reveal-left relative">
+        <div class="aspect-[4/5] rounded-lg overflow-hidden max-w-sm mx-auto lg:mx-0 relative">
+          <!-- Dark gradient bg -->
+          <div class="absolute inset-0 bg-gradient-to-br from-surface to-bg-2 border border-white/[0.04] rounded-lg"></div>
+          <div class="relative h-full flex flex-col items-center justify-center">
+            <div class="w-24 h-24 rounded-full border border-white/[0.06] flex items-center justify-center mb-5">
+              <i class="fa-solid fa-user text-steel text-3xl"></i>
             </div>
-            <p class="text-[#94a3b8] text-sm font-medium">A. Smalls</p>
-            <p class="text-[#cbd5e1] text-xs mt-1">Photo coming soon</p>
+            <p class="text-silver text-sm font-display font-semibold tracking-wider">A. Smalls</p>
+            <p class="text-steel/40 text-[10px] mt-2 tracking-[0.3em] uppercase">Founder & Developer</p>
           </div>
+          <!-- Corner accent -->
+          <div class="absolute bottom-0 right-0 w-20 h-20 border-r border-b border-cyan/10 rounded-br-lg"></div>
         </div>
-        <div class="absolute bottom-4 right-0 lg:right-4 bg-[#2563eb] text-white text-xs font-bold px-4 py-2 rounded-lg shadow-lg">
-          Est. 2010
+        <!-- Est badge -->
+        <div class="absolute -bottom-3 right-4 lg:right-0 glass-card px-5 py-2.5 rounded-sm">
+          <span class="text-[10px] text-cyan/60 tracking-[0.3em] uppercase font-medium">Est. 2010</span>
         </div>
       </div>
 
       <!-- Story (right) -->
       <div>
-        <h2 class="font-extrabold text-[#0f172a] mb-6" style="font-size:clamp(22px,3vw,40px);">
-          One Person. Your Full Attention.
+        <span class="reveal-up text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 block mb-4">
+          About
+        </span>
+        <h2 class="reveal-up font-display font-bold text-white mb-6" style="font-size:clamp(28px,3.5vw,48px);">
+          One Person. <span class="text-metallic">Your Full Attention.</span>
         </h2>
 
-        <div class="space-y-4 text-[#64748b] text-base leading-relaxed mb-10">
-          <p>
+        <div class="space-y-4 text-muted text-base leading-relaxed mb-12">
+          <p class="reveal-up">
             I&rsquo;m A. Smalls &mdash; founder of Integrity Web Creations, USC Computer Engineering graduate (Class of 2010), and a Beaufort, SC native. After graduating, I came home with one goal: make the same quality of web presence that big companies pay agencies tens of thousands for accessible to the small businesses that make our community what it is.
           </p>
-          <p>
+          <p class="reveal-up text-muted/60">
             When you work with IWC, you&rsquo;re not dealing with an account manager, a sales team, or a rotating roster of developers. You get me &mdash; directly &mdash; for every conversation, every design decision, and every line of code.
           </p>
-          <p>
+          <p class="reveal-up text-muted/60">
             I stay small on purpose. That&rsquo;s the point. Bigger doesn&rsquo;t mean better &mdash; it means busier. I&rsquo;d rather serve fewer clients exceptionally well than many clients adequately.
           </p>
         </div>
 
-        <!-- Core values 2×2 grid -->
-        <div class="grid grid-cols-2 gap-5">
+        <!-- Core values -->
+        <div class="grid grid-cols-2 gap-5" data-stagger>
           {values.map(v => (
-            <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-[#eff6ff] flex items-center justify-center mt-0.5">
-                <i class={`fa-solid ${v.icon} text-[#2563eb] text-sm`}></i>
+            <div class="group flex items-start gap-3.5">
+              <div class="flex-shrink-0 w-9 h-9 rounded-lg border border-white/[0.06] flex items-center justify-center mt-0.5 group-hover:border-cyan/20 transition-colors duration-500">
+                <i class={`fa-solid ${v.icon} text-steel text-xs group-hover:text-cyan transition-colors duration-500`}></i>
               </div>
               <div>
-                <h4 class="font-bold text-[#0f172a] text-sm">{v.name}</h4>
-                <p class="text-[#64748b] text-xs leading-relaxed mt-0.5">{v.desc}</p>
+                <h4 class="font-semibold text-white text-sm tracking-wide">{v.name}</h4>
+                <p class="text-muted/60 text-xs leading-relaxed mt-0.5">{v.desc}</p>
               </div>
             </div>
           ))}

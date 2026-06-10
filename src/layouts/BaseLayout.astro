@@ -8,8 +8,8 @@ interface Props {
 }
 
 const {
-  title = 'Integrity Web Creations — Beaufort, SC',
-  description = 'Custom websites built exclusively for your business. Handled, maintained, and grown by a local partner in Beaufort, SC since 2010.',
+  title = 'Integrity Web Creations — Design. Function. Integrity.',
+  description = 'Premium custom websites built exclusively for your business. Designed, maintained, and grown by a dedicated partner in Beaufort, SC since 2010.',
   ogImage = '/og-image.png',
 } = Astro.props;
 
@@ -76,11 +76,11 @@ const jsonLd = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={`${siteUrl}${ogImage}`} />
 
-    <!-- Fonts: Inter -->
+    <!-- Fonts: Inter + Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap"
       rel="stylesheet"
     />
 
@@ -96,7 +96,7 @@ const jsonLd = {
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    <!-- Umami Analytics (deferred — replace WEBSITE_ID after deploy) -->
+    <!-- Umami Analytics -->
     <script
       defer
       src="https://analytics.integritywebcreations.com/script.js"
@@ -105,7 +105,157 @@ const jsonLd = {
 
     <slot name="head" />
   </head>
-  <body class="font-sans antialiased bg-white text-[#0f172a]">
+  <body class="font-sans antialiased bg-bg text-text overflow-x-hidden">
     <slot />
+
+    <!-- Global: Lenis smooth scroll + GSAP ScrollTrigger init -->
+    <script>
+      import Lenis from 'lenis';
+      import { gsap } from 'gsap';
+      import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      const lenis = new Lenis({
+        duration: 1.2,
+        easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        touchMultiplier: 2,
+      });
+
+      lenis.on('scroll', ScrollTrigger.update);
+
+      gsap.ticker.add((time: number) => {
+        lenis.raf(time * 1000);
+      });
+      gsap.ticker.lagSmoothing(0);
+
+      // Reveal animations for all .reveal-* elements
+      function initReveals() {
+        document.querySelectorAll('.reveal-up').forEach(el => {
+          gsap.to(el, {
+            y: 0,
+            opacity: 1,
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              toggleActions: 'play none none none',
+            },
+          });
+        });
+
+        document.querySelectorAll('.reveal-left').forEach(el => {
+          gsap.to(el, {
+            x: 0,
+            opacity: 1,
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              toggleActions: 'play none none none',
+            },
+          });
+        });
+
+        document.querySelectorAll('.reveal-right').forEach(el => {
+          gsap.to(el, {
+            x: 0,
+            opacity: 1,
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              toggleActions: 'play none none none',
+            },
+          });
+        });
+
+        document.querySelectorAll('.reveal-scale').forEach(el => {
+          gsap.to(el, {
+            scale: 1,
+            opacity: 1,
+            duration: 1,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 88%',
+              toggleActions: 'play none none none',
+            },
+          });
+        });
+
+        // Staggered children reveals
+        document.querySelectorAll('[data-stagger]').forEach(container => {
+          const children = container.children;
+          gsap.fromTo(children,
+            { y: 40, opacity: 0 },
+            {
+              y: 0,
+              opacity: 1,
+              duration: 0.8,
+              stagger: 0.12,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: container,
+                start: 'top 85%',
+                toggleActions: 'play none none none',
+              },
+            }
+          );
+        });
+      }
+
+      // Magnetic button effect
+      function initMagneticButtons() {
+        document.querySelectorAll('.magnetic-btn').forEach(btn => {
+          const el = btn as HTMLElement;
+          el.addEventListener('mousemove', (e: MouseEvent) => {
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            gsap.to(el, {
+              x: x * 0.3,
+              y: y * 0.3,
+              duration: 0.4,
+              ease: 'power2.out',
+            });
+          });
+          el.addEventListener('mouseleave', () => {
+            gsap.to(el, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)' });
+          });
+        });
+      }
+
+      // Nav scroll behavior
+      function initNavScroll() {
+        const nav = document.getElementById('main-nav');
+        if (!nav) return;
+
+        ScrollTrigger.create({
+          start: 'top -80',
+          onUpdate: (self) => {
+            if (self.direction === 1 && self.scroll() > 200) {
+              nav.classList.add('-translate-y-full');
+            } else {
+              nav.classList.remove('-translate-y-full');
+            }
+            if (self.scroll() > 50) {
+              nav.classList.add('nav-scrolled');
+            } else {
+              nav.classList.remove('nav-scrolled');
+            }
+          },
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initReveals();
+        initMagneticButtons();
+        initNavScroll();
+      });
+    </script>
   </body>
 </html>

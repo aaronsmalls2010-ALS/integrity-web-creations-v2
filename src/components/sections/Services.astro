@@ -3,7 +3,7 @@ const services = [
   {
     icon: 'fa-palette',
     name: 'Custom Web Design',
-    teaser: 'A site built from scratch, tailored to your exact business.',
+    teaser: 'Every pixel designed around your brand, your customers, and your goals.',
     full: 'A site built from scratch, tailored to your exact business — no templates, no shortcuts. Every pixel designed around your brand, your customers, and your goals.',
   },
   {
@@ -14,7 +14,7 @@ const services = [
   },
   {
     icon: 'fa-magnifying-glass-chart',
-    name: 'Search Visibility (SEO)',
+    name: 'Search Visibility',
     teaser: 'We make sure your customers find you first.',
     full: 'Local SEO, technical optimization, and content strategy that moves you up in Google where your customers are actively searching for your services.',
   },
@@ -22,46 +22,66 @@ const services = [
     icon: 'fa-cart-shopping',
     name: 'E-Commerce',
     teaser: 'Sell your products and services online around the clock.',
-    full: 'Full e-commerce solutions — product pages, secure checkout, inventory management — built for your business to sell online around the clock.',
+    full: 'Full e-commerce solutions — product pages, secure checkout, inventory management — built for your business to sell online 24/7.',
   },
   {
     icon: 'fa-screwdriver-wrench',
     name: 'Monthly Maintenance',
     teaser: 'Your site stays fast, secure, and current — always.',
-    full: 'Updates, backups, security monitoring, and improvements handled every single month. Your site stays fast, secure, and current while you focus on running your business.',
+    full: 'Updates, backups, security monitoring, and improvements handled every single month. Your site stays fast, secure, and current while you focus on your business.',
   },
   {
     icon: 'fa-chart-line',
     name: 'Digital Marketing',
     teaser: 'Targeted campaigns that reach your specific customers.',
-    full: 'Targeted campaigns that reach your specific customers in Beaufort and beyond — social media, Google Ads, and email marketing that drives real traffic to your site.',
+    full: 'Targeted campaigns — social media, Google Ads, and email marketing that drives real traffic and measurable results for your business.',
   },
 ];
 ---
-<section class="bg-[#f8fafc] py-24">
-  <div class="max-w-7xl mx-auto px-6">
+<section class="relative py-32 bg-bg overflow-hidden">
 
-    <div class="text-center mb-14">
-      <h2 class="font-extrabold text-[#0f172a] mb-4" style="font-size:clamp(22px,3vw,40px);">
-        What We Build For You
+  <!-- Background texture -->
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.04] to-transparent"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.04] to-transparent"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+
+    <!-- Section header -->
+    <div class="text-center mb-20">
+      <span class="reveal-up text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 block mb-4">
+        Our Services
+      </span>
+      <h2 class="reveal-up font-display font-bold text-white mb-5" style="font-size:clamp(28px,3.5vw,48px);">
+        What We Build <span class="text-metallic">For You</span>
       </h2>
-      <p class="text-[#64748b] text-base max-w-xl mx-auto leading-relaxed">
+      <p class="reveal-up text-muted text-base max-w-xl mx-auto leading-relaxed">
         Full-service web solutions — everything your business needs to succeed online, delivered by one person who&rsquo;s invested in your success.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {services.map(s => (
-        <div class="group bg-white border border-[#e2e8f0] rounded-xl p-7 hover:border-[#2563eb] hover:shadow-lg transition-all cursor-default">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-12 h-12 bg-[#eff6ff] rounded-lg flex items-center justify-center group-hover:bg-[#2563eb] transition-colors">
-              <i class={`fa-solid ${s.icon} text-[#2563eb] group-hover:text-white transition-colors`}></i>
+    <!-- Services grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-stagger>
+      {services.map((s, i) => (
+        <div class="group relative glass-card rounded-lg p-8 hover:border-cyan/20 transition-all duration-500 cursor-default overflow-hidden">
+          <!-- Hover glow -->
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+
+          <div class="relative">
+            <!-- Icon -->
+            <div class="w-12 h-12 rounded-lg border border-white/[0.06] flex items-center justify-center mb-6 group-hover:border-cyan/20 transition-all duration-500">
+              <i class={`fa-solid ${s.icon} text-steel group-hover:text-cyan transition-colors duration-500`}></i>
             </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="font-bold text-[#0f172a] text-base mb-1.5">{s.name}</h3>
-              <p class="text-[#64748b] text-sm leading-relaxed group-hover:hidden">{s.teaser}</p>
-              <p class="text-[#64748b] text-sm leading-relaxed hidden group-hover:block">{s.full}</p>
-            </div>
+
+            <!-- Number -->
+            <span class="absolute top-0 right-0 text-white/[0.03] font-display text-6xl font-bold leading-none select-none">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+
+            <h3 class="font-semibold text-white text-base mb-3 tracking-wide">{s.name}</h3>
+            <p class="text-muted/70 text-sm leading-relaxed group-hover:hidden">{s.teaser}</p>
+            <p class="text-muted/70 text-sm leading-relaxed hidden group-hover:block">{s.full}</p>
           </div>
         </div>
       ))}

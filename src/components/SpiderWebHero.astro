@@ -1,76 +1,15 @@
 ---
-// Pure client-side canvas animation — no server props
+// Full-viewport canvas spider web animation — metallic silver threads
 ---
 
-<!-- Canvas: fixed, full viewport, behind all content -->
 <canvas
   id="spider-canvas"
-  style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;"
+  style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;"
 ></canvas>
-
-<!-- Mouse SVG: slides in from top-right on load -->
-<div id="mouse-slider" aria-hidden="true">
-  <div id="mouse-wrap">
-    <svg id="mouse-svg" viewBox="0 0 80 120" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="42" cy="64" rx="31" ry="47" fill="rgba(0,0,0,0.18)" transform="translate(2,4)"/>
-      <path d="M14,52 Q12,16 40,6 Q68,16 66,52 Q66,96 40,112 Q14,96 14,52Z" fill="#5c6a7a"/>
-      <path id="left-btn" d="M14,52 L14,27 Q14,6 40,6 L40,55 L14,55Z" fill="#4a5869"/>
-      <path d="M66,52 L66,27 Q66,6 40,6 L40,55 L66,55Z" fill="#526070"/>
-      <line x1="40" y1="6" x2="40" y2="55" stroke="#28343f" stroke-width="1.6"/>
-      <path d="M14,55 Q20,59 40,59 Q60,59 66,55" stroke="#28343f" stroke-width="1.2" fill="none"/>
-      <rect x="32" y="16" width="16" height="27" rx="8" fill="#243040"/>
-      <rect x="34" y="18" width="12" height="23" rx="6" fill="#1a2530"/>
-      <rect x="34" y="22" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
-      <rect x="34" y="26.5" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
-      <rect x="34" y="31" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
-      <rect x="34" y="35.5" width="12" height="2.2" rx="1.1" fill="#3d5168"/>
-      <rect x="34" y="47" width="12" height="7" rx="3.5" fill="#243040"/>
-      <rect x="36" y="48.5" width="8" height="4" rx="2" fill="#1a2530"/>
-      <path d="M21,32 Q23,15 40,9 Q54,15 56,28" stroke="rgba(255,255,255,0.16)" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-    </svg>
-  </div>
-</div>
-
-<style is:global>
-  /* ── Slider: handles position + slide-in translation ── */
-  #mouse-slider {
-    position: fixed;
-    top:   -28px;
-    right: -28px;
-    z-index: 20;
-    transform: translate(240px, -240px); /* off-screen start */
-    transition: transform 0.62s cubic-bezier(0.34, 1.44, 0.64, 1);
-  }
-  #mouse-slider.in-position {
-    transform: translate(0, 0);
-  }
-
-  /* ── Inner wrap: constant 225deg = 7:30, buttons point lower-left ── */
-  #mouse-wrap {
-    width:  92px;
-    height: 138px;
-    transform: rotate(225deg);
-    transform-origin: center center;
-    filter: drop-shadow(-5px 5px 20px rgba(0, 0, 0, 0.45));
-  }
-  #mouse-svg {
-    width: 92px;
-    height: 138px;
-    display: block;
-  }
-  #left-btn {
-    transition: fill 0.08s, filter 0.08s;
-  }
-  #mouse-slider.clicking #left-btn {
-    fill: #82bdf5;
-    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 1));
-  }
-</style>
 
 <script>
   const canvas = document.getElementById('spider-canvas') as HTMLCanvasElement;
   const ctx    = canvas.getContext('2d')!;
-  const slider = document.getElementById('mouse-slider') as HTMLElement;
 
   let W = 0, H = 0;
   let origin      = { x: 0, y: 0 };
@@ -79,7 +18,6 @@
   let animStart:   number | null = null;
   let cursor       = { x: -9999, y: -9999 };
 
-  // Fixed 28 action lines — identical every replay
   const ACTION_LINES = Array.from({ length: 28 }, (_, i) => ({
     angle: (i / 28) * Math.PI * 2,
     len:   60 + (i * 19) % 100,
@@ -96,15 +34,16 @@
   function clamp01(v: number) { return Math.max(0, Math.min(1, v)); }
 
   function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+    const rect = canvas.parentElement!.getBoundingClientRect();
+    W = canvas.width  = rect.width;
+    H = canvas.height = rect.height;
     buildWebGeometry();
   }
 
   function buildWebGeometry() {
     const NS = 22;
-    const A0 = Math.PI * 0.489; // 88°
-    const A1 = Math.PI * 1.112; // 200°
+    const A0 = Math.PI * 0.489;
+    const A1 = Math.PI * 1.112;
     spokeAngles = [];
     for (let i = 0; i < NS; i++) {
       const t = i / (NS - 1);
@@ -151,8 +90,8 @@
     if (t <= 0 || t >= 1) return;
     const a = t < 0.25 ? t / 0.25 : 1 - (t - 0.25) / 0.75;
     ctx.save();
-    ctx.globalAlpha = a * 0.48;
-    ctx.fillStyle   = '#fff';
+    ctx.globalAlpha = a * 0.2;
+    ctx.fillStyle   = '#c0cad8';
     ctx.fillRect(0, 0, W, H);
     ctx.restore();
   }
@@ -166,73 +105,17 @@
       ctx.beginPath();
       ctx.moveTo(origin.x + Math.cos(l.angle) * r1, origin.y + Math.sin(l.angle) * r1);
       ctx.lineTo(origin.x + Math.cos(l.angle) * r2, origin.y + Math.sin(l.angle) * r2);
-      ctx.strokeStyle = `rgba(147,197,253,${fade * 0.48})`;
+      ctx.strokeStyle = `rgba(192,202,216,${fade * 0.3})`;
       ctx.lineWidth   = l.w + 2;
       ctx.lineCap     = 'round';
       ctx.stroke();
       ctx.beginPath();
       ctx.moveTo(origin.x + Math.cos(l.angle) * r1, origin.y + Math.sin(l.angle) * r1);
       ctx.lineTo(origin.x + Math.cos(l.angle) * r2, origin.y + Math.sin(l.angle) * r2);
-      ctx.strokeStyle = `rgba(37,99,235,${fade * 0.80})`;
+      ctx.strokeStyle = `rgba(136,153,170,${fade * 0.6})`;
       ctx.lineWidth   = l.w;
       ctx.stroke();
     });
-  }
-
-  function drawStarburst(t: number) {
-    if (t <= 0) return;
-    const scale =
-      t < 0.22 ? (t / 0.22) * 1.30 :
-      t < 0.52 ? 1.30 - (t - 0.22) / 0.30 * 0.30 :
-      t < 0.80 ? 1.0 :
-                 1 - (t - 0.80) / 0.20;
-    if (scale <= 0) return;
-    const alpha = t < 0.72 ? 1 : 1 - (t - 0.72) / 0.28;
-    if (alpha <= 0) return;
-
-    const cx = origin.x - 88, cy = origin.y + 82;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(cx, cy);
-    ctx.rotate(-0.18);
-    ctx.scale(scale, scale);
-
-    ctx.beginPath();
-    for (let i = 0; i < 24; i++) {
-      const r = i % 2 === 0 ? 64 : 33;
-      const a = (i * Math.PI / 12) - Math.PI / 2;
-      i === 0
-        ? ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r)
-        : ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
-    }
-    ctx.closePath();
-    ctx.fillStyle   = '#FFE000';
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth   = 2.6;
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.save();
-    ctx.clip();
-    for (let dx = -64; dx < 64; dx += 10) {
-      for (let dy = -64; dy < 64; dy += 10) {
-        ctx.beginPath();
-        ctx.arc(dx, dy, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.08)';
-        ctx.fill();
-      }
-    }
-    ctx.restore();
-
-    ctx.font         = '900 21px Impact,Arial Black,sans-serif';
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.strokeStyle  = 'rgba(255,220,0,0.5)';
-    ctx.lineWidth    = 3.5;
-    ctx.strokeText('CLICK!', 0, 1);
-    ctx.fillStyle = '#111';
-    ctx.fillText('CLICK!', 0, 1);
-    ctx.restore();
   }
 
   function drawOriginGlow(t: number) {
@@ -242,22 +125,22 @@
       if (p <= 0) return;
       ctx.beginPath();
       ctx.arc(origin.x, origin.y, 100 * p, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(37,99,235,${(1 - p) * 0.60})`;
-      ctx.lineWidth   = (1 - p) * 5;
+      ctx.strokeStyle = `rgba(192,202,216,${(1 - p) * 0.35})`;
+      ctx.lineWidth   = (1 - p) * 3;
       ctx.stroke();
     });
-    const op = Math.min(1, t * 3) * 0.88;
+    const op = Math.min(1, t * 3) * 0.6;
     const g  = ctx.createRadialGradient(origin.x, origin.y, 0, origin.x, origin.y, 36);
-    g.addColorStop(0,   `rgba(147,197,253,${op * 0.85})`);
-    g.addColorStop(0.4, `rgba(37,99,235,${op * 0.40})`);
-    g.addColorStop(1,   'rgba(37,99,235,0)');
+    g.addColorStop(0,   `rgba(224,231,238,${op * 0.7})`);
+    g.addColorStop(0.4, `rgba(136,153,170,${op * 0.3})`);
+    g.addColorStop(1,   'rgba(136,153,170,0)');
     ctx.beginPath();
     ctx.arc(origin.x, origin.y, 36, 0, Math.PI * 2);
     ctx.fillStyle = g;
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(origin.x, origin.y, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(37,99,235,${op})`;
+    ctx.arc(origin.x, origin.y, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(224,231,238,${op})`;
     ctx.fill();
   }
 
@@ -269,47 +152,44 @@
 
     const SOFT = maxR * 0.06;
 
-    // Spokes — truncated at frontierR
     spokeAngles.forEach(angle => {
       const visR = Math.min(frontierR, maxR);
       if (visR < 2) return;
       const endPt = pt(angle, visR);
-      strand(origin, endPt, 'rgba(147,197,253,0.16)', 3.8, 0);
-      strand(origin, endPt, 'rgba(37,99,235,0.44)',   1.7, 0);
+      strand(origin, endPt, 'rgba(192,202,216,0.08)', 3.0, 0);
+      strand(origin, endPt, 'rgba(136,153,170,0.25)', 1.2, 0);
     });
 
-    // Frontier glow dots at each spoke tip
     if (frontierR < maxR * 0.99) {
       spokeAngles.forEach(angle => {
         const tip = pt(angle, Math.min(frontierR, maxR));
-        const tg  = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 10);
-        tg.addColorStop(0, 'rgba(147,197,253,0.70)');
-        tg.addColorStop(1, 'rgba(37,99,235,0)');
+        const tg  = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 8);
+        tg.addColorStop(0, 'rgba(224,231,238,0.5)');
+        tg.addColorStop(1, 'rgba(136,153,170,0)');
         ctx.beginPath();
-        ctx.arc(tip.x, tip.y, 10, 0, Math.PI * 2);
+        ctx.arc(tip.x, tip.y, 8, 0, Math.PI * 2);
         ctx.fillStyle = tg;
         ctx.fill();
       });
     }
 
-    // Rings — fade in as frontier crosses each ring's distance
     ringDists.forEach((dist, ri) => {
       if (dist > frontierR) return;
       const fadeIn = clamp01((frontierR - dist) / SOFT);
       if (fadeIn <= 0) return;
 
       const df  = 1 - ri / ringDists.length;
-      const opG = (0.08 + df * 0.13) * fadeIn;
-      const opC = (0.18 + df * 0.30) * fadeIn;
-      const wG  = 3.0 - df * 0.6;
-      const wC  = 1.25 - df * 0.15;
+      const opG = (0.04 + df * 0.08) * fadeIn;
+      const opC = (0.10 + df * 0.20) * fadeIn;
+      const wG  = 2.4 - df * 0.4;
+      const wC  = 1.0 - df * 0.1;
 
       for (let s = 0; s < spokeAngles.length - 1; s++) {
         const p1  = pt(spokeAngles[s],     dist);
         const p2  = pt(spokeAngles[s + 1], dist);
         const sag = Math.abs(p2.x - p1.x) * 0.038 + Math.abs(p2.y - p1.y) * 0.010;
-        strand(p1, p2, `rgba(147,197,253,${opG})`, wG, sag * 1.4);
-        strand(p1, p2, `rgba(37,99,235,${opC})`,   wC, sag);
+        strand(p1, p2, `rgba(192,202,216,${opG})`, wG, sag * 1.4);
+        strand(p1, p2, `rgba(136,153,170,${opC})`, wC, sag);
       }
 
       if (fadeIn > 0.55) {
@@ -317,8 +197,8 @@
           const n = pt(angle, dist);
           if (n.x < -30 || n.x > W + 30 || n.y < -30 || n.y > H + 30) return;
           ctx.beginPath();
-          ctx.arc(n.x, n.y, 1.9, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(37,99,235,${0.42 * df * fadeIn})`;
+          ctx.arc(n.x, n.y, 1.5, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(192,202,216,${0.35 * df * fadeIn})`;
           ctx.fill();
         });
       }
@@ -334,33 +214,32 @@
     drawScreenFlash(clamp01((e - T.CLICK) / 0.40));
     drawOriginGlow( clamp01((e - T.CLICK) / 0.85));
     drawActionLines(clamp01((e - T.CLICK) / 0.56));
-    drawStarburst(  clamp01((e - T.CLICK) / 1.00));
 
     const webT = clamp01((e - T.CLICK) / (T.WEB_DONE - T.CLICK));
     if (webT > 0) drawWeb(webT);
 
-    slider.classList.toggle('clicking', e >= T.BTN_GLOW && e < T.CLICK + 0.22);
+    requestAnimationFrame(render);
+  }
+
+  function init() {
+    resize();
+    origin = { x: W - 18, y: 41 };
+    buildWebGeometry();
+
+    setTimeout(() => {
+      origin = { x: W * 0.85, y: H * 0.12 };
+      buildWebGeometry();
+    }, T.MOUSE_ARRIVE * 1000);
 
     requestAnimationFrame(render);
   }
 
-  function startMouseSlideIn() {
-    setTimeout(() => {
-      slider.classList.add('in-position');
-      slider.addEventListener('transitionend', () => {
-        const r = document.getElementById('mouse-wrap')!.getBoundingClientRect();
-        origin = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-        buildWebGeometry();
-      }, { once: true });
-    }, T.MOUSE_ARRIVE * 1000);
-  }
+  window.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    cursor.x = e.clientX - rect.left;
+    cursor.y = e.clientY - rect.top;
+  });
+  window.addEventListener('resize', () => resize(), { passive: true });
 
-  window.addEventListener('mousemove', e => { cursor.x = e.clientX; cursor.y = e.clientY; });
-  window.addEventListener('resize',    () => resize(), { passive: true });
-
-  resize();
-  origin = { x: W - 18, y: 41 };
-  buildWebGeometry();
-  startMouseSlideIn();
-  requestAnimationFrame(render);
+  init();
 </script>

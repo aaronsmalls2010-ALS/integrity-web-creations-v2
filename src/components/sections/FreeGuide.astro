@@ -1,0 +1,79 @@
+---
+---
+<section class="relative py-32 bg-bg overflow-hidden">
+
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute bottom-0 left-0 right-0 section-line"></div>
+    <div class="absolute top-1/2 right-1/4 w-[500px] h-[500px] rounded-full bg-cyan/[0.01] blur-[100px]"></div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-6 lg:px-8 text-center">
+    <span class="reveal-up text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 block mb-4">
+      Free Resource
+    </span>
+
+    <h2 class="reveal-up font-display font-bold text-white mb-6" style="font-size:clamp(24px,3vw,40px);">
+      <span class="text-metallic">7 Website Mistakes</span> That Cost You Customers
+    </h2>
+
+    <p class="reveal-up text-muted text-base leading-relaxed mb-10 max-w-xl mx-auto">
+      Download our free guide and discover the most common website problems that drive customers away &mdash; and how to fix them.
+    </p>
+
+    <!-- Download form -->
+    <div class="reveal-up max-w-md mx-auto">
+      <form id="guide-form" class="flex gap-3">
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="your@email.com"
+          class="flex-1 bg-surface border border-white/[0.06] text-white text-sm rounded-md px-4 py-3.5 placeholder:text-steel/30 outline-none focus:border-cyan/30 transition-colors tracking-wide"
+        />
+        <button
+          type="submit"
+          class="magnetic-btn border border-white/10 hover:border-cyan/30 text-white font-semibold px-6 py-3.5 text-xs tracking-[0.15em] uppercase transition-all duration-500 hover:shadow-[0_0_20px_rgba(0,229,255,0.1)] bg-gradient-to-r from-white/[0.06] to-white/[0.02] cursor-pointer flex-shrink-0"
+        >
+          Download
+        </button>
+      </form>
+      <p class="text-steel/30 text-[10px] mt-3 tracking-wide">
+        Free. No spam. Unsubscribe anytime.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const form = document.getElementById('guide-form') as HTMLFormElement;
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Guide Download',
+          email: data.get('email'),
+          message: 'Requested free guide: 7 Website Mistakes',
+          type: 'guide',
+        }),
+      });
+      if (res.ok) {
+        btn.textContent = 'Check Your Email';
+        form.reset();
+      } else {
+        btn.textContent = 'Error — try again';
+        btn.disabled = false;
+      }
+    } catch {
+      btn.textContent = 'Error';
+      btn.disabled = false;
+    }
+  });
+</script>

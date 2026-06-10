@@ -1,0 +1,59 @@
+---
+---
+<section class="relative py-32 bg-bg overflow-hidden">
+
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    <div class="absolute top-0 left-0 right-0 section-line"></div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-6 lg:px-8 text-center">
+    <span class="reveal-up text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 block mb-4">
+      Quick Check
+    </span>
+
+    <h2 class="reveal-up font-display font-bold text-white mb-6" style="font-size:clamp(24px,3vw,40px);">
+      Can Your Customers <span class="text-metallic">Find You?</span>
+    </h2>
+
+    <p class="reveal-up text-muted text-base leading-relaxed mb-10 max-w-xl mx-auto">
+      Right now, open a new tab and search for your business on Google. If you don&rsquo;t show up on page one &mdash; your competitors do. Let&rsquo;s fix that.
+    </p>
+
+    <!-- Search demo -->
+    <div class="reveal-up max-w-lg mx-auto">
+      <div class="glass-card rounded-lg p-6">
+        <div class="flex items-center gap-3 border border-white/[0.06] rounded-md px-4 py-3 bg-bg/50">
+          <i class="fa-brands fa-google text-steel/40 text-sm"></i>
+          <input
+            type="text"
+            id="quick-check-input"
+            placeholder="Type your business name..."
+            class="flex-1 bg-transparent border-none text-white text-sm placeholder:text-steel/30 outline-none tracking-wide"
+          />
+          <button
+            id="quick-check-btn"
+            class="text-[10px] text-cyan/60 hover:text-cyan tracking-[0.2em] uppercase font-medium transition-colors cursor-pointer bg-transparent border-none"
+          >
+            Search
+          </button>
+        </div>
+        <p class="text-steel/40 text-[10px] mt-3 tracking-wide">
+          Opens Google search results in a new tab
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const input = document.getElementById('quick-check-input') as HTMLInputElement;
+  const btn   = document.getElementById('quick-check-btn') as HTMLButtonElement;
+
+  function doSearch() {
+    const q = input.value.trim();
+    if (q) window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank');
+  }
+
+  btn.addEventListener('click', doSearch);
+  input.addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Enter') doSearch(); });
+</script>

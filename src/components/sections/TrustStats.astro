@@ -5,17 +5,24 @@ const stats = [
   { value: 100, suffix: '%',  label: 'Client Satisfaction' },
 ];
 ---
-<section class="bg-white py-20">
-  <div class="max-w-4xl mx-auto px-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+<section class="relative py-24 bg-bg overflow-hidden">
+
+  <!-- Ambient horizontal line -->
+  <div class="absolute top-0 left-0 right-0 section-line" aria-hidden="true"></div>
+  <div class="absolute bottom-0 left-0 right-0 section-line" aria-hidden="true"></div>
+
+  <div class="max-w-5xl mx-auto px-6 lg:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center reveal-up">
       {stats.map(stat => (
-        <div class="flex flex-col items-center gap-2">
+        <div class="flex flex-col items-center gap-3">
           <span
-            class="text-5xl font-extrabold text-[#2563eb] tabular-nums stat-counter"
+            class="text-metallic-bright font-display tabular-nums stat-counter"
+            style="font-size:clamp(48px,5vw,72px);line-height:1;"
             data-target={stat.value}
             data-suffix={stat.suffix}
           >0</span>
-          <p class="text-[#64748b] text-sm font-medium max-w-[160px] leading-snug">{stat.label}</p>
+          <div class="w-8 h-px bg-gradient-to-r from-transparent via-cyan/30 to-transparent"></div>
+          <p class="text-steel text-xs font-medium tracking-[0.2em] uppercase max-w-[180px] leading-snug">{stat.label}</p>
         </div>
       ))}
     </div>
@@ -36,7 +43,7 @@ const stats = [
       const start  = performance.now();
 
       function update(now: number) {
-        const progress = Math.min((now - start) / 1800, 1);
+        const progress = Math.min((now - start) / 2000, 1);
         const eased    = 1 - Math.pow(1 - progress, 3);
         el.textContent = Math.round(eased * target) + suffix;
         if (progress < 1) requestAnimationFrame(update);
