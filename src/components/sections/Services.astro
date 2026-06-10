@@ -3,65 +3,69 @@ const services = [
   {
     icon: 'fa-palette',
     name: 'Custom Web Design',
-    teaser: 'A site built from scratch, tailored to your exact business.',
-    full: 'A site built from scratch, tailored to your exact business — no templates, no shortcuts. Every pixel designed around your brand, your customers, and your goals.',
+    description: 'A site built from scratch, tailored to your exact business — no templates, no shortcuts. Every pixel designed around your brand, your customers, and your goals.',
   },
   {
     icon: 'fa-pen-ruler',
     name: 'Brand Identity',
-    teaser: 'Logos, colors, and brand systems that tell your story.',
-    full: 'Logos, colors, typography, and brand systems that tell your story and make you instantly recognizable — whether online, in print, or on a sign.',
+    description: 'Logos, colors, typography, and brand systems that tell your story and make you instantly recognizable — whether online, in print, or on a sign.',
   },
   {
     icon: 'fa-magnifying-glass-chart',
     name: 'Search Visibility (SEO)',
-    teaser: 'We make sure your customers find you first.',
-    full: 'Local SEO, technical optimization, and content strategy that moves you up in Google where your customers are actively searching for your services.',
+    description: 'Local SEO, technical optimization, and content strategy that moves you up in Google where your customers are actively searching for your services.',
   },
   {
     icon: 'fa-cart-shopping',
     name: 'E-Commerce',
-    teaser: 'Sell your products and services online around the clock.',
-    full: 'Full e-commerce solutions — product pages, secure checkout, inventory management — built for your business to sell online around the clock.',
+    description: 'Full e-commerce solutions — product pages, secure checkout, inventory management — built for your business to sell online around the clock.',
   },
   {
     icon: 'fa-screwdriver-wrench',
     name: 'Monthly Maintenance',
-    teaser: 'Your site stays fast, secure, and current — always.',
-    full: 'Updates, backups, security monitoring, and improvements handled every single month. Your site stays fast, secure, and current while you focus on running your business.',
+    description: 'Updates, backups, security monitoring, and improvements handled every single month. Your site stays fast, secure, and current while you focus on running your business.',
   },
   {
     icon: 'fa-chart-line',
     name: 'Digital Marketing',
-    teaser: 'Targeted campaigns that reach your specific customers.',
-    full: 'Targeted campaigns that reach your specific customers in Beaufort and beyond — social media, Google Ads, and email marketing that drives real traffic to your site.',
+    description: 'Targeted campaigns that reach your specific customers in Beaufort and beyond — social media, Google Ads, and email marketing that drives real traffic to your site.',
   },
 ];
 ---
-<section class="bg-[#f8fafc] py-24">
+
+<div class="section-line"></div>
+
+<section id="services" class="bg-bg py-28">
   <div class="max-w-7xl mx-auto px-6">
 
-    <div class="text-center mb-14">
-      <h2 class="font-extrabold text-[#0f172a] mb-4" style="font-size:clamp(22px,3vw,40px);">
-        What We Build For You
+    <!-- Section header -->
+    <div class="text-center mb-16 reveal-up">
+      <p class="text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 mb-4">
+        What We Do
+      </p>
+      <h2 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-5">
+        Full-Service <span class="text-metallic">Solutions</span>
       </h2>
-      <p class="text-[#64748b] text-base max-w-xl mx-auto leading-relaxed">
-        Full-service web solutions — everything your business needs to succeed online, delivered by one person who&rsquo;s invested in your success.
+      <p class="text-muted text-base max-w-xl mx-auto leading-relaxed">
+        Everything your business needs to succeed online, delivered by one person
+        who&rsquo;s invested in your success.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {services.map(s => (
-        <div class="group bg-white border border-[#e2e8f0] rounded-xl p-7 hover:border-[#2563eb] hover:shadow-lg transition-all cursor-default">
-          <div class="flex items-start gap-4">
-            <div class="flex-shrink-0 w-12 h-12 bg-[#eff6ff] rounded-lg flex items-center justify-center group-hover:bg-[#2563eb] transition-colors">
-              <i class={`fa-solid ${s.icon} text-[#2563eb] group-hover:text-white transition-colors`}></i>
+    <!-- Service cards grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-stagger>
+      {services.map((s) => (
+        <div class="glass-card group rounded-2xl p-8 hover:border-cyan/30 transition-all duration-300 cursor-default relative overflow-hidden reveal-up">
+          {/* Hover glow */}
+          <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" aria-hidden="true"></div>
+
+          <div class="relative z-10">
+            <div class="w-14 h-14 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-6 group-hover:border-cyan/20 transition-colors">
+              <i class={`fa-solid ${s.icon} text-cyan/70 text-xl group-hover:text-cyan transition-colors`}></i>
             </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="font-bold text-[#0f172a] text-base mb-1.5">{s.name}</h3>
-              <p class="text-[#64748b] text-sm leading-relaxed group-hover:hidden">{s.teaser}</p>
-              <p class="text-[#64748b] text-sm leading-relaxed hidden group-hover:block">{s.full}</p>
-            </div>
+
+            <h3 class="font-display text-lg font-bold text-white mb-3">{s.name}</h3>
+            <p class="text-muted text-sm leading-relaxed">{s.description}</p>
           </div>
         </div>
       ))}

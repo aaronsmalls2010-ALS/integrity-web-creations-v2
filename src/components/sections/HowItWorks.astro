@@ -27,39 +27,50 @@ const steps = [
   },
   {
     number: '06',
-    title: 'Ongoing Partnership',
+    title: 'Partnership',
     description: 'Your monthly plan covers everything — updates, security, performance, and a real person you can call with questions.',
   },
 ];
 ---
-<section class="bg-[#f8fafc] py-24 overflow-x-hidden">
+
+<div class="section-line"></div>
+
+<section id="process" class="bg-bg py-28 overflow-x-hidden">
   <div class="max-w-7xl mx-auto px-6">
 
-    <div class="text-center mb-16">
-      <h2 class="font-extrabold text-[#0f172a] mb-4" style="font-size:clamp(22px,3vw,40px);">
-        Your Journey With Us
+    <!-- Section header -->
+    <div class="text-center mb-20 reveal-up">
+      <p class="text-[10px] font-medium tracking-[0.4em] uppercase text-cyan/60 mb-4">
+        Our Process
+      </p>
+      <h2 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-5">
+        Your <span class="text-metallic">Journey</span> With Us
       </h2>
-      <p class="text-[#64748b] text-base max-w-xl mx-auto leading-relaxed">
-        A clear, collaborative process that keeps you in control &mdash; from first call to launch day and beyond.
+      <p class="text-muted text-base max-w-xl mx-auto leading-relaxed">
+        A clear, collaborative process that keeps you in control &mdash; from
+        first call to launch day and beyond.
       </p>
     </div>
 
     <!-- Desktop: horizontal 6-step timeline -->
-    <div class="hidden md:block relative">
+    <div class="hidden md:block relative reveal-up">
+      {/* Connecting line */}
       <div
-        class="absolute h-0.5 bg-[#e2e8f0]"
-        style="top:2.5rem;left:calc(100%/12);right:calc(100%/12);"
+        class="absolute h-px"
+        style="top:2rem;left:calc(100%/12);right:calc(100%/12);background:linear-gradient(90deg,transparent,rgba(0,229,255,0.15) 15%,rgba(0,229,255,0.25) 50%,rgba(0,229,255,0.15) 85%,transparent);"
         aria-hidden="true"
       ></div>
 
-      <div class="grid grid-cols-6 gap-2 relative">
-        {steps.map(step => (
-          <div class="flex flex-col items-center text-center px-2">
-            <div class="w-20 h-20 rounded-full bg-white border-2 border-[#e2e8f0] hover:border-[#2563eb] flex items-center justify-center mb-4 transition-colors shadow-sm z-10 relative cursor-default">
-              <span class="text-[#2563eb] text-xs font-extrabold">{step.number}</span>
+      <div class="grid grid-cols-6 gap-2 relative" data-stagger>
+        {steps.map((step) => (
+          <div class="flex flex-col items-center text-center px-2 group">
+            {/* Numbered circle */}
+            <div class="w-16 h-16 rounded-full bg-surface border border-white/[0.08] group-hover:border-cyan/40 flex items-center justify-center mb-5 transition-all duration-300 z-10 relative cursor-default shadow-[0_0_0_4px_#000d1a]">
+              <span class="text-cyan/70 text-xs font-bold tracking-wider group-hover:text-cyan transition-colors">{step.number}</span>
             </div>
-            <h3 class="font-bold text-[#0f172a] text-sm mb-2">{step.title}</h3>
-            <p class="text-[#64748b] text-xs leading-relaxed">{step.description}</p>
+
+            <h3 class="font-display text-sm font-bold text-white mb-2">{step.title}</h3>
+            <p class="text-steel text-xs leading-relaxed">{step.description}</p>
           </div>
         ))}
       </div>
@@ -67,17 +78,24 @@ const steps = [
 
     <!-- Mobile: vertical stacked timeline -->
     <div class="md:hidden relative">
-      <div class="absolute left-5 top-5 bottom-5 w-0.5 bg-[#e2e8f0]" aria-hidden="true"></div>
+      {/* Vertical connecting line */}
+      <div
+        class="absolute left-[1.1rem] top-4 bottom-4 w-px"
+        style="background:linear-gradient(180deg,transparent,rgba(0,229,255,0.2) 10%,rgba(0,229,255,0.2) 90%,transparent);"
+        aria-hidden="true"
+      ></div>
 
-      <div class="flex flex-col gap-8">
-        {steps.map(step => (
-          <div class="flex items-start gap-5 pl-2">
-            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-white border-2 border-[#e2e8f0] flex items-center justify-center z-10 relative shadow-sm">
-              <span class="text-[#2563eb] text-xs font-extrabold">{step.number}</span>
+      <div class="flex flex-col gap-10" data-stagger>
+        {steps.map((step) => (
+          <div class="flex items-start gap-5 pl-0 reveal-up">
+            {/* Numbered circle */}
+            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-surface border border-white/[0.08] flex items-center justify-center z-10 relative shadow-[0_0_0_3px_#000d1a]">
+              <span class="text-cyan/70 text-[10px] font-bold tracking-wider">{step.number}</span>
             </div>
-            <div class="pt-1.5 flex-1">
-              <h3 class="font-bold text-[#0f172a] text-sm mb-1">{step.title}</h3>
-              <p class="text-[#64748b] text-sm leading-relaxed">{step.description}</p>
+
+            <div class="pt-0.5 flex-1">
+              <h3 class="font-display text-sm font-bold text-white mb-1.5">{step.title}</h3>
+              <p class="text-steel text-sm leading-relaxed">{step.description}</p>
             </div>
           </div>
         ))}

@@ -5,19 +5,25 @@ const stats = [
   { value: 100, suffix: '%',  label: 'Client Satisfaction' },
 ];
 ---
-<section class="bg-white py-20">
-  <div class="max-w-4xl mx-auto px-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-      {stats.map(stat => (
-        <div class="flex flex-col items-center gap-2">
-          <span
-            class="text-5xl font-extrabold text-[#2563eb] tabular-nums stat-counter"
-            data-target={stat.value}
-            data-suffix={stat.suffix}
-          >0</span>
-          <p class="text-[#64748b] text-sm font-medium max-w-[160px] leading-snug">{stat.label}</p>
-        </div>
-      ))}
+
+<section class="bg-bg py-24 reveal-up">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="glass-card rounded-2xl py-16 px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+        {stats.map((stat) => (
+          <div class="flex flex-col items-center gap-3">
+            <span
+              class="font-display text-5xl md:text-6xl font-bold tabular-nums stat-counter"
+              style="background:linear-gradient(135deg,#8899aa 0%,#c0cad8 25%,#e8edf3 45%,#ffffff 50%,#e0e7ee 55%,#b0bec5 75%,#8899aa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"
+              data-target={stat.value}
+              data-suffix={stat.suffix}
+            >0</span>
+            <p class="text-steel text-sm font-medium max-w-[180px] leading-snug tracking-wide">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 </section>
@@ -25,26 +31,31 @@ const stats = [
 <script>
   const counters = document.querySelectorAll<HTMLElement>('.stat-counter');
 
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      observer.unobserve(entry.target);
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        observer.unobserve(entry.target);
 
-      const el     = entry.target as HTMLElement;
-      const target = parseInt(el.dataset.target ?? '0');
-      const suffix = el.dataset.suffix ?? '';
-      const start  = performance.now();
+        const el = entry.target as HTMLElement;
+        const target = parseInt(el.dataset.target ?? '0');
+        const suffix = el.dataset.suffix ?? '';
+        const start = performance.now();
+        const duration = 2000;
 
-      function update(now: number) {
-        const progress = Math.min((now - start) / 1800, 1);
-        const eased    = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.round(eased * target) + suffix;
-        if (progress < 1) requestAnimationFrame(update);
-      }
+        function update(now: number) {
+          const progress = Math.min((now - start) / duration, 1);
+          // Ease-out cubic
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = Math.round(eased * target) + suffix;
+          if (progress < 1) requestAnimationFrame(update);
+        }
 
-      requestAnimationFrame(update);
-    });
-  }, { threshold: 0.4 });
+        requestAnimationFrame(update);
+      });
+    },
+    { threshold: 0.4 }
+  );
 
-  counters.forEach(c => observer.observe(c));
+  counters.forEach((c) => observer.observe(c));
 </script>

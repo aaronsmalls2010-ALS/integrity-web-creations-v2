@@ -1,70 +1,32 @@
 ---
-const navLinks: [string, string][] = [
-  ['/',              'Home'],
-  ['/about',         'About'],
-  ['/why-we-matter', 'Why We Matter'],
-  ['/clients',       'Clients'],
-  ['/contact',       'Contact'],
-];
+const navLinks: [string, string][] = [['/', 'Home'], ['/about', 'About'], ['/why-we-matter', 'Why We Matter'], ['/clients', 'Clients'], ['/contact', 'Contact']];
 ---
-<footer class="bg-[#0f172a] text-white">
-  <div class="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-3 gap-12">
-
-    <!-- Col 1: Logo + tagline -->
-    <div>
-      <a href="/" class="inline-flex items-center gap-1 mb-4 no-underline" aria-label="Integrity Web Creations">
-        <span class="font-light text-sm tracking-widest text-white/70">integrity</span>
-        <span class="font-extrabold text-sm tracking-widest text-white">WEB CREATIONS</span>
-      </a>
-      <p class="text-[#94a3b8] text-sm leading-relaxed">
-        Built with Integrity. Engineered to Perform.
-      </p>
+<footer class="relative bg-bg border-t border-white/[0.04]">
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-px bg-gradient-to-r from-transparent via-cyan/20 to-transparent" aria-hidden="true"></div>
+  <div class="max-w-7xl mx-auto px-6 lg:px-8 pt-20 pb-8">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
+      <div class="md:col-span-5">
+        <a href="/" class="inline-flex flex-col items-start mb-6 no-underline" aria-label="IWC"><span class="text-metallic-bright font-display text-2xl font-bold tracking-[0.15em] leading-none">IWC</span><span class="text-[9px] text-steel tracking-[0.4em] uppercase mt-1 font-light">Integrity Web Creations</span></a>
+        <p class="text-muted/60 text-sm leading-relaxed max-w-xs">Premium custom websites built exclusively for your business. Every pixel designed with purpose.</p>
+        <p class="text-steel/30 text-[11px] tracking-[0.3em] uppercase mt-6 font-medium">Design. Function. Integrity.</p>
+      </div>
+      <div class="md:col-span-3">
+        <h3 class="text-[10px] font-semibold uppercase tracking-[0.35em] text-steel/50 mb-6">Navigation</h3>
+        <ul class="flex flex-col gap-3.5 list-none m-0 p-0">{navLinks.map(([href, label]) => (<li><a href={href} class="text-muted/70 text-sm hover:text-white transition-colors duration-300 no-underline tracking-wide">{label}</a></li>))}</ul>
+      </div>
+      <div class="md:col-span-4">
+        <h3 class="text-[10px] font-semibold uppercase tracking-[0.35em] text-steel/50 mb-6">Contact</h3>
+        <ul class="flex flex-col gap-5 list-none m-0 p-0">
+          <li class="flex items-center gap-3.5"><div class="w-8 h-8 rounded-full border border-white/[0.06] flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-phone text-cyan/60 text-[10px]"></i></div><a href="tel:+18432630072" class="text-muted/70 text-sm hover:text-white transition-colors duration-300 no-underline tracking-wide">(843) 263-0072</a></li>
+          <li class="flex items-start gap-3.5"><div class="w-8 h-8 rounded-full border border-white/[0.06] flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fa-solid fa-envelope text-cyan/60 text-[10px]"></i></div><a href="mailto:asmalls@integritywebcreations.com" class="text-muted/70 text-sm hover:text-white transition-colors duration-300 no-underline break-all tracking-wide">asmalls@integritywebcreations.com</a></li>
+          <li class="flex items-center gap-3.5"><div class="w-8 h-8 rounded-full border border-white/[0.06] flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-location-dot text-cyan/60 text-[10px]"></i></div><span class="text-muted/70 text-sm tracking-wide">Beaufort, South Carolina</span></li>
+        </ul>
+      </div>
     </div>
-
-    <!-- Col 2: Navigation -->
-    <div>
-      <h3 class="text-xs font-semibold uppercase tracking-widest text-[#475569] mb-5">Navigation</h3>
-      <ul class="flex flex-col gap-2.5 list-none m-0 p-0">
-        {navLinks.map(([href, label]) => (
-          <li>
-            <a href={href} class="text-[#94a3b8] text-sm hover:text-white transition-colors no-underline">
-              {label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-
-    <!-- Col 3: Contact -->
-    <div>
-      <h3 class="text-xs font-semibold uppercase tracking-widest text-[#475569] mb-5">Contact</h3>
-      <ul class="flex flex-col gap-4 list-none m-0 p-0">
-        <li class="flex items-center gap-3">
-          <i class="fa-solid fa-phone text-[#2563eb] w-4 text-sm flex-shrink-0"></i>
-          <a href="tel:+18432630072" class="text-[#94a3b8] text-sm hover:text-white transition-colors no-underline">
-            (843) 263-0072
-          </a>
-        </li>
-        <li class="flex items-start gap-3">
-          <i class="fa-solid fa-envelope text-[#2563eb] w-4 text-sm flex-shrink-0 mt-0.5"></i>
-          <a href="mailto:asmalls@integritywebcreations.com" class="text-[#94a3b8] text-sm hover:text-white transition-colors no-underline break-all">
-            asmalls@integritywebcreations.com
-          </a>
-        </li>
-        <li class="flex items-center gap-3">
-          <i class="fa-solid fa-location-dot text-[#2563eb] w-4 text-sm flex-shrink-0"></i>
-          <span class="text-[#94a3b8] text-sm">Beaufort, South Carolina</span>
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Bottom bar -->
-  <div class="border-t border-white/10">
-    <div class="max-w-7xl mx-auto px-6 py-6">
-      <p class="text-center text-[#475569] text-xs">
-        &copy; 2026 Integrity Web Creations &middot; Founded 2010
-      </p>
+    <div class="section-line mt-16 mb-6"></div>
+    <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+      <p class="text-steel/30 text-[11px] tracking-[0.15em]">&copy; 2026 Integrity Web Creations</p>
+      <p class="text-steel/30 text-[11px] tracking-[0.15em]">Founded 2010 &middot; Beaufort, SC</p>
     </div>
   </div>
 </footer>
