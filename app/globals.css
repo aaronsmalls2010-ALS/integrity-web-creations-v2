@@ -669,14 +669,23 @@ body {
 
 /* mobile: full-screen copy fits within boundaries */
 @media (max-width: 768px) {
+  /* the logo card is landscape art — cover-cropping it in portrait shears
+     the wordmark. Contain shows the COMPLETE card, letterboxed on black. */
+  #scene-1 .scene__bg img {
+    object-fit: contain;
+    object-position: center center !important;
+  }
+  .headline {
+    line-height: 1.05;
+  }
   .copy--spread .scene__copy-inner {
     max-width: 88cqw;
     top: 12cqh;
   }
   .columns-wrap {
     grid-template-columns: repeat(2, 1fr);
-    gap: 3.5cqh 5cqw;
-    bottom: 11cqh;
+    gap: 3cqh 5cqw;
+    bottom: 15cqh;
   }
   .col + .col {
     border-left: 0;
@@ -693,6 +702,7 @@ body {
   }
   .strap {
     letter-spacing: 0.3em;
+    bottom: 7cqh; /* clear the fixed legal line */
   }
 }
 
