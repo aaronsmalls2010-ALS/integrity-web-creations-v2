@@ -162,9 +162,13 @@ body {
 .scene__bg img {
   object-position: var(--focal-desktop, center);
 }
-/* landing reveal plate (complete logo card): hidden pre-JS; the one-time
-   intro wipes it in TOP→BOTTOM (feathered gradient mask driven by --wipe)
-   and it stays revealed for the session */
+/* landing opens from BLACK: the base plate (concept 0) fades in over 1s,
+   then the complete card (concept 1) wipes in TOP→BOTTOM over 3s. Both stay
+   revealed for the session; hidden pre-JS only. */
+.scene__bg img.bg-base {
+  opacity: 0;
+  visibility: hidden;
+}
 .scene__bg img.bg-reveal {
   opacity: 0;
   visibility: hidden;
@@ -756,6 +760,7 @@ body {
   .reduced-motion #black-beat {
     display: none;
   }
+  .reduced-motion .scene__bg img.bg-base,
   .reduced-motion .scene__bg img.bg-reveal {
     opacity: 1 !important;
     visibility: visible !important;

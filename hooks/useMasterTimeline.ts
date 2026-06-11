@@ -48,6 +48,8 @@ export function setInitialStates(splits: SplitsMap, scene1CopyRevealed = false) 
     autoAlpha: 0,
   })
   gsap.set('#scene-1', { autoAlpha: 1 })
+  const base = document.querySelector('#scene-1 .bg-base')
+  if (base) gsap.set(base, { autoAlpha: scene1CopyRevealed ? 1 : 0 })
   const reveal = document.querySelector('#scene-1 .bg-reveal')
   if (reveal)
     gsap.set(

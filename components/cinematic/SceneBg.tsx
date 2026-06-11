@@ -39,7 +39,9 @@ export default function SceneBg({
             quality={82}
             priority={index <= 1}
             loading={index <= 1 ? undefined : 'eager'}
-            className="object-cover"
+            // scenes with a reveal plate open from BLACK: the base plate
+            // fades in first (intro), so it starts hidden
+            className={cfg.revealImage ? 'object-cover bg-base' : 'object-cover'}
           />
           {cfg.revealImage && (
             // dissolves in over the base plate on load (intro owns the fade;

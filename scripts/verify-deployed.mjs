@@ -68,23 +68,26 @@ const { evaljs } = await cdp()
 
 const SNAP = `(() => {
   const rv = document.querySelector('#scene-1 .bg-reveal')
+  const base = document.querySelector('#scene-1 .bg-base')
   const pre = document.getElementById('preloader')
   return {
     pre: pre ? getComputedStyle(pre).display : 'missing',
+    base: base ? +(+getComputedStyle(base).opacity).toFixed(2) : null,
     wipe: rv ? getComputedStyle(rv).getPropertyValue('--wipe').trim() : null,
     o: rv ? +(+getComputedStyle(rv).opacity).toFixed(2) : null,
   }
 })()`
 
-// 1) watch the opening: preloader → wipe progressing → wipe complete
+// 1) watch the opening: black → base plate (1s) → wipe completing (3s)
 const opening = []
-for (let i = 0; i < 36; i++) {
-  opening.push(await evaljs(SNAP))
-  const last = opening[opening.length - 1]
-  if (last && last.pre === 'none' && parseFloat(last.wipe) >= 139) break
-  await sleep(700)
+let tPrev = Date.now()
+for (let i = 0; i < 80; i++) {
+  const s = await evaljs(SNAP)
+  opening.push({ dt: Date.now() - tPrev, ...s })
+  if (s && s.pre === 'none' && parseFloat(s.wipe) >= 139) break
+  await sleep(350)
 }
-console.log('OPENING', JSON.stringify(opening.filter((_, i) => i % 3 === 0 || i === opening.length - 1)))
+console.log('OPENING', JSON.stringify(opening.filter((s, i) => i % 2 === 0 || i === opening.length - 1)))
 
 // 2) T1 phases (scroll-driven) + wrap landing
 const t1 = await evaljs(`(async () => {
