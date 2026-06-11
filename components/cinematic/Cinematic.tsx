@@ -179,6 +179,9 @@ export default function Cinematic() {
       return Number.isFinite(n) && n >= 1 ? n : 1
     }
     const onKey = (e: KeyboardEvent) => {
+      // never hijack arrows while typing in the embedded contact form
+      const t = e.target as HTMLElement
+      if (t && ['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName)) return
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         scrollToLabel(`scene${Math.min(7, currentSceneIndex() + 1)}`)

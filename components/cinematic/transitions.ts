@@ -88,6 +88,28 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
       },
       0.45 * pace,
     )
+  const points = s.querySelectorAll('.point')
+  if (points.length)
+    tl.fromTo(
+      points,
+      { autoAlpha: 0, y: 22 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        stagger: 0.13 * pace,
+        duration: 0.5 * pace,
+        ease: 'power2.out',
+      },
+      0.5 * pace,
+    )
+  const formPanel = s.querySelector('.form-panel')
+  if (formPanel)
+    tl.fromTo(
+      formPanel,
+      { autoAlpha: 0, y: 26 },
+      { autoAlpha: 1, y: 0, duration: 0.55 * pace, ease: 'power2.out' },
+      0.35 * pace,
+    )
   const strap = s.querySelector('.strap')
   if (strap)
     tl.fromTo(
@@ -110,7 +132,7 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
 export function copyOut(sel: string) {
   const tl = gsap.timeline()
   const targets = document.querySelectorAll(
-    `${sel} .monogram, ${sel} .label, ${sel} .headline .split-word, ${sel} .body-copy, ${sel} .col, ${sel} .strap, ${sel} .cta-wrap`,
+    `${sel} .monogram, ${sel} .label, ${sel} .headline .split-word, ${sel} .body-copy, ${sel} .point, ${sel} .col, ${sel} .strap, ${sel} .form-panel, ${sel} .cta-wrap`,
   )
   if (targets.length)
     tl.to(targets, {

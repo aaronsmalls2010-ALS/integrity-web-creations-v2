@@ -39,7 +39,7 @@ export interface SceneConfig {
   textInImage?: boolean
   objectPosition: { desktop: string; mobile: string }
   gradient: string
-  copyLayout: 'bottom-left' | 'top-right' | 'center' | 'spread'
+  copyLayout: 'bottom-left' | 'top-right' | 'center' | 'spread' | 'split'
   /** large brand monogram above the label (scene 1 / concept-1 mockup) */
   monogram?: string
   label: string
@@ -55,6 +55,10 @@ export interface SceneConfig {
   columns?: SceneColumn[]
   /** bottom strap line (scene 2 / concept-3 mockup) */
   strap?: string
+  /** stacked supporting points (titles + lines, live-site copy) */
+  points?: { title: string; body: string }[]
+  /** scene 7: embed the contact form panel (right half) */
+  contactForm?: boolean
   ctas?: SceneCta[]
   holdWeight: number
   cameraHold: 'push-in' | 'drift-left' | 'zoom-out' | 'float' | 'none'
@@ -141,6 +145,21 @@ export const SCENES: SceneConfig[] = [
     goldText: 'Convert',
     body: "We design websites that don't just look good — they guide customers, build trust, and convert attention into action.", // [APPROVED]
     copyStatus: { label: 'draft', headline: 'draft', body: 'approved' },
+    points: [
+      // live-site "Why We Matter" copy (Aaron 2026-06-11: fill unused space)
+      {
+        title: 'Your First Impression',
+        body: 'Before a customer ever walks through your door — they Google you.',
+      },
+      {
+        title: "Templates Don't Tell Your Story",
+        body: 'Squarespace, Wix, GoDaddy — they all promise easy. But easy means generic.',
+      },
+      {
+        title: 'A Partner, Not a Vendor',
+        body: 'Big agencies assign you a ticket number. At IWC, you get a real person.',
+      },
+    ],
     holdWeight: 1.0,
     cameraHold: 'none',
   },
@@ -153,8 +172,9 @@ export const SCENES: SceneConfig[] = [
       'linear-gradient(to top, rgba(8,9,12,.95), rgba(8,9,12,.3) 50%, transparent)',
     copyLayout: 'bottom-left',
     label: 'The Expert Behind the Build', // [DRAFT]
-    headline: ['Strategy. Design.', 'Development. Execution.'], // [APPROVED]
-    goldLine: 1,
+    // Aaron 2026-06-11: stagger the words; "Execution." strong + centered
+    headline: ['Strategy.', 'Design.', 'Development.', 'Execution.'], // [APPROVED]
+    goldLine: 3,
     goldText: 'Execution.',
     body: 'Fifteen years of custom builds. Zero templates.', // [DRAFT]
     copyStatus: { label: 'draft', headline: 'approved', body: 'draft' },
@@ -201,6 +221,29 @@ export const SCENES: SceneConfig[] = [
     goldText: 'Growth',
     body: 'From idea to launch, we create digital foundations built for growth.', // [APPROVED]
     copyStatus: { label: 'draft', headline: 'draft', body: 'approved' },
+    points: [
+      // live-site copy (Aaron 2026-06-11: fill space, entice action)
+      {
+        title: 'Custom-Built',
+        body: 'A site built from scratch, tailored to your exact business — no templates, no shortcuts.',
+      },
+      {
+        title: 'Fully Managed',
+        body: 'Updates, backups, security monitoring, and improvements handled every single month.',
+      },
+      {
+        title: 'Built Around Your Budget',
+        body: "Let's have a real conversation about what your business deserves online.",
+      },
+    ],
+    ctas: [
+      {
+        text: 'Start Your Project', // [APPROVED]
+        href: '/contact',
+        variant: 'ghost',
+        analyticsId: 'start_project',
+      },
+    ],
     holdWeight: 1.0,
     cameraHold: 'zoom-out',
   },
@@ -209,9 +252,12 @@ export const SCENES: SceneConfig[] = [
     id: 'scene-7',
     image: '/images/scenes/scene-7-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 55%' },
+    // Aaron 2026-06-11: text left half + contact form right half; heavy
+    // left scrim for readability
     gradient:
-      'radial-gradient(ellipse at center, rgba(5,6,9,.5), transparent 70%), linear-gradient(to top, rgba(8,9,12,.97), rgba(8,9,12,.35) 55%, transparent)',
-    copyLayout: 'center',
+      'linear-gradient(to right, rgba(5,6,10,.93), rgba(5,6,10,.55) 52%, rgba(5,6,10,.65)), linear-gradient(to top, rgba(8,9,12,.85), transparent 45%)',
+    copyLayout: 'split',
+    contactForm: true,
     label: "The Lowcountry's Digital Agency · Beaufort, SC · Since 2010", // [DRAFT]
     headline: ['More Than a Website.', 'A Digital Presence.'], // [DRAFT]
     goldLine: 1,

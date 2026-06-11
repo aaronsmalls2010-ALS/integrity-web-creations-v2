@@ -3,9 +3,10 @@
 import { useState } from 'react'
 
 const LINKS = [
-  { label: 'Services', href: '/services' }, // Phase 2 route
-  { label: 'Portfolio', href: '/portfolio' }, // Phase 2 route
-  { label: 'About', href: '/about' }, // Phase 2 route
+  { label: 'Home', href: '/' },
+  { label: 'Services', href: '/services' },
+  { label: 'Portfolio', href: '/portfolio' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
 

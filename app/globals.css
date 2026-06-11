@@ -233,6 +233,103 @@ body {
 .copy--center .services-wrap {
   justify-content: center;
 }
+/* scene 7 (Aaron 2026-06-11): text left half, contact form right half */
+.copy--split {
+  inset: 0;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 4cqw;
+  padding: 11cqh 5cqw 9cqh;
+}
+.copy--split .scene__copy-inner {
+  text-align: left;
+  pointer-events: auto;
+}
+.copy--split .cta-wrap {
+  justify-content: flex-start;
+}
+.form-panel {
+  pointer-events: auto;
+  background: rgba(5, 8, 16, 0.84);
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  padding: clamp(1.1rem, 2.2cqw, 1.9rem);
+  max-height: 80cqh;
+  overflow-y: auto;
+  justify-self: end;
+  width: min(100%, 34rem);
+}
+.form-panel__title {
+  font-size: 0.62rem;
+  font-weight: 400;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.4rem;
+}
+.form-panel .contact-form label {
+  margin-top: 0.85rem;
+}
+.form-panel .contact-form textarea {
+  min-height: 5.5rem;
+}
+/* prominent primary CTA on the final scene */
+#scene-7 .cta--primary {
+  font-size: clamp(0.62rem, 1.25cqw, 0.8rem);
+  padding: 1.15rem 2.2rem;
+  box-shadow: 0 8px 34px rgba(201, 168, 76, 0.35);
+}
+
+/* stacked supporting points (live-site copy) */
+.points-wrap {
+  list-style: none;
+  margin: clamp(1rem, 3cqh, 1.8rem) 0 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(0.7rem, 2cqh, 1.2rem);
+}
+.point__title {
+  font-size: clamp(0.55rem, 1.05cqw, 0.74rem);
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
+}
+.point__body {
+  font-size: clamp(0.6rem, 1.05cqw, 0.8rem);
+  font-weight: 300;
+  line-height: 1.6;
+  color: #d6dae2;
+  margin-top: 0.25rem;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
+}
+.copy--top-right .points-wrap {
+  justify-items: end;
+}
+.copy--top-right .point {
+  max-width: 44ch;
+}
+
+/* scene 4 (Aaron 2026-06-11): staggered words, EXECUTION strong + centered */
+#scene-4 .scene__copy {
+  left: 5cqw;
+  right: 5cqw;
+  max-width: none;
+}
+#scene-4 .headline__line:nth-child(2) {
+  margin-left: 8cqw;
+}
+#scene-4 .headline__line:nth-child(3) {
+  margin-left: 16cqw;
+}
+#scene-4 .headline__line:nth-child(4) {
+  text-align: center;
+  font-size: 1.45em;
+  margin-top: 1.2cqh;
+}
+
 /* concept-3 mockup layout: headline+body upper-left, columns row + strap below */
 .copy--spread {
   inset: 0;
@@ -470,6 +567,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+#brand-mark:hover .brand-mark__monogram {
+  color: var(--gold);
 }
 .brand-mark__monogram {
   font-family: var(--font-playfair), serif;
@@ -493,22 +595,36 @@ body {
 }
 .top-nav__links {
   display: flex;
-  gap: clamp(1.2rem, 2.4vw, 2.2rem);
+  gap: clamp(0.5rem, 1vw, 0.9rem);
   list-style: none;
   margin: 0;
   padding: 0;
 }
+/* larger, boxed nav items with hover animation (Aaron 2026-06-11) */
 .top-nav__links a {
-  font-size: 0.62rem;
+  display: inline-block;
+  font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: #ffffff; /* bright white — must read on dark imagery */
+  color: #ffffff;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
-  transition: color 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(5, 8, 16, 0.35);
+  padding: 0.65rem 1.05rem;
+  transition:
+    color 0.3s ease,
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 .top-nav__links a:hover {
   color: var(--gold);
+  border-color: var(--gold);
+  background: rgba(201, 168, 76, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
 }
 .top-nav__menu-btn {
   display: none;
@@ -703,6 +819,21 @@ body {
   .strap {
     letter-spacing: 0.3em;
     bottom: 7cqh; /* clear the fixed legal line */
+  }
+  /* scene 7 stacks; the in-scene form hides (CTAs lead to /contact) */
+  .copy--split {
+    grid-template-columns: 1fr;
+    align-items: end;
+    padding: 12cqh 6cqw 14cqh;
+  }
+  .form-panel {
+    display: none;
+  }
+  .points-wrap {
+    gap: 1.6cqh;
+  }
+  .point__body {
+    font-size: 0.6rem;
   }
 }
 

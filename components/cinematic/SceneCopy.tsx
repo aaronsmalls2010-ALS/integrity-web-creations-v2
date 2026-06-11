@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { SceneColumn, SceneConfig } from '@/lib/sceneData'
+import ContactForm from '@/components/site/ContactForm'
 
 /** wraps the exact gold substring of a headline line in italic-gold <em> */
 function renderLine(
@@ -98,6 +99,16 @@ export default function SceneCopy({
           ))}
         </Heading>
         <p className="body-copy">{cfg.body}</p>
+        {cfg.points && (
+          <ul className="points-wrap">
+            {cfg.points.map((p) => (
+              <li className="point" key={p.title}>
+                <p className="point__title">{p.title}</p>
+                <p className="point__body">{p.body}</p>
+              </li>
+            ))}
+          </ul>
+        )}
         {cfg.services && (
           <ul className="services-wrap" aria-label="Services">
             {cfg.services.map((s) => (
@@ -123,6 +134,12 @@ export default function SceneCopy({
           </div>
         )}
       </div>
+      {cfg.contactForm && (
+        <div className="form-panel">
+          <p className="form-panel__title">Send a Message</p>
+          <ContactForm />
+        </div>
+      )}
       {cfg.columns && (
         <ul className="columns-wrap" aria-label="What we do">
           {cfg.columns.map((col) => (
