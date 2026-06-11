@@ -12,11 +12,15 @@ export const SCRUB = 1.8
 // roughly half the brief's defaults (115/70), below its 90/55 floor by
 // explicit client direction.
 export const UNIT_DESKTOP = 60 // svh per weight unit
-export const UNIT_MOBILE = 45
+// Aaron (2026-06-11): mobile "moves way too fast" — 2x the scroll distance
+export const UNIT_MOBILE = 90
 export const TRAVEL_DESKTOP = 1.0 // multiplies ALL transition xPercent/yPercent
 export const TRAVEL_MOBILE = 0.6
 
 export const MOBILE_BREAKPOINT = 768
+/** phones in EITHER orientation count as mobile (landscape = short height) */
+export const MOBILE_MEDIA = '(max-width: 768px), (max-height: 520px)'
+export const DESKTOP_MEDIA = '(min-width: 769px) and (min-height: 521px)'
 
 /**
  * SEGMENT WEIGHT TABLE — client-tuned (Aaron 2026-06-11; supersedes the

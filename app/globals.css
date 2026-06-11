@@ -659,12 +659,26 @@ body {
 #mobile-menu {
   display: none;
 }
-@media (max-width: 768px) {
+/* hamburger when width OR height is tight (phones in either orientation) */
+@media (max-width: 768px), (max-height: 520px) {
   .top-nav__links {
     display: none;
   }
   .top-nav__menu-btn {
     display: flex;
+    position: relative;
+    z-index: 70; /* stays ABOVE the overlay so it always closes the menu */
+  }
+  .top-nav__menu-icon.is-open {
+    background: transparent;
+  }
+  .top-nav__menu-icon.is-open::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+  .top-nav__menu-icon.is-open::after {
+    top: 0;
+    transform: rotate(-45deg);
   }
   #mobile-menu.is-open {
     display: flex;
@@ -675,12 +689,24 @@ body {
     align-items: center;
     justify-content: center;
   }
+  .mobile-menu__close {
+    position: absolute;
+    top: clamp(0.9rem, 3vh, 1.8rem);
+    right: clamp(1rem, 3.5vw, 2.2rem);
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: var(--white);
+    font-size: 1rem;
+    cursor: pointer;
+  }
   #mobile-menu ul {
     list-style: none;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 2.2rem;
+    gap: clamp(1rem, 4.5vh, 2.2rem);
     text-align: center;
   }
   #mobile-menu a {
@@ -689,6 +715,12 @@ body {
     text-transform: uppercase;
     color: var(--white);
   }
+}
+.mobile-menu__close {
+  display: none;
+}
+#mobile-menu.is-open .mobile-menu__close {
+  display: block;
 }
 
 #progress-line {
@@ -834,6 +866,88 @@ body {
   }
   .point__body {
     font-size: 0.6rem;
+  }
+  /* lift "Built With Intention" onto the dark monitor area */
+  #scene-5 .scene__copy.copy--center {
+    padding-bottom: 28cqh;
+  }
+}
+
+/* ── LANDSCAPE PHONES / SHORT VIEWPORTS — compact everything ───────────── */
+@media (max-height: 520px) {
+  .headline {
+    font-size: clamp(0.95rem, 10cqh, 2.1rem);
+    line-height: 1.05;
+  }
+  .copy--spread .headline {
+    font-size: clamp(0.75rem, 7cqh, 1.3rem);
+  }
+  .body-copy {
+    font-size: clamp(0.55rem, 4.2cqh, 0.72rem);
+    line-height: 1.5;
+    margin-top: 0.5rem;
+  }
+  .label {
+    margin-bottom: 0.4rem;
+  }
+  #scene-1 .scene__bg img {
+    object-fit: contain;
+    object-position: center center !important;
+  }
+  .copy--spread .scene__copy-inner {
+    top: 7cqh;
+    max-width: 58cqw;
+  }
+  .columns-wrap {
+    bottom: 6cqh;
+    gap: 2cqw;
+  }
+  .col__body {
+    display: none; /* titles + icons only — height is precious */
+  }
+  .strap {
+    display: none;
+  }
+  .points-wrap {
+    gap: 0.45rem;
+    margin-top: 0.6rem;
+  }
+  .point__body {
+    display: none;
+  }
+  .copy--split {
+    grid-template-columns: 1fr;
+    align-items: center;
+    padding: 9cqh 6cqw;
+  }
+  .form-panel {
+    display: none; /* CTAs lead to /contact */
+  }
+  #scene-4 .headline__line:nth-child(2) {
+    margin-left: 5cqw;
+  }
+  #scene-4 .headline__line:nth-child(3) {
+    margin-left: 10cqw;
+  }
+  #scene-4 .headline__line:nth-child(4) {
+    font-size: 1.25em;
+    margin-top: 0.5cqh;
+  }
+  #scene-5 .scene__copy.copy--center {
+    padding-bottom: 16cqh;
+  }
+  .chip {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.45rem;
+  }
+  .cta {
+    padding: 0.65rem 1.2rem;
+  }
+  #scroll-cue {
+    display: none;
+  }
+  #legal-line {
+    display: none;
   }
 }
 

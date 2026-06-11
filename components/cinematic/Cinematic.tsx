@@ -16,7 +16,8 @@ import { gsap, ScrollTrigger, SplitText, type ScrollSmoother } from '@/lib/gsap'
 import { SCENES } from '@/lib/sceneData'
 import { track } from '@/lib/analytics'
 import {
-  MOBILE_BREAKPOINT,
+  DESKTOP_MEDIA,
+  MOBILE_MEDIA,
   SCENE_LABELS,
   TRAVEL_DESKTOP,
   TRAVEL_MOBILE,
@@ -258,8 +259,8 @@ export default function Cinematic() {
 
       mm.add(
         {
-          isMobile: `(max-width: ${MOBILE_BREAKPOINT}px)`,
-          isDesktop: `(min-width: ${MOBILE_BREAKPOINT + 1}px)`,
+          isMobile: MOBILE_MEDIA,
+          isDesktop: DESKTOP_MEDIA,
         },
         (ctx) => {
           const { isMobile } = ctx.conditions as { isMobile: boolean }
