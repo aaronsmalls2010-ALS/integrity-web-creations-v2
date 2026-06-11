@@ -48,6 +48,11 @@ export interface SceneConfig {
   goldLine: number
   /** exact substring of headline[goldLine] rendered italic gold */
   goldText: string
+  /** mobile gets headers-only with fuller wordings (Aaron 2026-06-11) —
+   *  when set, replaces `headline` on small screens */
+  headlineMobile?: string[]
+  goldLineMobile?: number
+  goldTextMobile?: string
   body: string
   copyStatus: Record<'label' | 'headline' | 'body', 'approved' | 'draft'>
   services?: string[]
@@ -100,6 +105,13 @@ export const SCENES: SceneConfig[] = [
     headline: ['Engineered for Eternity.', 'Crafted for Legacy.'], // concept-3 mockup
     goldLine: -1,
     goldText: '',
+    headlineMobile: [
+      'Engineered for Eternity.',
+      'Crafted for Legacy.',
+      'Strategy. Creativity. Code.', // condensed from the body line
+    ],
+    goldLineMobile: 2,
+    goldTextMobile: 'Strategy. Creativity. Code.',
     body: 'We blend strategy, creativity, and code to build digital experiences that stand the test of time.', // concept-3 mockup
     copyStatus: { label: 'approved', headline: 'approved', body: 'approved' },
     // legibility: extra upper-left scrim under the headline (bright sky there)
@@ -143,6 +155,9 @@ export const SCENES: SceneConfig[] = [
     headline: ['Designed', 'to Convert'], // [DRAFT]
     goldLine: 1,
     goldText: 'Convert',
+    headlineMobile: ['Designed to Convert.', 'Guide. Trust. Action.'], // from the body verbs
+    goldLineMobile: 1,
+    goldTextMobile: 'Guide. Trust. Action.',
     body: "We design websites that don't just look good — they guide customers, build trust, and convert attention into action.", // [APPROVED]
     copyStatus: { label: 'draft', headline: 'draft', body: 'approved' },
     points: [
@@ -192,6 +207,9 @@ export const SCENES: SceneConfig[] = [
     headline: ['Built With', 'Intention'], // [DRAFT]
     goldLine: 1,
     goldText: 'Intention',
+    headlineMobile: ['Built With Intention.'],
+    goldLineMobile: 0,
+    goldTextMobile: 'Intention.',
     body: 'Every project is planned, coded, refined, and built with intention.', // [APPROVED]
     copyStatus: { label: 'draft', headline: 'draft', body: 'approved' },
     services: [
@@ -219,6 +237,9 @@ export const SCENES: SceneConfig[] = [
     headline: ['Built for', 'Growth'], // [DRAFT]
     goldLine: 1,
     goldText: 'Growth',
+    headlineMobile: ['Built for Growth.', 'From Idea to Launch.'], // from the body
+    goldLineMobile: 0,
+    goldTextMobile: 'Growth.',
     body: 'From idea to launch, we create digital foundations built for growth.', // [APPROVED]
     copyStatus: { label: 'draft', headline: 'draft', body: 'approved' },
     points: [

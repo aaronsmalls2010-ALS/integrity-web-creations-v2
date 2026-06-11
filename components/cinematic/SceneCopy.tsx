@@ -91,13 +91,32 @@ export default function SceneCopy({
           </p>
         )}
         {cfg.label && <p className="label">{cfg.label}</p>}
-        <Heading className="headline">
+        <Heading
+          className={
+            cfg.headlineMobile ? 'headline headline--desktop' : 'headline'
+          }
+        >
           {cfg.headline.map((line, i) => (
             <span className="headline__line" key={i}>
               {renderLine(line, i === cfg.goldLine, cfg.goldText)}
             </span>
           ))}
         </Heading>
+        {cfg.headlineMobile && (
+          // headers-only mobile experience with fuller wording — styled as a
+          // headline, but a <p> so the page keeps a single semantic heading
+          <p className="headline headline--mobile">
+            {cfg.headlineMobile.map((line, i) => (
+              <span className="headline__line" key={i}>
+                {renderLine(
+                  line,
+                  i === cfg.goldLineMobile,
+                  cfg.goldTextMobile ?? '',
+                )}
+              </span>
+            ))}
+          </p>
+        )}
         <p className="body-copy">{cfg.body}</p>
         {cfg.points && (
           <ul className="points-wrap">

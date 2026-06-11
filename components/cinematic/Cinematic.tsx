@@ -241,18 +241,24 @@ export default function Cinematic() {
 
       // SplitText: build once per headline after fonts.ready; autoSplit
       // re-splits on resize/reflow (requestRebuild re-references words).
+      // Scenes may carry TWO headlines (desktop + mobile wording) — both are
+      // split and animate together; CSS shows one per breakpoint.
       for (const cfg of SCENES) {
-        const h = document.querySelector(`#${cfg.id} .headline`)
-        if (!h) continue
-        const split = SplitText.create(h, {
-          type: 'words',
-          mask: 'words',
-          wordsClass: 'split-word',
-          autoSplit: true,
-          onSplit: () => requestRebuild(),
+        const hs = document.querySelectorAll(`#${cfg.id} .headline`)
+        if (!hs.length) continue
+        const words: Element[] = []
+        hs.forEach((h) => {
+          const split = SplitText.create(h, {
+            type: 'words',
+            mask: 'words',
+            wordsClass: 'split-word',
+            autoSplit: true,
+            onSplit: () => requestRebuild(),
+          })
+          splitInstances.push(split)
+          words.push(...(split.words as Element[]))
         })
-        splitInstances.push(split)
-        splits.set(`#${cfg.id}`, split)
+        splits.set(`#${cfg.id}`, { words })
       }
 
       smoother = createSmoother() // paused until intro completes
@@ -282,31 +288,33 @@ export default function Cinematic() {
       }
 
       // time-based intro (not scrubbed) — plays once. Aaron's spec:
-      // start BLACK → 1s to image 0 → 3s to complete the image-1 reveal.
+      // start BLACK → fade to image 0 → wipe to image 1, slowed 1.5x on
+      // desktop and 2.5x on mobile (2026-06-11).
+      const F = matchMedia(MOBILE_MEDIA).matches ? 2.5 : 1.5
       const intro = gsap.timeline()
       intro.fromTo(
         '#scene-1 .scene__bg',
         { scale: 1.08 },
-        { scale: 1.0, duration: 4.0, ease: 'power2.out' },
+        { scale: 1.0, duration: 4.0 * F, ease: 'power2.out' },
         0,
       )
       intro.fromTo(
         '#scene-1 .bg-base',
         { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 1.0, ease: 'power1.inOut' },
+        { autoAlpha: 1, duration: 1.0 * F, ease: 'power1.inOut' },
         0,
       )
       intro.fromTo(
         '#scene-1 .bg-reveal',
         { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 0.6, ease: 'power1.inOut' },
-        1.0,
+        { autoAlpha: 1, duration: 0.6 * F, ease: 'power1.inOut' },
+        1.0 * F,
       )
       intro.fromTo(
         '#scene-1 .bg-reveal',
         { '--wipe': '0%' },
-        { '--wipe': '140%', duration: 3.0, ease: 'power2.inOut' },
-        1.0,
+        { '--wipe': '140%', duration: 3.0 * F, ease: 'power2.inOut' },
+        1.0 * F,
       )
       await intro
       introPlayed = true // rebuilds now keep the reveal plate visible

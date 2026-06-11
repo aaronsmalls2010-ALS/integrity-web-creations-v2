@@ -364,6 +364,11 @@ body {
 .headline__line {
   display: block;
 }
+/* two wordings: desktop shows .headline--desktop, mobile (either
+   orientation) shows the fuller headers-only .headline--mobile */
+.headline--mobile {
+  display: none;
+}
 .headline em.gold {
   font-style: italic;
   font-weight: 400;
@@ -870,6 +875,48 @@ body {
   /* lift "Built With Intention" onto the dark monitor area */
   #scene-5 .scene__copy.copy--center {
     padding-bottom: 28cqh;
+  }
+}
+
+/* ── MOBILE EXPERIENCE: headers only, larger (Aaron 2026-06-11) ─────────
+   Small text hides entirely; headers carry fuller mobile wordings. */
+@media (max-width: 768px), (max-height: 520px) {
+  .headline--desktop {
+    display: none;
+  }
+  .headline--mobile {
+    display: block;
+  }
+  .label,
+  .body-copy,
+  .strap,
+  .point__body,
+  .col__body {
+    display: none !important;
+  }
+  .headline {
+    font-size: clamp(1.5rem, 8.4cqw, 3rem);
+    line-height: 1.12;
+  }
+  .headline__line + .headline__line {
+    margin-top: 0.35em;
+  }
+  .copy--spread .headline {
+    font-size: clamp(1.05rem, 5.4cqw, 1.9rem);
+  }
+  .col__icon {
+    width: clamp(30px, 9cqw, 48px);
+    margin-bottom: 0.6rem;
+  }
+  .col__title {
+    font-size: clamp(0.66rem, 2.6cqw, 0.85rem);
+  }
+  .point__title {
+    font-size: clamp(0.66rem, 2.6cqw, 0.88rem);
+  }
+  .chip {
+    font-size: clamp(0.56rem, 2.2cqw, 0.72rem);
+    padding: 0.55rem 0.9rem;
   }
 }
 
