@@ -27,3 +27,6 @@ pnpm-debug.log*
 # Windows
 Thumbs.db
 .vercel
+
+.vercel.*
+
