@@ -4,8 +4,10 @@
  *   UNIT:   90–130 desktop / 55–85 mobile (defaults 115 / 70)
  * Weights, easings, travel percentages = locked choreography.
  */
-export const SMOOTH = 1.5
-export const SCRUB = 1.2
+// raised for buttery interpolation ("everything should run smoothly",
+// Aaron 2026-06-11)
+export const SMOOTH = 1.7
+export const SCRUB = 1.8
 // Aaron (2026-06-11): "way too much scrolling between transitions" — cut to
 // roughly half the brief's defaults (115/70), below its 90/55 floor by
 // explicit client direction.

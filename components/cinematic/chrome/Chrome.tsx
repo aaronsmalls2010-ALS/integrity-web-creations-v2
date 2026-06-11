@@ -3,11 +3,10 @@
 /**
  * ALL fixed chrome lives OUTSIDE the smooth wrapper — position:fixed breaks
  * inside transformed ancestors (ScrollSmoother transforms #smooth-content).
+ * Scene counter + nav dots removed per Aaron 2026-06-11.
  */
 import TopNav from './TopNav'
-import SceneCounter from './SceneCounter'
 import BrandMark from './BrandMark'
-import NavDots from './NavDots'
 import ProgressLine from './ProgressLine'
 import ScrollCue from './ScrollCue'
 import LegalLine from './LegalLine'
@@ -21,9 +20,7 @@ export default function Chrome({
   return (
     <div id="chrome">
       <TopNav />
-      <SceneCounter />
       <BrandMark />
-      <NavDots onNavigate={onNavigate} />
       <ProgressLine />
       <ScrollCue />
       <LegalLine />

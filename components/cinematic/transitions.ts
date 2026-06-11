@@ -40,7 +40,7 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
     tl.fromTo(
       monogram,
       { autoAlpha: 0, y: 34 },
-      { autoAlpha: 1, y: 0, duration: 0.32 * pace, ease: 'power3.out' },
+      { autoAlpha: 1, y: 0, duration: 0.55 * pace, ease: 'power2.out' },
       0,
     )
   const label = s.querySelector('.label')
@@ -48,7 +48,7 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
     tl.fromTo(
       label,
       { autoAlpha: 0, y: 26 },
-      { autoAlpha: 1, y: 0, duration: 0.25 * pace, ease: 'power3.out' },
+      { autoAlpha: 1, y: 0, duration: 0.5 * pace, ease: 'power2.out' },
       (monogram ? 0.14 : 0) * pace,
     )
   const split = splits.get(sel)
@@ -59,9 +59,9 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
       {
         autoAlpha: 1,
         yPercent: 0,
-        stagger: 0.04 * pace,
-        duration: 0.45 * pace,
-        ease: 'power3.out',
+        stagger: 0.09 * pace,
+        duration: 0.75 * pace,
+        ease: 'power2.out',
       },
       (monogram ? 0.22 : 0.08) * pace,
     )
@@ -70,7 +70,7 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
     tl.fromTo(
       body,
       { autoAlpha: 0, y: 20 },
-      { autoAlpha: 1, y: 0, duration: 0.25 * pace, ease: 'power3.out' },
+      { autoAlpha: 1, y: 0, duration: 0.5 * pace, ease: 'power2.out' },
       0.35 * pace,
     )
   // concept-3 mockup columns — scroll-tied stagger
@@ -82,9 +82,9 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
       {
         autoAlpha: 1,
         y: 0,
-        stagger: 0.07 * pace,
-        duration: 0.28 * pace,
-        ease: 'power3.out',
+        stagger: 0.13 * pace,
+        duration: 0.5 * pace,
+        ease: 'power2.out',
       },
       0.45 * pace,
     )
@@ -93,7 +93,7 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
     tl.fromTo(
       strap,
       { autoAlpha: 0, y: 14 },
-      { autoAlpha: 1, y: 0, duration: 0.24 * pace, ease: 'power3.out' },
+      { autoAlpha: 1, y: 0, duration: 0.45 * pace, ease: 'power2.out' },
       0.7 * pace,
     )
   const cta = s.querySelector('.cta-wrap')
@@ -101,7 +101,7 @@ export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
     tl.fromTo(
       cta,
       { autoAlpha: 0, y: 18 },
-      { autoAlpha: 1, y: 0, duration: 0.22 * pace, ease: 'power3.out' },
+      { autoAlpha: 1, y: 0, duration: 0.45 * pace, ease: 'power2.out' },
       0.5 * pace,
     )
   return tl
@@ -116,8 +116,8 @@ export function copyOut(sel: string) {
     tl.to(targets, {
       autoAlpha: 0,
       y: -18,
-      duration: 0.2,
-      stagger: 0.02,
+      duration: 0.38,
+      stagger: 0.04,
       ease: 'power2.in',
     })
   return tl
@@ -188,9 +188,9 @@ export function scene5_hold(splits: SplitsMap) {
       {
         autoAlpha: 1,
         y: 0,
-        stagger: 0.08 * PACE,
-        duration: 0.3 * PACE,
-        ease: 'power3.out',
+        stagger: 0.12 * PACE,
+        duration: 0.5 * PACE,
+        ease: 'power2.out',
       },
       0.4 * PACE,
     )
@@ -245,11 +245,12 @@ export function t1_panDown(TRAVEL: number) {
     { yPercent: -34 * TRAVEL, ease: 'power1.inOut', duration: 0.34 },
     0.26,
   )
+  // slow fade to black…
   tl.fromTo(
     '#scene-1',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.3 },
-    0.28,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.28 },
+    0.08,
   )
   // image 2 rises in flat from below — pure pan, settling at rest
   tl.fromTo(
@@ -258,11 +259,12 @@ export function t1_panDown(TRAVEL: number) {
     { xPercent: 0, yPercent: 0, scale: 1, ease: 'power1.out', duration: 0.36 },
     0.24,
   )
+  // …then slow fade in from black
   tl.fromTo(
     '#scene-2',
     { autoAlpha: 0 },
-    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.3 },
-    0.26,
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.26 },
+    0.34,
   )
   tl.add(copyOut('#scene-1'), 0)
   return pad(tl, WEIGHTS.t1)
@@ -280,8 +282,8 @@ export function t2_panRight(TRAVEL: number) {
   tl.fromTo(
     '#scene-2',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.in', duration: 0.28 },
-    0.35,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.34 },
+    0.06,
   )
   tl.fromTo(
     '#scene-3 .scene__bg',
@@ -289,7 +291,12 @@ export function t2_panRight(TRAVEL: number) {
     { xPercent: 0, yPercent: 0, ease: 'none', duration: 0.7 },
     0,
   )
-  tl.fromTo('#scene-3', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.12)
+  tl.fromTo(
+    '#scene-3',
+    { autoAlpha: 0 },
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.3 },
+    0.4,
+  )
   tl.add(copyOut('#scene-2'), 0)
   return pad(tl, WEIGHTS.t2)
 }
@@ -307,8 +314,8 @@ export function t3_rise(TRAVEL: number) {
   tl.fromTo(
     '#scene-3',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.in', duration: 0.25 },
-    0.3,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.28 },
+    0.05,
   )
   tl.fromTo(
     '#scene-4 .scene__bg',
@@ -316,7 +323,12 @@ export function t3_rise(TRAVEL: number) {
     { xPercent: 0, yPercent: 0, scale: 1, ease: 'none', duration: 0.6 },
     0,
   )
-  tl.fromTo('#scene-4', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 0.12)
+  tl.fromTo(
+    '#scene-4',
+    { autoAlpha: 0 },
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.26 },
+    0.33,
+  )
   tl.add(copyOut('#scene-3'), 0)
   return pad(tl, WEIGHTS.t3)
 }
@@ -336,8 +348,8 @@ export function t4_zoomIn(TRAVEL: number) {
   tl.fromTo(
     '#scene-4',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.in', duration: 0.22 },
-    0.4,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.3 },
+    0.06,
   )
   tl.fromTo(
     '#scene-5 .scene__bg',
@@ -345,7 +357,12 @@ export function t4_zoomIn(TRAVEL: number) {
     { scale: 1, xPercent: 0, yPercent: 0, ease: 'power1.out', duration: 0.45 },
     0.18,
   )
-  tl.fromTo('#scene-5', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25 }, 0.22)
+  tl.fromTo(
+    '#scene-5',
+    { autoAlpha: 0 },
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.25 },
+    0.37,
+  )
   tl.add(copyOut('#scene-4'), 0)
   return pad(tl, WEIGHTS.t4)
 }
@@ -367,7 +384,12 @@ export function t5_liftOver(TRAVEL: number) {
     { autoAlpha: 1, duration: 0.08, ease: 'power2.in' },
     0.26,
   )
-  tl.fromTo('#scene-5', { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.1 }, 0.3)
+  tl.fromTo(
+    '#scene-5',
+    { autoAlpha: 1 },
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.18 },
+    0.22,
+  )
 
   // SCRUB-SAFE typewriter — types forward, erases on reverse, resets on wrap.
   // Stretched window (Aaron 2026-06-11): bigger type, slower reveal.
@@ -418,8 +440,8 @@ export function t6_glideOut(TRAVEL: number) {
   tl.fromTo(
     '#scene-6',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.in', duration: 0.28 },
-    0.38,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.32 },
+    0.08,
   )
   tl.fromTo(
     '#scene-7 .scene__bg',
@@ -427,7 +449,12 @@ export function t6_glideOut(TRAVEL: number) {
     { scale: 1, xPercent: 0, yPercent: 0, ease: 'power2.out', duration: 0.55 },
     0.18,
   )
-  tl.fromTo('#scene-7', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25 }, 0.22)
+  tl.fromTo(
+    '#scene-7',
+    { autoAlpha: 0 },
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.26 },
+    0.42,
+  )
   tl.add(copyOut('#scene-6'), 0)
   return pad(tl, WEIGHTS.t6)
 }
@@ -451,8 +478,8 @@ export function t7_descendLoop(TRAVEL: number) {
   tl.fromTo(
     '#scene-7',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.in', duration: 0.26 },
-    0.4,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.3 },
+    0.06,
   )
   tl.fromTo(
     '#scene-1 .scene__bg',
@@ -463,8 +490,8 @@ export function t7_descendLoop(TRAVEL: number) {
   tl.fromTo(
     '#scene-1',
     { autoAlpha: 0 },
-    { autoAlpha: 1, ease: 'power1.out', duration: 0.3 },
-    0.16,
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.28 },
+    0.38,
   )
   tl.add(copyOut('#scene-7'), 0)
   return pad(tl, WEIGHTS.t7)

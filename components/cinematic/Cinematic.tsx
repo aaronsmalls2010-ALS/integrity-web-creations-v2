@@ -84,26 +84,10 @@ export default function Cinematic() {
       },
     })
 
-    // ── chrome ───────────────────────────────────────────────────────────────
+    // ── chrome (counter + dots removed per Aaron 2026-06-11) ────────────────
     function setActiveScene(label: string) {
       chromeState.active = label
       const n = Number(label.replace('scene', ''))
-      const id = String(n).padStart(2, '0')
-      const counter = document.getElementById('scene-counter')
-      if (counter && counter.textContent !== id) {
-        gsap
-          .timeline()
-          .to(counter, { autoAlpha: 0, y: -8, duration: 0.18, ease: 'power2.in' })
-          .call(() => {
-            counter.textContent = id
-          })
-          .to(counter, { autoAlpha: 1, y: 0, duration: 0.18, ease: 'power2.out' })
-      }
-      document.querySelectorAll('#nav-dots button').forEach((b, i) => {
-        b.classList.toggle('is-active', i === n - 1)
-        if (i === n - 1) b.setAttribute('aria-current', 'true')
-        else b.removeAttribute('aria-current')
-      })
       document
         .querySelectorAll('#cinematic .scene')
         .forEach((s) => s.classList.toggle('is-active', s.id === `scene-${n}`))
