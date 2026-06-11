@@ -51,10 +51,17 @@ export default function PortfolioPage() {
       label="Our Work"
       title="Built for Real Businesses"
       lede="Custom websites for churches, unions, medical practices, travel agencies, and marinas — every one designed around the business behind it."
+      hero={{
+        image: '/images/scenes/scene-7-desktop.webp', // concept 8 — water skyline
+        imageMobile: '/images/scenes/scene-7-mobile.webp',
+        position: 'center 55%',
+        headline: ['Built for', 'Real Businesses'],
+        goldText: 'Real Businesses',
+      }}
     >
       <ul className="sub-grid">
         {CLIENTS.map((c) => (
-          <li className="sub-card" key={c.name}>
+          <li className="sub-card sub-card--frame" key={c.name}>
             <p className="sub-meta">{c.meta}</p>
             <h3>{c.name}</h3>
             {c.site && (

@@ -50,6 +50,13 @@ export default function ServicesPage() {
       label="What We Do"
       title="Full-Service Solutions"
       lede="Everything your business needs to succeed online, delivered by one person who's invested in your success."
+      hero={{
+        image: '/images/scenes/scene-5-desktop.webp', // concept 6 — the monitor
+        imageMobile: '/images/scenes/scene-5-mobile.webp',
+        position: 'center 30%',
+        headline: ['Full-Service', 'Solutions'],
+        goldText: 'Solutions',
+      }}
     >
       <ul className="sub-grid">
         {SERVICES.map((s) => (

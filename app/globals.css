@@ -1087,8 +1087,14 @@ body {
   background:
     radial-gradient(ellipse at 20% -10%, rgba(201, 168, 76, 0.07), transparent 50%),
     var(--deep-navy);
-  padding: clamp(7rem, 16vh, 10rem) clamp(1.4rem, 6vw, 6rem) 0;
   animation: subpage-in 1.1s ease both; /* fade in from black, like the landing */
+}
+/* gutters live on a wrapper so the hero can run full-bleed above it */
+.subpage__pad {
+  padding: clamp(7rem, 16vh, 10rem) clamp(1.4rem, 6vw, 6rem) 0;
+}
+.subpage--hero .subpage__pad {
+  padding-top: clamp(3rem, 8vh, 5.5rem);
 }
 @keyframes subpage-in {
   from {
@@ -1246,7 +1252,7 @@ body {
 .subpage-footer {
   margin-top: clamp(3.5rem, 9vh, 6rem);
   border-top: 1px solid rgba(200, 205, 214, 0.15);
-  padding: 2.5rem 0 2rem;
+  padding: 2.5rem clamp(1.4rem, 6vw, 6rem) 2rem;
 }
 .subpage-footer__grid {
   display: grid;
@@ -1356,6 +1362,346 @@ body {
   left: -9999px;
   opacity: 0;
   pointer-events: none;
+}
+
+/* ── SUBPAGE CINEMATIC HERO (concept plates, Ken Burns, line reveals) ──── */
+.subhero {
+  position: relative;
+  height: min(86svh, 920px);
+  min-height: 28rem;
+  overflow: hidden;
+  background: #000;
+}
+@media (max-width: 768px) {
+  .subhero {
+    height: min(74svh, 700px);
+    min-height: 24rem;
+  }
+}
+.subhero__media,
+.subhero__media picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.subhero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--subhero-pos, center);
+  /* landing rule applies here too: never zoom IN — slow pull-back to rest */
+  animation: subhero-kenburns 14s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+@keyframes subhero-kenburns {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+/* legibility scrim + vignette, dissolving into the navy page below */
+.subhero__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      to top,
+      var(--deep-navy) 0%,
+      rgba(5, 8, 16, 0.62) 22%,
+      rgba(5, 8, 16, 0.18) 52%,
+      rgba(5, 8, 16, 0.45) 100%
+    ),
+    radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.55));
+}
+/* film grain continuity with the cinematic */
+.subhero__grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.45;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+}
+.subhero__copy {
+  position: absolute;
+  left: clamp(1.4rem, 6vw, 6rem);
+  right: clamp(1.4rem, 6vw, 6rem);
+  bottom: clamp(4.2rem, 11svh, 7rem);
+  max-width: 1080px;
+  margin-inline: auto;
+}
+.subhero .page-label {
+  opacity: 0;
+  animation: subhero-fade 0.9s ease 0.55s forwards;
+}
+.subhero .page-label::before {
+  content: '';
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  background: var(--gold);
+  transform: rotate(45deg);
+  margin-right: 0.9em;
+  vertical-align: middle;
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.6);
+}
+.subhero h1 {
+  font-size: clamp(2.4rem, 7vw, 5.4rem);
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.8);
+}
+.subhero h1 em.gold {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--gold);
+}
+/* strictly sequential line reveals (mask lines, same as the landing) */
+.subhero__line {
+  display: block;
+  overflow: hidden;
+}
+.subhero__line > span {
+  display: block;
+  transform: translateY(115%);
+  animation: subhero-line 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(0.95s + var(--i) * 0.55s);
+}
+@keyframes subhero-line {
+  to {
+    transform: none;
+  }
+}
+.subhero .lede {
+  opacity: 0;
+  animation: subhero-fade 1.2s ease calc(1.05s + var(--lines, 2) * 0.55s)
+    forwards;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.9);
+}
+@keyframes subhero-fade {
+  to {
+    opacity: 1;
+  }
+}
+/* downward gold chevron cue into the page body */
+.subhero__cue {
+  position: absolute;
+  left: 50%;
+  bottom: 1.3rem;
+  transform: translateX(-50%);
+  color: var(--gold);
+  opacity: 0;
+  animation: subhero-fade 1.2s ease 2.6s forwards;
+  pointer-events: none;
+}
+.subhero__cue svg {
+  display: block;
+  width: 26px;
+  height: 14px;
+  animation: subhero-bob 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(201, 168, 76, 0.55));
+}
+@keyframes subhero-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+/* ── SUBPAGE SIGNATURE MOMENTS ─────────────────────────────────────────── */
+/* Services: process steps light up in sequence as they reveal */
+.process-steps li {
+  position: relative;
+  border-top-color: rgba(201, 168, 76, 0.12);
+}
+.process-steps li::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--gold);
+  box-shadow: 0 0 12px rgba(201, 168, 76, 0.8);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s ease 0.2s;
+}
+.process-steps li.is-in::after {
+  transform: scaleX(1);
+}
+.process-steps li::before {
+  color: rgba(201, 168, 76, 0.4);
+  transition:
+    color 0.6s ease 0.7s,
+    text-shadow 0.6s ease 0.7s;
+}
+.process-steps li.is-in::before {
+  color: var(--gold);
+  text-shadow: 0 0 14px rgba(201, 168, 76, 0.75);
+}
+
+/* About: gold timeline — each segment draws as its node reveals */
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin-top: 2rem;
+  display: grid;
+  gap: clamp(1.8rem, 5vh, 3rem);
+}
+.timeline li {
+  position: relative;
+  padding-left: clamp(2rem, 4vw, 3rem);
+}
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.3rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--gold);
+  transform: rotate(45deg);
+  box-shadow: 0 0 10px rgba(201, 168, 76, 0.65);
+}
+.timeline li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 0.26rem;
+  top: 1.3rem;
+  bottom: calc(-1 * clamp(1.8rem, 5vh, 3rem));
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(201, 168, 76, 0.65),
+    rgba(201, 168, 76, 0.15)
+  );
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 1.2s ease 0.35s;
+}
+.timeline li.is-in::after {
+  transform: scaleY(1);
+}
+.timeline__year {
+  font-size: 0.62rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+.timeline h3 {
+  font-family: var(--font-playfair), serif;
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2.4vw, 1.5rem);
+  color: var(--white);
+  margin-bottom: 0.45rem;
+}
+.timeline p {
+  max-width: 60ch;
+}
+
+/* Portfolio: gold-matted frames with hover tilt + serif pull-quotes */
+.sub-card--frame {
+  position: relative;
+  border-color: rgba(201, 168, 76, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(8, 9, 12, 1);
+  outline: 1px solid rgba(201, 168, 76, 0.16);
+  outline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sub-card--frame {
+    transition:
+      transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 0.55s ease,
+      border-color 0.55s ease;
+  }
+  .sub-card--frame:hover {
+    transform: perspective(900px) rotateX(2.5deg) rotateY(-2.5deg)
+      translateY(-5px);
+    border-color: rgba(201, 168, 76, 0.85);
+    box-shadow:
+      inset 0 0 0 1px rgba(8, 9, 12, 1),
+      0 22px 48px rgba(0, 0, 0, 0.55);
+  }
+}
+.sub-card--frame .sub-quote {
+  font-family: var(--font-playfair), serif;
+  font-size: 1.02rem;
+  line-height: 1.75;
+}
+
+/* Contact: the form panel docks in slowly, like scene 7's 2.5× fade */
+.form-card.fx-reveal {
+  transform: translateY(52px);
+  transition:
+    opacity 2s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* magnetic CTAs (SubpageFx sets inline transform; lag = the easing) */
+.subpage .cta {
+  will-change: transform;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* fade-through-black route exit (class set by SubpageFx on link clicks) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+body.route-leave::after {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subhero__media img {
+    animation: none;
+    transform: none;
+  }
+  .subhero .page-label,
+  .subhero .lede,
+  .subhero__cue {
+    animation: none;
+    opacity: 1;
+  }
+  .subhero__line > span {
+    animation: none;
+    transform: none;
+  }
+  .subhero__cue svg {
+    animation: none;
+  }
+  .process-steps li {
+    border-top-color: rgba(201, 168, 76, 0.35);
+  }
+  .process-steps li::before {
+    color: var(--gold);
+  }
+  .timeline li::after {
+    transform: none !important;
+  }
+  .form-card.fx-reveal {
+    transform: none;
+    transition: none;
+  }
+  body::after {
+    display: none;
+  }
 }
 
 /* ── REDUCED MOTION — static stacked sections in storyboard order ───────

@@ -56,6 +56,13 @@ export default function AboutPage() {
       label="About IWC"
       title="Built With Integrity"
       lede="One person. Full attention. No shortcuts. That's the promise behind every project."
+      hero={{
+        image: '/images/scenes/scene-4-desktop.webp', // concept 5 — the office
+        imageMobile: '/images/scenes/scene-4-mobile.webp',
+        position: 'center 38%',
+        headline: ['Built With', 'Integrity'],
+        goldText: 'Integrity',
+      }}
     >
       <h2>One Person. Your Full Attention.</h2>
       <p className="lede">
@@ -77,6 +84,38 @@ export default function AboutPage() {
           </li>
         ))}
       </ul>
+
+      <h2>The Road From 2010</h2>
+      {/* timeline copy is DRAFT — drawn from live-site facts, needs Aaron's read */}
+      <ol className="timeline">
+        <li>
+          <p className="timeline__year">2010</p>
+          <h3>Came Home to Beaufort</h3>
+          <p>
+            Fresh out of USC with a Computer Engineering degree, A. Smalls
+            returns to the Lowcountry with one goal: make professional web
+            services accessible to local small businesses.
+          </p>
+        </li>
+        <li>
+          <p className="timeline__year">The Years Between</p>
+          <h3>Real Businesses, Real Results</h3>
+          <p>
+            Churches, sports unions, medical practices, travel agencies,
+            marinas — custom builds for real businesses from Beaufort to
+            Savannah to Atlanta, every one designed from scratch.
+          </p>
+        </li>
+        <li>
+          <p className="timeline__year">Today</p>
+          <h3>Fifteen Years. Zero Templates.</h3>
+          <p>
+            Still intentionally small, still one person with your full
+            attention — serving fewer clients exceptionally well, month after
+            month.
+          </p>
+        </li>
+      </ol>
 
       <h2>Why We Matter</h2>
       <p className="lede">

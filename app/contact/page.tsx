@@ -14,6 +14,13 @@ export default function ContactPage() {
       label="Get in Touch"
       title="Let's Talk"
       lede="You'll hear back from A. Smalls directly — not a chatbot, not a sales team. Most messages answered same day."
+      hero={{
+        image: '/images/scenes/scene-6-desktop.webp', // concept 7 — the window
+        imageMobile: '/images/scenes/scene-6-mobile.webp',
+        position: 'center 45%',
+        headline: ["Let's Talk"],
+        goldText: 'Talk',
+      }}
     >
       <div className="contact-grid">
         <div className="contact-info">
