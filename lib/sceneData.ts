@@ -70,7 +70,7 @@ export const SCENES: SceneConfig[] = [
     image: '/images/scenes/scene-1-desktop.webp', // concept 0 — clean backdrop
     revealImage: '/images/scenes/scene-1b-desktop.webp', // concept 1 — full card
     textInImage: true,
-    objectPosition: { desktop: 'center 45%', mobile: 'center 45%' },
+    objectPosition: { desktop: 'center 42%', mobile: 'center 42%' },
     gradient: 'linear-gradient(160deg, rgba(5,8,20,.12), rgba(5,8,20,.4))',
     copyLayout: 'center',
     label: 'Engineered by Design',
