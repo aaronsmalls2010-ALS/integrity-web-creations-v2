@@ -16,22 +16,39 @@ export default function ContactPage() {
       lede="You'll hear back from A. Smalls directly — not a chatbot, not a sales team. Most messages answered same day."
     >
       <div className="contact-grid">
-        <div>
+        <div className="contact-info">
           <h2 style={{ marginTop: 0 }}>Reach Us</h2>
-          <p>
-            <a href="tel:+18432630072">(843) 263-0072</a>
-            <br />
-            <a href="mailto:asmalls@integritywebcreations.com">
-              asmalls@integritywebcreations.com
-            </a>
-            <br />
-            Beaufort, South Carolina
-          </p>
-          <p style={{ marginTop: '1.2rem' }}>
-            Serving Beaufort, Savannah, Atlanta &amp; beyond.
-          </p>
+          <div className="contact-rows">
+            <div>
+              <p className="page-label">Call</p>
+              <p className="contact-val">
+                <a href="tel:+18432630072">(843) 263-0072</a>
+              </p>
+            </div>
+            <div>
+              <p className="page-label">Email</p>
+              <p className="contact-val">
+                <a href="mailto:asmalls@integritywebcreations.com">
+                  asmalls@integritywebcreations.com
+                </a>
+              </p>
+            </div>
+            <div>
+              <p className="page-label">Based In</p>
+              <p className="contact-val">Beaufort, South Carolina</p>
+            </div>
+            <div>
+              <p className="page-label">Serving</p>
+              <p className="contact-val">
+                Beaufort, Savannah, Atlanta &amp; beyond
+              </p>
+            </div>
+          </div>
         </div>
-        <ContactForm />
+        <div className="form-card">
+          <p className="form-panel__title">Send a Message</p>
+          <ContactForm />
+        </div>
       </div>
     </SubpageShell>
   )
