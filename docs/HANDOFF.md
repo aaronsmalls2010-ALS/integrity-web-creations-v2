@@ -132,10 +132,13 @@ Remove-Item .vercel.preview -Recurse -Force
    this work exists. Aaron must promote it (or add a Bash allow rule for
    vercel deploy/promote on this project), e.g. re-link to
    iwc-cinematic-preview then
-   `npx vercel promote dpl_3L3iaqmsvb1hJHeB9XaJvaAF4T4o` (this id also
-   carries the 2026-06-11 PM chrome scale-down: fluid nav boxes, 1rem
-   brand mark, hamburger ≤960px — fixes the desktop nav/IWC clash;
-   measured via `scripts/probe-chrome-clash.mjs`).
+   `npx vercel promote dpl_9GrtTskpCHYTeciZ3vcgZhtiYRNe` (this id also
+   carries the 2026-06-11 PM chrome scale-down — fluid nav boxes, 1rem
+   brand mark, hamburger ≤960px (`scripts/probe-chrome-clash.mjs`) — AND
+   the scene-1 wide-viewport fix: past 3:2 aspect the 4:3 logo card is
+   object-fit contained, complete + pillarboxed, instead of cover-cropped
+   ~50% past the viewport (`scripts/probe-landing-fit.mjs`); that crop was
+   Aaron's "home page scale too large / nav clashing with IWC" report).
 2. Brief's remaining steps: mouse parallax (hooks/useMouseParallax.ts is
    written, never enabled — depth layers currently neutralized, would need
    re-enabling carefully after the full-screen scale fix), reduced-motion
