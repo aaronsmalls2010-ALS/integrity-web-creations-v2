@@ -49,10 +49,8 @@ async function bootAndShoot(tag, metrics) {
   }
   await sleep(5500) // intro
   const shots = [
-    ['landing', 0],
-    ['scene2', 4.5 / TOTAL],
-    ['scene3', 7.6 / TOTAL],
-    ['scene5', 14.6 / TOTAL],
+    ['warmup', 1.5 / TOTAL], // absorbs the intro-pause window
+    ['scene3', 7.7 / TOTAL],
   ]
   for (const [name, frac] of shots) {
     await evaljs(`(async()=>{const D=document.body.scrollHeight-innerHeight;scrollTo(0,Math.round(D*${frac}));await new Promise(r=>setTimeout(r,3800));return 1})()`)
