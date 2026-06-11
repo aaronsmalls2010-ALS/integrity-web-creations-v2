@@ -50,7 +50,10 @@ async function bootAndShoot(tag, metrics) {
   await sleep(5500) // intro
   const shots = [
     ['warmup', 1.5 / TOTAL], // absorbs the intro-pause window
-    ['scene3', 7.7 / TOTAL],
+    ['landing', 0],
+    ['scene2', 4.5 / TOTAL],
+    ['scene5', 14.6 / TOTAL],
+    ['scene7', 23.4 / TOTAL],
   ]
   for (const [name, frac] of shots) {
     await evaljs(`(async()=>{const D=document.body.scrollHeight-innerHeight;scrollTo(0,Math.round(D*${frac}));await new Promise(r=>setTimeout(r,3800));return 1})()`)
@@ -60,8 +63,8 @@ async function bootAndShoot(tag, metrics) {
   }
 }
 
-await bootAndShoot('desktop', null)
 await bootAndShoot('mobile', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true })
+await bootAndShoot('landscape', { width: 844, height: 390, deviceScaleFactor: 2, mobile: true })
 
 chrome.kill()
 process.exit(0)
