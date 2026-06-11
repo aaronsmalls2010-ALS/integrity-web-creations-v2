@@ -44,10 +44,22 @@ export function copyIn(sel: string, splits: SplitsMap, budget = 1.5) {
   const s = document.querySelector(sel)
   if (!s) return tl
 
-  type Unit = { el: Element; from: gsap.TweenVars; to: gsap.TweenVars }
+  type Unit = {
+    el: Element
+    from: gsap.TweenVars
+    to: gsap.TweenVars
+    mul?: number // duration multiplier (e.g. the form panel's slow fade)
+    ease?: string
+  }
   const units: Unit[] = []
-  const push = (el: Element | null, from: gsap.TweenVars, to: gsap.TweenVars) => {
-    if (el && isShown(el)) units.push({ el, from, to })
+  const push = (
+    el: Element | null,
+    from: gsap.TweenVars,
+    to: gsap.TweenVars,
+    mul?: number,
+    ease?: string,
+  ) => {
+    if (el && isShown(el)) units.push({ el, from, to, mul, ease })
   }
 
   // visual priority order
@@ -75,12 +87,23 @@ export function copyIn(sel: string, splits: SplitsMap, budget = 1.5) {
   )
   push(s.querySelector('.strap'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0 })
   push(s.querySelector('.cta-wrap'), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0 })
-  push(s.querySelector('.form-panel'), { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0 })
+  // the form panel fades in SLOWLY (Aaron 2026-06-11)
+  push(
+    s.querySelector('.form-panel'),
+    { autoAlpha: 0, y: 22 },
+    { autoAlpha: 1, y: 0 },
+    2.5,
+    'power1.inOut',
+  )
 
   if (!units.length) return tl
   const per = Math.min(1.1, Math.max(0.3, budget / units.length))
   for (const u of units)
-    tl.fromTo(u.el, u.from, { ...u.to, duration: per, ease: 'power2.out' })
+    tl.fromTo(u.el, u.from, {
+      ...u.to,
+      duration: per * (u.mul ?? 1),
+      ease: u.ease ?? 'power2.out',
+    })
   return tl
 }
 

@@ -250,13 +250,12 @@ body {
 .copy--split .cta-wrap {
   justify-content: flex-start;
 }
+/* condensed two-column panel — fits without an inner scrollbar */
 .form-panel {
   pointer-events: auto;
   background: rgba(5, 8, 16, 0.84);
   border: 1px solid rgba(201, 168, 76, 0.45);
-  padding: clamp(1.1rem, 2.2cqw, 1.9rem);
-  max-height: 80cqh;
-  overflow-y: auto;
+  padding: clamp(1rem, 2cqw, 1.6rem);
   justify-self: end;
   width: min(100%, 34rem);
 }
@@ -266,13 +265,34 @@ body {
   letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+.form-panel .contact-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.9rem;
+}
+.cf-field--full {
+  grid-column: 1 / -1;
 }
 .form-panel .contact-form label {
-  margin-top: 0.85rem;
+  margin: 0.7rem 0 0.3rem;
+  font-size: 0.55rem;
+}
+.form-panel .contact-form input,
+.form-panel .contact-form select {
+  padding: 0.55rem 0.7rem;
+  font-size: 0.82rem;
 }
 .form-panel .contact-form textarea {
-  min-height: 5.5rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.82rem;
+  min-height: 4.6rem;
+  resize: none;
+}
+.form-panel .contact-form button {
+  margin-top: 1rem;
+  width: 100%;
 }
 /* prominent primary CTA on the final scene */
 #scene-7 .cta--primary {
@@ -892,6 +912,39 @@ body {
   /* lift "Built With Intention" onto the dark monitor area */
   #scene-5 .scene__copy.copy--center {
     padding-bottom: 28cqh;
+  }
+  /* scene 3 portrait: image is contained mid-screen — headline stays in the
+     top dark band, the three line items move to the BOTTOM dark band */
+  #scene-3 .scene__copy.copy--top-right {
+    top: 9cqh;
+    bottom: 7cqh;
+    left: 5cqw;
+    right: 5cqw;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+  }
+  #scene-3 .points-wrap {
+    margin-top: auto; /* sinks below the contained image */
+  }
+  /* heavier, whiter text for small-screen readability */
+  .headline {
+    color: #ffffff;
+  }
+  .point__title {
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .col__title {
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .chip {
+    color: #ffffff;
+    font-weight: 500;
+  }
+  .scroll-cue__text {
+    font-weight: 500;
   }
 }
 
