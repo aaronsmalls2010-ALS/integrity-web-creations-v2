@@ -37,18 +37,18 @@ import Scene from './Scene'
 import BlackBeat from './BlackBeat'
 
 /**
- * Build Order step 3 de-risk plates. Scenes 3–7 stay solid-color until the
- * step-5 checkpoint is signed off (then set all entries to undefined — the
- * timeline/wrap code is identical either way and is already validated).
+ * Build Order step 3 de-risk plates — retired per Aaron's checkpoint
+ * direction (2026-06-11): real imagery on every scene so the full movie can
+ * be felt. (The shell + wrap were validated on plates first, as specified.)
  */
 const PLACEHOLDERS: (string | undefined)[] = [
-  undefined, // scene 1 — real imagery (step 4)
-  undefined, // scene 2 — real imagery (step 5)
-  '#1A2433', // scene 3 — pending checkpoint sign-off
-  '#2A2236',
-  '#16291F',
-  '#33260F',
-  '#0F1F33',
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
+  undefined,
 ]
 
 export default function Cinematic() {
@@ -330,10 +330,19 @@ export default function Cinematic() {
           id="cinematic"
           aria-label="Integrity Web Creations — cinematic introduction"
         >
-          {SCENES.map((cfg, i) => (
-            <Scene key={cfg.id} cfg={cfg} index={i} placeholder={PLACEHOLDERS[i]} />
-          ))}
-          <BlackBeat />
+          {/* the movie screen: 16:9 letterboxed frame; site chrome lives
+              around it (Aaron, 2026-06-11) */}
+          <div id="movie-frame">
+            {SCENES.map((cfg, i) => (
+              <Scene
+                key={cfg.id}
+                cfg={cfg}
+                index={i}
+                placeholder={PLACEHOLDERS[i]}
+              />
+            ))}
+            <BlackBeat />
+          </div>
         </section>
         {/* NOTHING after #cinematic on the homepage — the loop is the page */}
       </SmoothWrapper>

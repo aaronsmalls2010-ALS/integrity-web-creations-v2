@@ -28,10 +28,19 @@ const SRC_DIR = path.join(root, 'Storyboard')
 const OUT_DIR = path.join(root, 'public', 'images', 'scenes')
 const DOCS_DIR = path.join(root, 'docs')
 
-const SCENES = [1, 2, 3, 4, 5, 6, 7].map((n) => ({
-  n,
-  src: path.join(SRC_DIR, `IWC_Concept_${n}.png`),
+/**
+ * Asset map (Aaron, 2026-06-11): concepts are before/after pairs —
+ * 0 = clean logo backdrop (ships) · 1 = load end-state MOCKUP (text → DOM)
+ * 2 = clean car plate (ships)     · 3 = car end-state MOCKUP (text → DOM)
+ * 4–8 = penthouse · monitors · code · window · water
+ */
+const SCENE_SOURCES = [0, 2, 4, 5, 6, 7, 8]
+const SCENES = SCENE_SOURCES.map((c, i) => ({
+  n: i + 1,
+  src: path.join(SRC_DIR, `IWC_Concept_${c}.png`),
 }))
+/** the full logo card (with text) — og image + favicon source */
+const LOGO_CARD = path.join(SRC_DIR, 'IWC_Concept_1.png')
 
 const BUDGET = {
   desktop: { webp: 400_000, avif: 280_000 },
@@ -89,9 +98,9 @@ async function scenes() {
   }
 }
 
-/** og.jpg — Scene 1 art (logo + wordmark region), 1200×630 */
+/** og.jpg — logo card art (logo + wordmark region), 1200×630 */
 async function og() {
-  const src = SCENES[0].src
+  const src = LOGO_CARD
   const meta = await sharp(src).metadata()
   // 1.904:1 window over the logo block (upper-middle of the 1448×1086 art)
   const w = meta.width
@@ -105,9 +114,9 @@ async function og() {
   console.log('og.jpg            1200×630 written')
 }
 
-/** favicons from the IWC monogram region of Scene 1 */
+/** favicons from the IWC monogram region of the logo card */
 async function favicons() {
-  const src = SCENES[0].src
+  const src = LOGO_CARD
   // "IWC" letters (pixel-measured dense bbox x 485–895, y 203–460 + padding),
   // full-width on a navy square for max legibility at small sizes.
   // NOTE: sharp allows ONE resize per pipeline — pad in a second pass.

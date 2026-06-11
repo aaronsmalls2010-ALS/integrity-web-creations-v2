@@ -102,7 +102,24 @@ body {
   height: 100svh; /* never bare 100vh */
   overflow: hidden;
   background: var(--deep-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* the movie screen — 16:9 letterboxed frame; chrome lives around it */
+#movie-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: min(92vw, calc((100vh - 10.5rem) * 16 / 9)); /* fallback */
+  width: min(92vw, calc((100svh - 10.5rem) * 16 / 9));
+  background: #000;
+  overflow: hidden;
   perspective: 1200px;
+  container-type: size; /* cqw/cqh: copy scales with the screen, not viewport */
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  box-shadow:
+    0 40px 140px rgba(0, 0, 0, 0.75),
+    0 0 60px rgba(0, 0, 0, 0.5);
 }
 .scene {
   position: absolute;
@@ -169,21 +186,21 @@ body {
   color: rgba(200, 205, 214, 0.4);
 }
 
-/* ── copy ──────────────────────────────────────────────────────────────── */
+/* ── copy (cq units: scales with the movie frame) ──────────────────────── */
 .scene__copy {
   position: absolute;
   z-index: 2;
 }
 .copy--bottom-left {
-  left: clamp(1.5rem, 5vw, 5rem);
-  bottom: clamp(4.5rem, 13vh, 8rem);
-  max-width: min(640px, 86vw);
+  left: 5cqw;
+  bottom: 12cqh;
+  max-width: 56cqw;
   text-align: left;
 }
 .copy--top-right {
-  right: clamp(1.5rem, 5vw, 5rem);
-  top: clamp(5.5rem, 15vh, 9rem);
-  max-width: min(640px, 86vw);
+  right: 5cqw;
+  top: 11cqh;
+  max-width: 56cqw;
   text-align: right;
 }
 .copy--top-right .services-wrap,
@@ -201,24 +218,36 @@ body {
   pointer-events: none;
 }
 .copy--center .scene__copy-inner {
-  max-width: min(820px, 90vw);
+  max-width: 86cqw;
 }
 .copy--center a {
   pointer-events: auto;
 }
+/* concept-3 mockup layout: headline+body upper-left, columns row + strap below */
+.copy--spread {
+  inset: 0;
+  pointer-events: none;
+}
+.copy--spread .scene__copy-inner {
+  position: absolute;
+  left: 4.5cqw;
+  top: 8cqh;
+  max-width: 46cqw;
+  text-align: left;
+}
 
 .label {
-  font-size: 0.55rem;
+  font-size: clamp(0.42rem, 1.1cqw, 0.62rem);
   font-weight: 300;
   letter-spacing: 0.45em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: clamp(0.8rem, 2vh, 1.4rem);
+  margin-bottom: clamp(0.5rem, 2.4cqh, 1.4rem);
 }
 .headline {
   font-family: var(--font-playfair), serif;
   font-weight: 900;
-  font-size: clamp(2.6rem, 7.5vw, 8.5rem);
+  font-size: clamp(1.5rem, 7.5cqw, 8.5rem);
   line-height: 0.94;
   text-transform: uppercase;
   color: var(--white);
@@ -233,11 +262,11 @@ body {
   color: var(--gold);
 }
 .body-copy {
-  font-size: clamp(0.75rem, 1.1vw, 0.95rem);
+  font-size: clamp(0.55rem, 1.4cqw, 0.95rem);
   font-weight: 200;
   line-height: 1.9;
   color: var(--silver);
-  margin-top: clamp(0.9rem, 2.2vh, 1.5rem);
+  margin-top: clamp(0.5rem, 2.6cqh, 1.5rem);
   max-width: 52ch;
 }
 .copy--top-right .body-copy {
@@ -245,6 +274,136 @@ body {
 }
 .copy--center .body-copy {
   margin-inline: auto;
+}
+
+/* ── SCENE 1 — concept-1 mockup composition (text is DOM, plate is clean) ── */
+.monogram {
+  font-family: var(--font-playfair), serif;
+  font-weight: 900;
+  font-size: clamp(3rem, 16cqw, 12rem);
+  line-height: 0.92;
+  letter-spacing: 0.05em;
+  background: linear-gradient(
+    180deg,
+    #f8f8f6 0%,
+    #d3d8e0 36%,
+    #707887 52%,
+    #e2dfd6 68%,
+    #95897a 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 5px 26px rgba(0, 0, 0, 0.6));
+}
+#scene-1 .label {
+  margin-top: 1.6cqh;
+  letter-spacing: 0.5em;
+}
+#scene-1 .headline__line:first-child {
+  font-size: clamp(1.3rem, 6cqw, 5.6rem);
+  letter-spacing: 0.22em;
+  background: linear-gradient(180deg, #f8f8f6, #c8cdd6 45%, #848c9a 55%, #e8e6df);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+#scene-1 .headline__line + .headline__line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4em;
+  margin-top: 1.4cqh;
+  font-size: clamp(0.6rem, 2.2cqw, 2rem);
+  letter-spacing: 0.5em;
+}
+#scene-1 .headline__line + .headline__line::before,
+#scene-1 .headline__line + .headline__line::after {
+  content: '';
+  height: 1px;
+  width: clamp(2rem, 9cqw, 8rem);
+  background: linear-gradient(to right, transparent, var(--gold-muted));
+}
+#scene-1 .headline__line + .headline__line::after {
+  background: linear-gradient(to left, transparent, var(--gold-muted));
+}
+#scene-1 .headline em.gold {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--gold);
+}
+#scene-1 .body-copy {
+  text-transform: uppercase;
+  letter-spacing: 0.42em;
+  font-size: clamp(0.42rem, 1.15cqw, 0.78rem);
+  line-height: 1.6;
+}
+
+/* ── SCENE 2 — concept-3 mockup composition ───────────────────────────── */
+.copy--spread .headline {
+  font-family: var(--font-inter), sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.95rem, 3.5cqw, 3.2rem);
+  line-height: 1.22;
+  letter-spacing: 0.05em;
+  text-shadow: 0 2px 26px rgba(0, 0, 0, 0.7);
+}
+.copy--spread .body-copy {
+  font-weight: 300;
+  line-height: 1.7;
+  max-width: 40ch;
+}
+.columns-wrap {
+  position: absolute;
+  left: 4cqw;
+  right: 4cqw;
+  bottom: 8.5cqh;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.6cqw;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.col {
+  text-align: center;
+  padding: 0 1.2cqw;
+}
+.col + .col {
+  border-left: 1px solid rgba(200, 205, 214, 0.22);
+}
+.col__icon {
+  width: clamp(18px, 3.6cqw, 46px);
+  height: auto;
+  color: var(--gold);
+  display: block;
+  margin: 0 auto clamp(0.3rem, 1.6cqh, 0.8rem);
+}
+.col__title {
+  font-weight: 500;
+  font-size: clamp(0.46rem, 1.15cqw, 0.8rem);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--white);
+}
+.col__body {
+  font-weight: 200;
+  font-size: clamp(0.4rem, 0.95cqw, 0.7rem);
+  line-height: 1.55;
+  color: var(--silver);
+  margin-top: clamp(0.2rem, 1.2cqh, 0.55rem);
+}
+.strap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2.6cqh;
+  text-align: center;
+  font-weight: 300;
+  font-size: clamp(0.36rem, 0.9cqw, 0.62rem);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: rgba(200, 205, 214, 0.75);
 }
 
 /* services chips (Scene 5) */
@@ -257,7 +416,7 @@ body {
   padding: 0;
 }
 .chip {
-  font-size: 0.58rem;
+  font-size: clamp(0.42rem, 1.05cqw, 0.62rem);
   font-weight: 300;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -279,7 +438,7 @@ body {
 }
 .cta {
   display: inline-block;
-  font-size: 0.62rem;
+  font-size: clamp(0.48rem, 1.1cqw, 0.66rem);
   font-weight: 400;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -621,6 +780,12 @@ body {
   .reduced-motion #cinematic {
     height: auto;
     overflow: visible;
+    display: block;
+  }
+  .reduced-motion #movie-frame {
+    width: 100%;
+    aspect-ratio: auto;
+    border: 0;
     perspective: none;
   }
   .reduced-motion .scene {

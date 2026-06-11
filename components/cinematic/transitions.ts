@@ -32,13 +32,21 @@ export function copyIn(sel: string, splits: SplitsMap) {
   const tl = gsap.timeline()
   const s = document.querySelector(sel)
   if (!s) return tl
+  const monogram = s.querySelector('.monogram')
+  if (monogram)
+    tl.fromTo(
+      monogram,
+      { autoAlpha: 0, y: 34 },
+      { autoAlpha: 1, y: 0, duration: 0.32, ease: 'power3.out' },
+      0,
+    )
   const label = s.querySelector('.label')
   if (label)
     tl.fromTo(
       label,
       { autoAlpha: 0, y: 26 },
       { autoAlpha: 1, y: 0, duration: 0.25, ease: 'power3.out' },
-      0,
+      monogram ? 0.14 : 0,
     )
   const split = splits.get(sel)
   if (split && split.words.length)
@@ -46,7 +54,7 @@ export function copyIn(sel: string, splits: SplitsMap) {
       split.words,
       { autoAlpha: 0, yPercent: 110 },
       { autoAlpha: 1, yPercent: 0, stagger: 0.04, duration: 0.45, ease: 'power3.out' },
-      0.08,
+      monogram ? 0.22 : 0.08,
     )
   const body = s.querySelector('.body-copy')
   if (body)
@@ -55,6 +63,23 @@ export function copyIn(sel: string, splits: SplitsMap) {
       { autoAlpha: 0, y: 20 },
       { autoAlpha: 1, y: 0, duration: 0.25, ease: 'power3.out' },
       0.35,
+    )
+  // concept-3 mockup columns — scroll-tied stagger
+  const cols = s.querySelectorAll('.col')
+  if (cols.length)
+    tl.fromTo(
+      cols,
+      { autoAlpha: 0, y: 24 },
+      { autoAlpha: 1, y: 0, stagger: 0.07, duration: 0.28, ease: 'power3.out' },
+      0.45,
+    )
+  const strap = s.querySelector('.strap')
+  if (strap)
+    tl.fromTo(
+      strap,
+      { autoAlpha: 0, y: 14 },
+      { autoAlpha: 1, y: 0, duration: 0.24, ease: 'power3.out' },
+      0.7,
     )
   const cta = s.querySelector('.cta-wrap')
   if (cta)
@@ -70,14 +95,14 @@ export function copyIn(sel: string, splits: SplitsMap) {
 export function copyOut(sel: string) {
   const tl = gsap.timeline()
   const targets = document.querySelectorAll(
-    `${sel} .label, ${sel} .headline .split-word, ${sel} .body-copy, ${sel} .cta-wrap`,
+    `${sel} .monogram, ${sel} .label, ${sel} .headline .split-word, ${sel} .body-copy, ${sel} .col, ${sel} .strap, ${sel} .cta-wrap`,
   )
   if (targets.length)
     tl.to(targets, {
       autoAlpha: 0,
       y: -18,
       duration: 0.2,
-      stagger: 0.03,
+      stagger: 0.02,
       ease: 'power2.in',
     })
   return tl
@@ -178,32 +203,36 @@ export function scene7_hold(splits: SplitsMap) {
 
 // ── transitions ──────────────────────────────────────────────────────────────
 
-/** T1 — PAN DOWN to Driveway: camera tilts down; world shifts up-frame;
- *  new content reveals from bottom. */
+/** T1 — DESCEND to the Driveway (filmic rework, Aaron 2026-06-11): the
+ *  skyline scales DOWN as the camera pulls back and pans; the driveway
+ *  rises to meet it through a long dissolve with continuous motion on both
+ *  plates — a movie move, not a slide. */
 export function t1_panDown(TRAVEL: number) {
   const tl = gsap.timeline()
+  // buildings shrink + drift up-frame as the camera pulls away
   tl.fromTo(
     '#scene-1 .scene__bg',
-    { yPercent: 0 },
-    { yPercent: -30 * TRAVEL, ease: 'none', duration: 0.6 },
+    { scale: 1.05, yPercent: 0 },
+    { scale: 0.88, yPercent: -12 * TRAVEL, ease: 'power1.inOut', duration: 0.6 },
     0,
   )
   tl.fromTo(
     '#scene-1',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.in', duration: 0.25 },
-    0.3,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.42 },
+    0.16,
   )
+  // the driveway settles in beneath, still moving as it lands
   tl.fromTo(
     '#scene-2 .scene__bg',
-    { xPercent: 0, yPercent: 35 * TRAVEL },
-    { xPercent: 0, yPercent: 0, ease: 'none', duration: 0.6 },
+    { xPercent: 0, yPercent: 22 * TRAVEL, scale: 1.16 },
+    { xPercent: 0, yPercent: 0, scale: 1, ease: 'power1.out', duration: 0.6 },
     0,
   )
   tl.fromTo(
     '#scene-2',
     { autoAlpha: 0 },
-    { autoAlpha: 1, ease: 'power1.out', duration: 0.3 },
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.4 },
     0.1,
   )
   tl.add(copyOut('#scene-1'), 0)

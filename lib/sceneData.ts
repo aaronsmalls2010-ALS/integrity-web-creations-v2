@@ -1,14 +1,16 @@
 /**
- * SINGLE SOURCE OF TRUTH for all cinematic copy — canon: Storyboard.png + build brief v3.
+ * SINGLE SOURCE OF TRUTH for all cinematic copy.
+ *
+ * Canon: build brief v3 + Aaron's checkpoint direction (2026-06-11):
+ * concepts 0–8 are before/after pairs — clean plates ship as imagery, the
+ * "after" mockups (concepts 1 and 3) define text that lives in the DOM and
+ * staggers in tied to the scroll. Scene 1 + 2 copy below is transcribed
+ * VERBATIM from those mockups and supersedes the brief's earlier strings.
  *
  * Copy status (canon rule):
  *  - 'approved' strings ship VERBATIM. Do not alter.
  *  - 'draft' strings ship as written but are flagged for Aaron's confirmation
  *    before launch (see OPEN QUESTIONS in the brief).
- *
- * Asset note: source files arrived as IWC_Concept_N.png (N = scene number) in
- * /Storyboard — contents verified 1:1 against the brief's 10000106xx.png
- * descriptions and against each Storyboard.png frame before wiring.
  */
 
 export interface SceneCta {
@@ -20,21 +22,33 @@ export interface SceneCta {
   analyticsId: 'start_project' | 'june_offer' | 'consultation'
 }
 
+export interface SceneColumn {
+  title: string
+  body: string
+  icon: 'target' | 'monitor' | 'squares' | 'code'
+}
+
 export interface SceneConfig {
   id: string
   image: string
   objectPosition: { desktop: string; mobile: string }
   gradient: string
-  copyLayout: 'bottom-left' | 'top-right' | 'center'
+  copyLayout: 'bottom-left' | 'top-right' | 'center' | 'spread'
+  /** large brand monogram above the label (scene 1 / concept-1 mockup) */
+  monogram?: string
   label: string
   headline: string[]
-  /** index into `headline` of the line containing the gold accent */
+  /** index into `headline` of the line containing the gold accent (-1 = none) */
   goldLine: number
   /** exact substring of headline[goldLine] rendered italic gold */
   goldText: string
   body: string
   copyStatus: Record<'label' | 'headline' | 'body', 'approved' | 'draft'>
   services?: string[]
+  /** icon columns row (scene 2 / concept-3 mockup) */
+  columns?: SceneColumn[]
+  /** bottom strap line (scene 2 / concept-3 mockup) */
+  strap?: string
   ctas?: SceneCta[]
   holdWeight: number
   cameraHold: 'push-in' | 'drift-left' | 'zoom-out' | 'float' | 'none'
@@ -42,16 +56,18 @@ export interface SceneConfig {
 
 export const SCENES: SceneConfig[] = [
   {
-    // SCENE 1 — OPEN: Logo Reveal · source IWC_Concept_1.png
+    // SCENE 1 — OPEN: Logo Reveal · plate IWC_Concept_0.png (clean backdrop)
+    // composition target: IWC_Concept_1.png mockup — all text below is DOM
     id: 'scene-1',
     image: '/images/scenes/scene-1-desktop.webp',
-    objectPosition: { desktop: 'center center', mobile: 'center 45%' },
-    gradient: 'linear-gradient(160deg, rgba(5,8,20,.3), rgba(5,8,20,.85))',
+    objectPosition: { desktop: 'center 68%', mobile: 'center 75%' },
+    gradient: 'linear-gradient(160deg, rgba(5,8,20,.2), rgba(5,8,20,.65))',
     copyLayout: 'center',
-    label: 'Engineered by Design · Est. 2010', // [DRAFT]
+    monogram: 'IWC', // per concept-1 mockup
+    label: 'Engineered by Design', // mockup omits "· Est. 2010" (brief draft superseded)
     headline: ['Integrity', 'Web Creations'], // [APPROVED]
     goldLine: 1,
-    goldText: 'Web',
+    goldText: 'Web Creations', // mockup: whole second line gold, flanked by rules
     body: 'Design. Function. Integrity.', // [APPROVED]
     copyStatus: { label: 'draft', headline: 'approved', body: 'approved' },
     ctas: [
@@ -67,24 +83,50 @@ export const SCENES: SceneConfig[] = [
     cameraHold: 'push-in',
   },
   {
-    // SCENE 2 — Brand Promise (LOOP LANDING) · source IWC_Concept_2.png
+    // SCENE 2 — The Car (LOOP LANDING) · plate IWC_Concept_2.png (clean)
+    // composition target: IWC_Concept_3.png mockup — supersedes brief v3's
+    // "Premium From / Day One" copy per Aaron 2026-06-11
     id: 'scene-2',
     image: '/images/scenes/scene-2-desktop.webp',
-    objectPosition: { desktop: 'center center', mobile: '62% center' }, // keep grille
+    objectPosition: { desktop: 'center 55%', mobile: '62% center' }, // keep grille
     gradient:
-      'linear-gradient(to top, rgba(8,9,12,.92), rgba(8,9,12,.1) 55%, transparent)',
-    copyLayout: 'bottom-left',
-    label: 'The Brand Promise', // [DRAFT]
-    headline: ['Premium From', 'Day One'], // [DRAFT]
-    goldLine: 1,
-    goldText: 'Day One',
-    body: 'Engineered for businesses that want to look established, trusted, and premium from day one.', // [APPROVED]
-    copyStatus: { label: 'draft', headline: 'draft', body: 'approved' },
+      'linear-gradient(to top, rgba(8,9,12,.88), rgba(8,9,12,.08) 50%, rgba(8,9,12,.25))',
+    copyLayout: 'spread',
+    label: '',
+    headline: ['Engineered for Eternity.', 'Crafted for Legacy.'], // concept-3 mockup
+    goldLine: -1,
+    goldText: '',
+    body: 'We blend strategy, creativity, and code to build digital experiences that stand the test of time.', // concept-3 mockup
+    copyStatus: { label: 'approved', headline: 'approved', body: 'approved' },
+    columns: [
+      // concept-3 mockup, verbatim
+      {
+        title: 'Marketing',
+        body: 'Data-driven strategies that attract, engage, and convert.',
+        icon: 'target',
+      },
+      {
+        title: 'Websites',
+        body: 'Beautiful, responsive websites built for performance and results.',
+        icon: 'monitor',
+      },
+      {
+        title: 'Branding',
+        body: 'Strong identities that make your brand memorable and trusted.',
+        icon: 'squares',
+      },
+      {
+        title: 'Coding',
+        body: 'Clean, scalable code that powers seamless digital experiences.',
+        icon: 'code',
+      },
+    ],
+    strap: 'Strategy. Design. Development. Growth.', // concept-3 mockup
     holdWeight: 1.0,
     cameraHold: 'drift-left',
   },
   {
-    // SCENE 3 — Designed to Convert · source IWC_Concept_3.png
+    // SCENE 3 — Designed to Convert · plate IWC_Concept_4.png
     id: 'scene-3',
     image: '/images/scenes/scene-3-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: '40% center' },
@@ -101,7 +143,7 @@ export const SCENES: SceneConfig[] = [
     cameraHold: 'none',
   },
   {
-    // SCENE 4 — The Expert · source IWC_Concept_4.png
+    // SCENE 4 — The Expert · plate IWC_Concept_5.png
     id: 'scene-4',
     image: '/images/scenes/scene-4-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 38%' },
@@ -118,7 +160,7 @@ export const SCENES: SceneConfig[] = [
     cameraHold: 'push-in',
   },
   {
-    // SCENE 5 — Services · source IWC_Concept_5.png
+    // SCENE 5 — Services · plate IWC_Concept_6.png
     id: 'scene-5',
     image: '/images/scenes/scene-5-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 30%' },
@@ -144,7 +186,7 @@ export const SCENES: SceneConfig[] = [
     cameraHold: 'none',
   },
   {
-    // SCENE 6 — Built for Growth · source IWC_Concept_6.png
+    // SCENE 6 — Built for Growth · plate IWC_Concept_7.png
     id: 'scene-6',
     image: '/images/scenes/scene-6-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 40%' },
@@ -161,7 +203,7 @@ export const SCENES: SceneConfig[] = [
     cameraHold: 'zoom-out',
   },
   {
-    // SCENE 7 — Final CTA · source IWC_Concept_7.png
+    // SCENE 7 — Final CTA · plate IWC_Concept_8.png
     id: 'scene-7',
     image: '/images/scenes/scene-7-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 55%' },

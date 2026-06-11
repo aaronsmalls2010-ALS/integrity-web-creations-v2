@@ -58,6 +58,12 @@ export function setInitialStates(splits: SplitsMap, scene1CopyRevealed = false) 
     const s = document.querySelector(sel)
     if (!s) continue
     const revealed = cfg.id === 'scene-1' && scene1CopyRevealed
+    const monogram = s.querySelector('.monogram')
+    if (monogram)
+      gsap.set(
+        monogram,
+        revealed ? { autoAlpha: 1, y: 0 } : { autoAlpha: 0, y: 34 },
+      )
     const label = s.querySelector('.label')
     if (label)
       gsap.set(label, revealed ? { autoAlpha: 1, y: 0 } : { autoAlpha: 0, y: 26 })
@@ -75,6 +81,10 @@ export function setInitialStates(splits: SplitsMap, scene1CopyRevealed = false) 
       gsap.set(cta, revealed ? { autoAlpha: 1, y: 0 } : { autoAlpha: 0, y: 18 })
     const chips = s.querySelectorAll('.chip')
     if (chips.length) gsap.set(chips, { autoAlpha: 0, y: 18 })
+    const cols = s.querySelectorAll('.col')
+    if (cols.length) gsap.set(cols, { autoAlpha: 0, y: 24 })
+    const strap = s.querySelector('.strap')
+    if (strap) gsap.set(strap, { autoAlpha: 0, y: 14 })
   }
 }
 
