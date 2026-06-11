@@ -245,6 +245,9 @@ body {
 .copy--center a {
   pointer-events: auto;
 }
+.copy--center .services-wrap {
+  justify-content: center;
+}
 /* concept-3 mockup layout: headline+body upper-left, columns row + strap below */
 .copy--spread {
   inset: 0;
@@ -259,12 +262,13 @@ body {
 }
 
 .label {
-  font-size: clamp(0.42rem, 1.1cqw, 0.62rem);
-  font-weight: 300;
+  font-size: clamp(0.52rem, 1.1cqw, 0.66rem);
+  font-weight: 400;
   letter-spacing: 0.45em;
   text-transform: uppercase;
   color: var(--gold);
   margin-bottom: clamp(0.5rem, 2.4cqh, 1.4rem);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.9);
 }
 .headline {
   font-family: var(--font-playfair), serif;
@@ -284,12 +288,13 @@ body {
   color: var(--gold);
 }
 .body-copy {
-  font-size: clamp(0.55rem, 1.4cqw, 0.95rem);
-  font-weight: 200;
-  line-height: 1.9;
-  color: var(--silver);
+  font-size: clamp(0.65rem, 1.4cqw, 0.95rem);
+  font-weight: 300;
+  line-height: 1.85;
+  color: #dde1e8; /* lifted from silver for contrast on bright plates */
   margin-top: clamp(0.5rem, 2.6cqh, 1.5rem);
   max-width: 52ch;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.9);
 }
 .copy--top-right .body-copy {
   margin-left: auto;
@@ -305,7 +310,9 @@ body {
   font-size: clamp(0.95rem, 3.5cqw, 3.2rem);
   line-height: 1.22;
   letter-spacing: 0.05em;
-  text-shadow: 0 2px 26px rgba(0, 0, 0, 0.7);
+  text-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.85),
+    0 2px 34px rgba(0, 0, 0, 0.7);
 }
 .copy--spread .body-copy {
   font-weight: 300;
@@ -340,17 +347,19 @@ body {
 }
 .col__title {
   font-weight: 500;
-  font-size: clamp(0.46rem, 1.15cqw, 0.8rem);
+  font-size: clamp(0.54rem, 1.15cqw, 0.8rem);
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--white);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
 }
 .col__body {
-  font-weight: 200;
-  font-size: clamp(0.4rem, 0.95cqw, 0.7rem);
+  font-weight: 300;
+  font-size: clamp(0.5rem, 0.95cqw, 0.72rem);
   line-height: 1.55;
-  color: var(--silver);
+  color: #d6dae2;
   margin-top: clamp(0.2rem, 1.2cqh, 0.55rem);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
 }
 .strap {
   position: absolute;
@@ -358,11 +367,12 @@ body {
   right: 0;
   bottom: 2.6cqh;
   text-align: center;
-  font-weight: 300;
-  font-size: clamp(0.36rem, 0.9cqw, 0.62rem);
+  font-weight: 400;
+  font-size: clamp(0.46rem, 0.9cqw, 0.64rem);
   letter-spacing: 0.5em;
   text-transform: uppercase;
-  color: rgba(200, 205, 214, 0.75);
+  color: rgba(214, 219, 228, 0.92);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.9);
 }
 
 /* services chips (Scene 5) */
@@ -375,12 +385,13 @@ body {
   padding: 0;
 }
 .chip {
-  font-size: clamp(0.42rem, 1.05cqw, 0.62rem);
-  font-weight: 300;
+  font-size: clamp(0.52rem, 1.05cqw, 0.66rem);
+  font-weight: 400;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--white);
-  border: 1px solid rgba(201, 168, 76, 0.55);
+  border: 1px solid rgba(201, 168, 76, 0.65);
+  background: rgba(5, 8, 16, 0.45); /* legibility over busy imagery */
   padding: 0.5rem 0.85rem;
   white-space: nowrap;
 }
@@ -397,7 +408,7 @@ body {
 }
 .cta {
   display: inline-block;
-  font-size: clamp(0.48rem, 1.1cqw, 0.66rem);
+  font-size: clamp(0.56rem, 1.1cqw, 0.68rem);
   font-weight: 400;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -441,8 +452,8 @@ body {
 }
 #black-beat p {
   font-weight: 100;
-  font-size: clamp(0.7rem, 1.4vw, 1rem);
-  letter-spacing: 0.5em;
+  font-size: clamp(0.9rem, 2.2cqw, 1.9rem);
+  letter-spacing: 0.35em;
   color: var(--white);
   min-height: 1.4em;
 }
@@ -695,9 +706,9 @@ body {
   z-index: 50;
   left: clamp(1.2rem, 3.5vw, 2.5rem);
   bottom: clamp(0.9rem, 2.6vh, 1.6rem);
-  font-size: 0.5rem;
+  font-size: 0.55rem;
   letter-spacing: 0.18em;
-  color: rgba(200, 205, 214, 0.55);
+  color: rgba(200, 205, 214, 0.75);
 }
 #legal-line a:hover {
   color: var(--gold);

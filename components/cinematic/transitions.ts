@@ -369,7 +369,8 @@ export function t5_liftOver(TRAVEL: number) {
   )
   tl.fromTo('#scene-5', { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.1 }, 0.3)
 
-  // SCRUB-SAFE typewriter — types forward, erases on reverse, resets on wrap
+  // SCRUB-SAFE typewriter — types forward, erases on reverse, resets on wrap.
+  // Stretched window (Aaron 2026-06-11): bigger type, slower reveal.
   const state = { n: 0 }
   tl.fromTo(
     state,
@@ -377,29 +378,29 @@ export function t5_liftOver(TRAVEL: number) {
     {
       n: BLACK_BEAT_TEXT.length,
       ease: 'none',
-      duration: 0.22,
+      duration: 0.48,
       snap: { n: 1 },
       onUpdate: () => {
         const p = document.querySelector('#black-beat p')
         if (p) p.textContent = BLACK_BEAT_TEXT.slice(0, state.n)
       },
     },
-    0.34,
+    0.32,
   )
 
   tl.fromTo(
     '#scene-6 .scene__bg',
     { yPercent: -35 * TRAVEL, scale: 1.12, xPercent: 0 },
-    { yPercent: 0, scale: 1.04, xPercent: 0, ease: 'power1.out', duration: 0.4 },
-    0.58,
+    { yPercent: 0, scale: 1.04, xPercent: 0, ease: 'power1.out', duration: 0.35 },
+    0.8,
   )
   tl.fromTo(
     '#black-beat',
     { autoAlpha: 1 },
     { autoAlpha: 0, duration: 0.14, ease: 'power2.out' },
-    0.62,
+    0.84,
   )
-  tl.fromTo('#scene-6', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, 0.58)
+  tl.fromTo('#scene-6', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, 0.8)
   tl.add(copyOut('#scene-5'), 0)
   return pad(tl, WEIGHTS.t5)
 }

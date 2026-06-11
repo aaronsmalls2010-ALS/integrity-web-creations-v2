@@ -90,7 +90,7 @@ export const SCENES: SceneConfig[] = [
     image: '/images/scenes/scene-2-desktop.webp',
     objectPosition: { desktop: 'center 55%', mobile: '62% center' }, // keep grille
     gradient:
-      'linear-gradient(to top, rgba(8,9,12,.88), rgba(8,9,12,.08) 50%, rgba(8,9,12,.25))',
+      'linear-gradient(115deg, rgba(8,9,12,.8), rgba(8,9,12,.28) 40%, transparent 62%), linear-gradient(to top, rgba(8,9,12,.88), rgba(8,9,12,.08) 50%, rgba(8,9,12,.25))',
     copyLayout: 'spread',
     label: '',
     headline: ['Engineered for Eternity.', 'Crafted for Legacy.'], // concept-3 mockup
@@ -98,6 +98,8 @@ export const SCENES: SceneConfig[] = [
     goldText: '',
     body: 'We blend strategy, creativity, and code to build digital experiences that stand the test of time.', // concept-3 mockup
     copyStatus: { label: 'approved', headline: 'approved', body: 'approved' },
+    // legibility: extra upper-left scrim under the headline (bright sky there)
+    // — composited with the base gradient below
     columns: [
       // concept-3 mockup, verbatim
       {
@@ -131,7 +133,7 @@ export const SCENES: SceneConfig[] = [
     image: '/images/scenes/scene-3-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: '40% center' },
     gradient:
-      'linear-gradient(to right, rgba(8,9,12,.9), rgba(8,9,12,.2) 60%, transparent)',
+      'linear-gradient(to left, rgba(8,9,12,.85), rgba(8,9,12,.22) 52%, transparent)',
     copyLayout: 'top-right',
     label: 'The Experience', // [DRAFT]
     headline: ['Designed', 'to Convert'], // [DRAFT]
@@ -164,8 +166,8 @@ export const SCENES: SceneConfig[] = [
     id: 'scene-5',
     image: '/images/scenes/scene-5-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 30%' },
-    gradient: 'linear-gradient(135deg, rgba(8,9,12,.85), rgba(8,9,12,.1) 60%)',
-    copyLayout: 'bottom-left',
+    gradient: 'radial-gradient(ellipse at center, rgba(5,6,9,.55), transparent 68%), linear-gradient(135deg, rgba(8,9,12,.6), rgba(8,9,12,.1) 60%)',
+    copyLayout: 'center', // Aaron 2026-06-11: centered on the monitor screen
     label: 'The Process', // [DRAFT]
     headline: ['Built With', 'Intention'], // [DRAFT]
     goldLine: 1,
@@ -191,7 +193,7 @@ export const SCENES: SceneConfig[] = [
     image: '/images/scenes/scene-6-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 40%' },
     gradient:
-      'linear-gradient(to bottom, rgba(8,9,12,.7), rgba(8,9,12,.1) 40%, rgba(8,9,12,.75))',
+      'linear-gradient(to bottom, rgba(8,9,12,.84), rgba(8,9,12,.16) 46%, rgba(8,9,12,.75))',
     copyLayout: 'top-right',
     label: 'The Transformation', // [DRAFT]
     headline: ['Built for', 'Growth'], // [DRAFT]
@@ -208,7 +210,7 @@ export const SCENES: SceneConfig[] = [
     image: '/images/scenes/scene-7-desktop.webp',
     objectPosition: { desktop: 'center center', mobile: 'center 55%' },
     gradient:
-      'linear-gradient(to top, rgba(8,9,12,.97), rgba(8,9,12,.35) 55%, transparent)',
+      'radial-gradient(ellipse at center, rgba(5,6,9,.5), transparent 70%), linear-gradient(to top, rgba(8,9,12,.97), rgba(8,9,12,.35) 55%, transparent)',
     copyLayout: 'center',
     label: "The Lowcountry's Digital Agency · Beaufort, SC · Since 2010", // [DRAFT]
     headline: ['More Than a Website.', 'A Digital Presence.'], // [DRAFT]
