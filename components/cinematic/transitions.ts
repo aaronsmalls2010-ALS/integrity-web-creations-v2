@@ -22,117 +22,72 @@ import { gsap } from '@/lib/gsap'
 import { BLACK_BEAT_TEXT } from '@/lib/sceneData'
 import { WEIGHTS } from './config'
 
-export type SplitsMap = Map<string, { words: Element[] }>
+export type SplitsMap = Map<string, { lines: Element[] }>
 
 // ── shared helpers ───────────────────────────────────────────────────────────
 
-/** ALL fromTo — explicit values (Determinism rule 1). Guards allow placeholder
- *  scenes (no copy DOM yet) to share the same timeline code. */
-/** `pace` stretches every position/duration/stagger — "more scrolls between
- *  reveals of text" (Aaron 2026-06-11): scenes pass a pace matched to their
- *  widened hold weight. */
-export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
+function isShown(el: Element) {
+  return getComputedStyle(el as HTMLElement).display !== 'none'
+}
+
+/**
+ * SEQUENTIAL reveal (Aaron 2026-06-11): strictly top→bottom, then
+ * left→right. ONE line at a time — each reveal completes before the next
+ * begins. `budget` = timeline units the whole reveal should roughly occupy;
+ * scenes with FEWER lines get LONGER per-line reveals (never rushed).
+ * Elements hidden at this breakpoint (mobile headers-only mode) are skipped —
+ * gsap.matchMedia rebuilds on breakpoint change, so the set stays correct.
+ * ALL fromTo — explicit values (Determinism rule 1).
+ */
+export function copyIn(sel: string, splits: SplitsMap, budget = 1.5) {
   const tl = gsap.timeline()
   const s = document.querySelector(sel)
   if (!s) return tl
-  const monogram = s.querySelector('.monogram')
-  if (monogram)
-    tl.fromTo(
-      monogram,
-      { autoAlpha: 0, y: 34 },
-      { autoAlpha: 1, y: 0, duration: 0.55 * pace, ease: 'power2.out' },
-      0,
-    )
-  const label = s.querySelector('.label')
-  if (label)
-    tl.fromTo(
-      label,
-      { autoAlpha: 0, y: 26 },
-      { autoAlpha: 1, y: 0, duration: 0.5 * pace, ease: 'power2.out' },
-      (monogram ? 0.14 : 0) * pace,
-    )
-  const split = splits.get(sel)
-  if (split && split.words.length)
-    tl.fromTo(
-      split.words,
-      { autoAlpha: 0, yPercent: 110 },
-      {
-        autoAlpha: 1,
-        yPercent: 0,
-        stagger: 0.09 * pace,
-        duration: 0.75 * pace,
-        ease: 'power2.out',
-      },
-      (monogram ? 0.22 : 0.08) * pace,
-    )
-  const body = s.querySelector('.body-copy')
-  if (body)
-    tl.fromTo(
-      body,
-      { autoAlpha: 0, y: 20 },
-      { autoAlpha: 1, y: 0, duration: 0.5 * pace, ease: 'power2.out' },
-      0.35 * pace,
-    )
-  // concept-3 mockup columns — scroll-tied stagger
-  const cols = s.querySelectorAll('.col')
-  if (cols.length)
-    tl.fromTo(
-      cols,
-      { autoAlpha: 0, y: 24 },
-      {
-        autoAlpha: 1,
-        y: 0,
-        stagger: 0.13 * pace,
-        duration: 0.5 * pace,
-        ease: 'power2.out',
-      },
-      0.45 * pace,
-    )
-  const points = s.querySelectorAll('.point')
-  if (points.length)
-    tl.fromTo(
-      points,
-      { autoAlpha: 0, y: 22 },
-      {
-        autoAlpha: 1,
-        y: 0,
-        stagger: 0.13 * pace,
-        duration: 0.5 * pace,
-        ease: 'power2.out',
-      },
-      0.5 * pace,
-    )
-  const formPanel = s.querySelector('.form-panel')
-  if (formPanel)
-    tl.fromTo(
-      formPanel,
-      { autoAlpha: 0, y: 26 },
-      { autoAlpha: 1, y: 0, duration: 0.55 * pace, ease: 'power2.out' },
-      0.35 * pace,
-    )
-  const strap = s.querySelector('.strap')
-  if (strap)
-    tl.fromTo(
-      strap,
-      { autoAlpha: 0, y: 14 },
-      { autoAlpha: 1, y: 0, duration: 0.45 * pace, ease: 'power2.out' },
-      0.7 * pace,
-    )
-  const cta = s.querySelector('.cta-wrap')
-  if (cta)
-    tl.fromTo(
-      cta,
-      { autoAlpha: 0, y: 18 },
-      { autoAlpha: 1, y: 0, duration: 0.45 * pace, ease: 'power2.out' },
-      0.5 * pace,
-    )
+
+  type Unit = { el: Element; from: gsap.TweenVars; to: gsap.TweenVars }
+  const units: Unit[] = []
+  const push = (el: Element | null, from: gsap.TweenVars, to: gsap.TweenVars) => {
+    if (el && isShown(el)) units.push({ el, from, to })
+  }
+
+  // visual priority order
+  push(s.querySelector('.monogram'), { autoAlpha: 0, y: 34 }, { autoAlpha: 1, y: 0 })
+  push(s.querySelector('.label'), { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0 })
+  const lines = (splits.get(sel)?.lines ?? []).filter((l) => {
+    const h = l.closest('.headline')
+    return h !== null && isShown(h)
+  })
+  for (const line of lines)
+    units.push({
+      el: line,
+      from: { autoAlpha: 0, yPercent: 110 },
+      to: { autoAlpha: 1, yPercent: 0 },
+    })
+  push(s.querySelector('.body-copy'), { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0 })
+  s.querySelectorAll('.point').forEach((p) =>
+    push(p, { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0 }),
+  )
+  s.querySelectorAll('.chip').forEach((c) =>
+    push(c, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0 }),
+  )
+  s.querySelectorAll('.col').forEach((c) =>
+    push(c, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0 }),
+  )
+  push(s.querySelector('.strap'), { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0 })
+  push(s.querySelector('.cta-wrap'), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0 })
+  push(s.querySelector('.form-panel'), { autoAlpha: 0, y: 26 }, { autoAlpha: 1, y: 0 })
+
+  if (!units.length) return tl
+  const per = Math.min(1.1, Math.max(0.3, budget / units.length))
+  for (const u of units)
+    tl.fromTo(u.el, u.from, { ...u.to, duration: per, ease: 'power2.out' })
   return tl
 }
 
 export function copyOut(sel: string) {
   const tl = gsap.timeline()
   const targets = document.querySelectorAll(
-    `${sel} .monogram, ${sel} .label, ${sel} .headline .split-word, ${sel} .body-copy, ${sel} .point, ${sel} .col, ${sel} .strap, ${sel} .form-panel, ${sel} .cta-wrap`,
+    `${sel} .monogram, ${sel} .label, ${sel} .headline .split-line, ${sel} .body-copy, ${sel} .point, ${sel} .chip, ${sel} .col, ${sel} .strap, ${sel} .form-panel, ${sel} .cta-wrap`,
   )
   if (targets.length)
     tl.to(targets, {
@@ -168,7 +123,7 @@ export function scene1_hold() {
 
 export function scene2_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-2', splits, 1.7), 0)
+  tl.add(copyIn('#scene-2', splits, WEIGHTS.scene2 * 0.95), 0)
   tl.fromTo(
     '#scene-2 .scene__bg',
     { xPercent: 0 },
@@ -180,14 +135,14 @@ export function scene2_hold(splits: SplitsMap) {
 
 export function scene3_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-3', splits, 1.3), 0)
+  tl.add(copyIn('#scene-3', splits, WEIGHTS.scene3 * 0.95), 0)
   return pad(tl, WEIGHTS.scene3)
 }
 
 /** push toward monitors — foreshadows T4 (T4 zooms from 1.06) */
 export function scene4_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-4', splits, 1.3), 0)
+  tl.add(copyIn('#scene-4', splits, WEIGHTS.scene4 * 0.95), 0)
   tl.fromTo(
     '#scene-4 .scene__bg',
     { scale: 1.0 },
@@ -197,32 +152,17 @@ export function scene4_hold(splits: SplitsMap) {
   return tl
 }
 
-/** services chips: fromTo scrub-stagger (canon 0.08 × pace) */
+/** services chips reveal one at a time inside copyIn's sequential order */
 export function scene5_hold(splits: SplitsMap) {
-  const PACE = 1.8
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-5', splits, PACE), 0)
-  const chips = document.querySelectorAll('#scene-5 .chip')
-  if (chips.length)
-    tl.fromTo(
-      chips,
-      { autoAlpha: 0, y: 18 },
-      {
-        autoAlpha: 1,
-        y: 0,
-        stagger: 0.12 * PACE,
-        duration: 0.5 * PACE,
-        ease: 'power2.out',
-      },
-      0.4 * PACE,
-    )
+  tl.add(copyIn('#scene-5', splits, WEIGHTS.scene5 * 1.2), 0)
   return pad(tl, WEIGHTS.scene5)
 }
 
 /** breathing room after the black beat — T5 lands this bg at scale 1.04 */
 export function scene6_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-6', splits, 1.3), 0)
+  tl.add(copyIn('#scene-6', splits, WEIGHTS.scene6 * 0.95), 0)
   tl.fromTo(
     '#scene-6 .scene__bg',
     { scale: 1.04 },
@@ -235,7 +175,7 @@ export function scene6_hold(splits: SplitsMap) {
 /** floating drift (canon: yPercent 2→-2 fromTo) */
 export function scene7_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-7', splits, 1.5), 0)
+  tl.add(copyIn('#scene-7', splits, WEIGHTS.scene7 * 0.95), 0)
   tl.fromTo(
     '#scene-7 .scene__bg',
     { yPercent: 2 },

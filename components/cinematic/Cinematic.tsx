@@ -246,19 +246,19 @@ export default function Cinematic() {
       for (const cfg of SCENES) {
         const hs = document.querySelectorAll(`#${cfg.id} .headline`)
         if (!hs.length) continue
-        const words: Element[] = []
+        const lines: Element[] = []
         hs.forEach((h) => {
           const split = SplitText.create(h, {
-            type: 'words',
-            mask: 'words',
-            wordsClass: 'split-word',
+            type: 'lines',
+            mask: 'lines',
+            linesClass: 'split-line',
             autoSplit: true,
             onSplit: () => requestRebuild(),
           })
           splitInstances.push(split)
-          words.push(...(split.words as Element[]))
+          lines.push(...(split.lines as Element[]))
         })
-        splits.set(`#${cfg.id}`, { words })
+        splits.set(`#${cfg.id}`, { lines })
       }
 
       smoother = createSmoother() // paused until intro completes

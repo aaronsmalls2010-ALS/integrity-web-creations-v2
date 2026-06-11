@@ -79,9 +79,9 @@ export function setInitialStates(splits: SplitsMap, scene1CopyRevealed = false) 
     if (label)
       gsap.set(label, revealed ? { autoAlpha: 1, y: 0 } : { autoAlpha: 0, y: 26 })
     const split = splits.get(sel)
-    if (split && split.words.length)
+    if (split && split.lines.length)
       gsap.set(
-        split.words,
+        split.lines,
         revealed ? { autoAlpha: 1, yPercent: 0 } : { autoAlpha: 0, yPercent: 110 },
       )
     const body = s.querySelector('.body-copy')

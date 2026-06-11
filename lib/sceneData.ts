@@ -134,7 +134,7 @@ export const SCENES: SceneConfig[] = [
         icon: 'squares',
       },
       {
-        title: 'Coding',
+        title: 'Software', // Aaron 2026-06-11 (was "Coding")
         body: 'Clean, scalable code that powers seamless digital experiences.',
         icon: 'code',
       },
@@ -163,7 +163,7 @@ export const SCENES: SceneConfig[] = [
     points: [
       // live-site "Why We Matter" copy (Aaron 2026-06-11: fill unused space)
       {
-        title: 'Your First Impression',
+        title: "It's Your First Impression", // Aaron 2026-06-11
         body: 'Before a customer ever walks through your door — they Google you.',
       },
       {
@@ -171,7 +171,7 @@ export const SCENES: SceneConfig[] = [
         body: 'Squarespace, Wix, GoDaddy — they all promise easy. But easy means generic.',
       },
       {
-        title: 'A Partner, Not a Vendor',
+        title: "I'm a Partner, Not a Vendor", // Aaron 2026-06-11 ("Vender" assumed typo)
         body: 'Big agencies assign you a ticket number. At IWC, you get a real person.',
       },
     ],

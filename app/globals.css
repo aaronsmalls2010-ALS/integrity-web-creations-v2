@@ -311,6 +311,18 @@ body {
 .copy--top-right .point {
   max-width: 44ch;
 }
+/* gold diamond bullets on the Designed To Convert line items */
+#scene-3 .point__title::before {
+  content: '';
+  display: inline-block;
+  width: 0.42em;
+  height: 0.42em;
+  background: var(--gold);
+  transform: rotate(45deg);
+  margin-right: 0.7em;
+  vertical-align: middle;
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.6);
+}
 
 /* scene 4 (Aaron 2026-06-11): staggered words, EXECUTION strong + centered */
 #scene-4 .scene__copy {
@@ -942,7 +954,7 @@ body {
     object-position: center center !important;
   }
   .copy--spread .scene__copy-inner {
-    top: 7cqh;
+    top: 19cqh; /* clear the fixed IWC brand mark (landscape overlap) */
     max-width: 58cqw;
   }
   .columns-wrap {

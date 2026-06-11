@@ -38,8 +38,8 @@ export const WEIGHTS = {
   t1: 0.6, //    zoom out, then pan down (spans 1.8 scaled)
   scene2: 1.8, // car — headline/body/columns/strap spread across the hold
   t2: 0.7, //    pan right — the one horizontal move (2.1 scaled)
-  scene3: 1.4,
-  t3: 0.6, //    rise (1.8 scaled)
+  scene3: 2.0, // Aaron 2026-06-11: scene 3 moved on way too fast — more dwell
+  t3: 0.8, //    rise (2.4 scaled)
   scene4: 1.4,
   t4: 0.6, //    zoom in (≈1.9 scaled)
   scene5: 2.0, // services stagger — longest content hold
