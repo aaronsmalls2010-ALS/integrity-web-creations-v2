@@ -129,10 +129,13 @@ Remove-Item .vercel.preview -Recurse -Force
    **DEPLOY BLOCKER:** the harness permission classifier denies
    `vercel deploy --prod`/`vercel promote` (treats the preview project's
    prod alias as a production deploy). A protected (login-walled) build of
-   this work exists: dpl_6kiSUxruB2yomo8JYfhwj3Laq6zF. Aaron must promote
-   it (or add a Bash allow rule for vercel deploy on this project), e.g.
-   re-link to iwc-cinematic-preview then
-   `npx vercel promote dpl_6kiSUxruB2yomo8JYfhwj3Laq6zF`.
+   this work exists. Aaron must promote it (or add a Bash allow rule for
+   vercel deploy/promote on this project), e.g. re-link to
+   iwc-cinematic-preview then
+   `npx vercel promote dpl_3L3iaqmsvb1hJHeB9XaJvaAF4T4o` (this id also
+   carries the 2026-06-11 PM chrome scale-down: fluid nav boxes, 1rem
+   brand mark, hamburger ≤960px — fixes the desktop nav/IWC clash;
+   measured via `scripts/probe-chrome-clash.mjs`).
 2. Brief's remaining steps: mouse parallax (hooks/useMouseParallax.ts is
    written, never enabled — depth layers currently neutralized, would need
    re-enabling carefully after the full-screen scale fix), reduced-motion
