@@ -12,7 +12,7 @@ import path from 'node:path'
 const URL_TO_TEST = process.argv[2] ?? 'https://iwc-cinematic-preview.vercel.app'
 const PORT = 9335
 const CHROME = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe'
-const TOTAL = 26.04 // scroll units
+const TOTAL = 30.8 // scroll units (sequential reveals extended several holds)
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 const profile = mkdtempSync(path.join(tmpdir(), 'iwc-cdp-'))
@@ -50,10 +50,8 @@ async function bootAndShoot(tag, metrics) {
   await sleep(5500) // intro
   const shots = [
     ['warmup', 1.5 / TOTAL], // absorbs the intro-pause window
-    ['landing', 0],
-    ['scene2', 4.5 / TOTAL],
-    ['scene5', 14.6 / TOTAL],
-    ['scene7', 23.4 / TOTAL],
+    ['scene2', 4.9 / TOTAL],
+    ['scene3', 9.2 / TOTAL],
   ]
   for (const [name, frac] of shots) {
     await evaljs(`(async()=>{const D=document.body.scrollHeight-innerHeight;scrollTo(0,Math.round(D*${frac}));await new Promise(r=>setTimeout(r,3800));return 1})()`)
