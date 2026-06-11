@@ -75,6 +75,7 @@ export default function Cinematic() {
     let currentTRAVEL = TRAVEL_DESKTOP
     let rebuildTimer: ReturnType<typeof setTimeout> | undefined
     let introPlayed = false
+    let cueAlways = false // mobile keeps the scroll hint on every scene
 
     const loop = createLoop({
       getMaster: () => ctl.master,
@@ -120,7 +121,8 @@ export default function Cinematic() {
       const fill = document.getElementById('progress-line-fill')
       if (fill) fill.style.transform = `scaleX(${self.progress})`
       const cue = document.getElementById('scroll-cue')
-      if (cue) cue.classList.toggle('is-hidden', self.progress > 0.05)
+      if (cue)
+        cue.classList.toggle('is-hidden', !cueAlways && self.progress > 0.05)
     }
 
     function onMasterUpdate(self: ScrollTrigger) {
@@ -270,6 +272,7 @@ export default function Cinematic() {
         },
         (ctx) => {
           const { isMobile } = ctx.conditions as { isMobile: boolean }
+          cueAlways = isMobile // never let mobile users sit wondering
           buildForContext(
             isMobile ? UNIT_MOBILE : UNIT_DESKTOP,
             isMobile ? TRAVEL_MOBILE : TRAVEL_DESKTOP,

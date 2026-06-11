@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import TopNav from '@/components/cinematic/chrome/TopNav'
 import BrandMark from '@/components/cinematic/chrome/BrandMark'
+import SubpageFx from './SubpageFx'
 
 /**
  * Standard-scroll subpage in the cinematic theme: same fixed chrome (brand
@@ -24,6 +25,7 @@ export default function SubpageShell({
         <TopNav />
         <BrandMark />
       </div>
+      <SubpageFx />
       <main className="subpage">
         <div className="subpage__inner">
           <header className="subpage__header">
@@ -57,9 +59,10 @@ export default function SubpageShell({
             <div>
               <p className="page-label">Explore</p>
               <p>
-                <a href="/">Home</a> · <a href="/services">Services</a> ·{' '}
-                <a href="/portfolio">Portfolio</a> · <a href="/about">About</a>{' '}
-                · <a href="/contact">Contact</a>
+                <a href="/">Home</a> · <a href="/about">About</a> ·{' '}
+                <a href="/services">Services</a> ·{' '}
+                <a href="/portfolio">Portfolio</a> ·{' '}
+                <a href="/contact">Contact</a>
               </p>
             </div>
           </div>

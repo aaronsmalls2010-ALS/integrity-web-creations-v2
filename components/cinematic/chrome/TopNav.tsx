@@ -4,9 +4,9 @@ import { useState } from 'react'
 
 const LINKS = [
   { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' }, // Aaron 2026-06-11: About sits second
   { label: 'Services', href: '/services' },
   { label: 'Portfolio', href: '/portfolio' },
-  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
 
