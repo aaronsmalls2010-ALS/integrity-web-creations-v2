@@ -924,8 +924,13 @@ body {
     display: flex;
     flex-direction: column;
   }
+  #scene-3 .scene__copy .scene__copy-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
   #scene-3 .points-wrap {
-    margin-top: auto; /* sinks below the contained image */
+    margin-top: auto; /* sinks below the contained image into the dark band */
   }
   /* heavier, whiter text for small-screen readability */
   .headline {
