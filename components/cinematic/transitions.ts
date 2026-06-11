@@ -404,13 +404,13 @@ export function t6_glideOut(TRAVEL: number) {
 
 /** T7 — DESCEND Back to the Landing (LOOP TRANSITION) — Aaron 2026-06-11:
  *  the loop returns to the very first landing page, not the car. The camera
- *  comes down from over the water onto the night-skyline backdrop and the
- *  landing text staggers back in, scroll-tied, so the wrap lands on a frame
- *  identical to the scene1-label render (copy at revealed rest).
+ *  comes down from over the water onto the complete logo card (the reveal
+ *  plate stays visible after the one-time intro), so the wrap lands on a
+ *  frame identical to the scene1-label render.
  *
  *  EXPLICIT resets — T1 leaves scene-1 bg at scale 0.88 / yPercent -12 and
  *  the scene at autoAlpha 0; every one of those appears in a fromTo below. */
-export function t7_descendLoop(TRAVEL: number, splits: SplitsMap) {
+export function t7_descendLoop(TRAVEL: number) {
   const tl = gsap.timeline()
   tl.fromTo(
     '#scene-7 .scene__bg',
@@ -436,10 +436,6 @@ export function t7_descendLoop(TRAVEL: number, splits: SplitsMap) {
     { autoAlpha: 1, ease: 'power1.out', duration: 0.3 },
     0.16,
   )
-  // landing text staggers back in and reaches its revealed rest values
-  // BEFORE the segment ends (wrap contract) — timeScale compresses the
-  // shared copyIn to fit the 0.7 weight
-  tl.add(copyIn('#scene-1', splits).timeScale(1.6), 0.22)
   tl.add(copyOut('#scene-7'), 0)
   return pad(tl, WEIGHTS.t7)
 }

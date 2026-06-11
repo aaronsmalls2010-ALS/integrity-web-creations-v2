@@ -50,7 +50,7 @@ export default function RootLayout({
           }}
         />
         <noscript>
-          <style>{`#preloader{display:none}.scene{position:relative!important;opacity:1!important;visibility:visible!important;height:100svh}`}</style>
+          <style>{`#preloader{display:none}.scene{position:relative!important;opacity:1!important;visibility:visible!important;height:100svh}.scene__bg img.bg-reveal{opacity:1!important;visibility:visible!important}`}</style>
         </noscript>
         {children}
         <Analytics />

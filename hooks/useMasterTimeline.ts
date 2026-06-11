@@ -36,17 +36,20 @@ export { copyIn, copyOut }
  * STATE DETERMINISM rule 5 — gsap.set initial states for all scenes/copy at
  * timeline build, so time=0 is also deterministic.
  *
- * Scene 1 copy is special: the one-time preloader intro reveals it
- * (time-based), after which the scrubbed T1 copyOut owns its exit/return.
- * On REBUILDS (breakpoint change, autoSplit re-split) the intro has already
- * played — scene 1 copy must be reset to its REVEALED rest state, or T1's
- * copyOut records hidden start values and the logo copy never comes back.
+ * Scene 1's reveal plate (the complete logo card) is special: the one-time
+ * preloader intro dissolves it in over the clean backdrop, and it stays
+ * revealed for the life of the session (no scrubbed tween touches it — the
+ * loop lands on the complete card). On REBUILDS (breakpoint change,
+ * autoSplit re-split) the intro has already played — it must be reset to
+ * VISIBLE or the landing loses its wordmark.
  */
 export function setInitialStates(splits: SplitsMap, scene1CopyRevealed = false) {
   gsap.set('#scene-2, #scene-3, #scene-4, #scene-5, #scene-6, #scene-7', {
     autoAlpha: 0,
   })
   gsap.set('#scene-1', { autoAlpha: 1 })
+  const reveal = document.querySelector('#scene-1 .bg-reveal')
+  if (reveal) gsap.set(reveal, { autoAlpha: scene1CopyRevealed ? 1 : 0 })
   gsap.set('#black-beat', { autoAlpha: 0 })
   const beatText = document.querySelector('#black-beat p')
   if (beatText) beatText.textContent = ''
@@ -120,7 +123,7 @@ export function buildMasterTimeline(opts: {
     .add(scene6_hold(splits), 'scene6')
     .add(t6_glideOut(TRAVEL), 't6')
     .add(scene7_hold(splits), 'scene7') // CTA — longest hold
-    .add(t7_descendLoop(TRAVEL, splits), 't7') // water → back to the landing
+    .add(t7_descendLoop(TRAVEL), 't7') // water → back to the landing card
     .add(wrapBuffer(), 'wrapZone') //   static hold, visuals ≡ scene1 rest state
 
   // ScrollTrigger created AFTER children exist so the pin-distance function

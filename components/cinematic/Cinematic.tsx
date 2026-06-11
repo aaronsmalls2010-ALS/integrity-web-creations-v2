@@ -23,10 +23,7 @@ import {
   UNIT_DESKTOP,
   UNIT_MOBILE,
 } from './config'
-import {
-  buildMasterTimeline,
-  copyIn,
-} from '@/hooks/useMasterTimeline'
+import { buildMasterTimeline } from '@/hooks/useMasterTimeline'
 import { createSmoother } from '@/hooks/useScrollSmoother'
 import { createLoop } from './loop'
 import type { SplitsMap } from './transitions'
@@ -296,7 +293,8 @@ export default function Cinematic() {
         pre.style.display = 'none'
       }
 
-      // time-based intro (not scrubbed) — plays once
+      // time-based intro (not scrubbed) — plays once: settle the clean
+      // backdrop, then dissolve the complete logo card in over it
       const intro = gsap.timeline()
       intro.fromTo(
         '#scene-1 .scene__bg',
@@ -304,9 +302,14 @@ export default function Cinematic() {
         { scale: 1.0, duration: 2.4, ease: 'power2.out' },
         0,
       )
-      intro.add(copyIn('#scene-1', splits), 0.5)
+      intro.fromTo(
+        '#scene-1 .bg-reveal',
+        { autoAlpha: 0 },
+        { autoAlpha: 1, duration: 1.8, ease: 'power2.inOut' },
+        0.7,
+      )
       await intro
-      introPlayed = true // rebuilds now reset scene 1 copy to revealed
+      introPlayed = true // rebuilds now keep the reveal plate visible
       if (disposed) return
       smoother?.paused(false)
     }

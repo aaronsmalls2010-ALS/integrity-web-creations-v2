@@ -36,9 +36,12 @@ const DOCS_DIR = path.join(root, 'docs')
  */
 const SCENE_SOURCES = [0, 2, 4, 5, 6, 7, 8]
 const SCENES = SCENE_SOURCES.map((c, i) => ({
-  n: i + 1,
+  n: String(i + 1),
   src: path.join(SRC_DIR, `IWC_Concept_${c}.png`),
 }))
+// landing reveal plate: the COMPLETE logo card dissolves in over the clean
+// backdrop on load (Aaron 2026-06-11: image text, not DOM text, on scene 1)
+SCENES.push({ n: '1b', src: path.join(SRC_DIR, 'IWC_Concept_1.png') })
 /** the full logo card (with text) — og image + favicon source */
 const LOGO_CARD = path.join(SRC_DIR, 'IWC_Concept_1.png')
 

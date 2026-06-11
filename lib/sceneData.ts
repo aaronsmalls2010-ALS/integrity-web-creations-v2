@@ -31,6 +31,12 @@ export interface SceneColumn {
 export interface SceneConfig {
   id: string
   image: string
+  /** second plate that dissolves in over `image` on load (scene 1: the
+   *  complete logo card — image text, not DOM text, per Aaron 2026-06-11) */
+  revealImage?: string
+  /** headline/body exist for SEO/a11y only (visually hidden) — the text is
+   *  part of the artwork */
+  textInImage?: boolean
   objectPosition: { desktop: string; mobile: string }
   gradient: string
   copyLayout: 'bottom-left' | 'top-right' | 'center' | 'spread'
@@ -56,29 +62,23 @@ export interface SceneConfig {
 
 export const SCENES: SceneConfig[] = [
   {
-    // SCENE 1 — OPEN: Logo Reveal · plate IWC_Concept_0.png (clean backdrop)
-    // composition target: IWC_Concept_1.png mockup — all text below is DOM
+    // SCENE 1 — OPEN: Logo Reveal (LOOP LANDING)
+    // Aaron 2026-06-11: complete images, no DOM text — load starts on the
+    // clean backdrop (concept 0) and dissolves into the full logo card
+    // (concept 1). headline/body remain for SEO/a11y only (visually hidden).
     id: 'scene-1',
-    image: '/images/scenes/scene-1-desktop.webp',
-    objectPosition: { desktop: 'center 68%', mobile: 'center 75%' },
-    gradient: 'linear-gradient(160deg, rgba(5,8,20,.2), rgba(5,8,20,.65))',
+    image: '/images/scenes/scene-1-desktop.webp', // concept 0 — clean backdrop
+    revealImage: '/images/scenes/scene-1b-desktop.webp', // concept 1 — full card
+    textInImage: true,
+    objectPosition: { desktop: 'center 45%', mobile: 'center 45%' },
+    gradient: 'linear-gradient(160deg, rgba(5,8,20,.12), rgba(5,8,20,.4))',
     copyLayout: 'center',
-    monogram: 'IWC', // per concept-1 mockup
-    label: 'Engineered by Design', // mockup omits "· Est. 2010" (brief draft superseded)
-    headline: ['Integrity', 'Web Creations'], // [APPROVED]
-    goldLine: 1,
-    goldText: 'Web Creations', // mockup: whole second line gold, flanked by rules
-    body: 'Design. Function. Integrity.', // [APPROVED]
-    copyStatus: { label: 'draft', headline: 'approved', body: 'approved' },
-    ctas: [
-      {
-        text: 'Start Your Project', // [APPROVED]
-        href: '/contact',
-        variant: 'primary',
-        scrollLabel: 'scene7',
-        analyticsId: 'start_project',
-      },
-    ],
+    label: 'Engineered by Design',
+    headline: ['Integrity', 'Web Creations'], // [APPROVED — sr-only]
+    goldLine: -1,
+    goldText: '',
+    body: 'Design. Function. Integrity.', // [APPROVED — sr-only]
+    copyStatus: { label: 'approved', headline: 'approved', body: 'approved' },
     holdWeight: 1.0,
     cameraHold: 'push-in',
   },

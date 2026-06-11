@@ -162,6 +162,12 @@ body {
 .scene__bg img {
   object-position: var(--focal-desktop, center);
 }
+/* landing reveal plate (complete logo card): hidden pre-JS; the one-time
+   intro dissolves it in and it stays revealed for the session */
+.scene__bg img.bg-reveal {
+  opacity: 0;
+  visibility: hidden;
+}
 @media (max-width: 768px) {
   .scene__bg img {
     object-position: var(--focal-mobile, center);
@@ -274,69 +280,6 @@ body {
 }
 .copy--center .body-copy {
   margin-inline: auto;
-}
-
-/* ── SCENE 1 — concept-1 mockup composition (text is DOM, plate is clean) ── */
-.monogram {
-  font-family: var(--font-playfair), serif;
-  font-weight: 900;
-  font-size: clamp(3rem, 16cqw, 12rem);
-  line-height: 0.92;
-  letter-spacing: 0.05em;
-  background: linear-gradient(
-    180deg,
-    #f8f8f6 0%,
-    #d3d8e0 36%,
-    #707887 52%,
-    #e2dfd6 68%,
-    #95897a 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 5px 26px rgba(0, 0, 0, 0.6));
-}
-#scene-1 .label {
-  margin-top: 1.6cqh;
-  letter-spacing: 0.5em;
-}
-#scene-1 .headline__line:first-child {
-  font-size: clamp(1.3rem, 6cqw, 5.6rem);
-  letter-spacing: 0.22em;
-  background: linear-gradient(180deg, #f8f8f6, #c8cdd6 45%, #848c9a 55%, #e8e6df);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-#scene-1 .headline__line + .headline__line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.4em;
-  margin-top: 1.4cqh;
-  font-size: clamp(0.6rem, 2.2cqw, 2rem);
-  letter-spacing: 0.5em;
-}
-#scene-1 .headline__line + .headline__line::before,
-#scene-1 .headline__line + .headline__line::after {
-  content: '';
-  height: 1px;
-  width: clamp(2rem, 9cqw, 8rem);
-  background: linear-gradient(to right, transparent, var(--gold-muted));
-}
-#scene-1 .headline__line + .headline__line::after {
-  background: linear-gradient(to left, transparent, var(--gold-muted));
-}
-#scene-1 .headline em.gold {
-  font-style: normal;
-  font-weight: 500;
-  color: var(--gold);
-}
-#scene-1 .body-copy {
-  text-transform: uppercase;
-  letter-spacing: 0.42em;
-  font-size: clamp(0.42rem, 1.15cqw, 0.78rem);
-  line-height: 1.6;
 }
 
 /* ── SCENE 2 — concept-3 mockup composition ───────────────────────────── */
@@ -800,5 +743,9 @@ body {
   }
   .reduced-motion #black-beat {
     display: none;
+  }
+  .reduced-motion .scene__bg img.bg-reveal {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }

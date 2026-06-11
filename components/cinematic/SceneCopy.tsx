@@ -69,6 +69,18 @@ export default function SceneCopy({
   headingLevel: 'h1' | 'h2'
 }) {
   const Heading = headingLevel
+  if (cfg.textInImage) {
+    // the text is part of the artwork — keep real text for SEO/a11y only.
+    // plain elements (no .label/.headline classes) so the timeline,
+    // SplitText, and copyIn/copyOut never touch it.
+    return (
+      <div className="visually-hidden">
+        <Heading>{cfg.headline.join(' ')}</Heading>
+        <p>{cfg.label}</p>
+        <p>{cfg.body}</p>
+      </div>
+    )
+  }
   return (
     <div className={`scene__copy copy--${cfg.copyLayout}`}>
       <div className="scene__copy-inner">

@@ -30,16 +30,32 @@ export default function SceneBg({
           </span>
         </div>
       ) : (
-        <Image
-          src={cfg.image}
-          alt=""
-          fill
-          sizes="100vw"
-          quality={82}
-          priority={index <= 1}
-          loading={index <= 1 ? undefined : 'eager'}
-          className="object-cover"
-        />
+        <>
+          <Image
+            src={cfg.image}
+            alt=""
+            fill
+            sizes="100vw"
+            quality={82}
+            priority={index <= 1}
+            loading={index <= 1 ? undefined : 'eager'}
+            className="object-cover"
+          />
+          {cfg.revealImage && (
+            // dissolves in over the base plate on load (intro owns the fade;
+            // it stays revealed for the life of the session — the loop lands
+            // on the complete card)
+            <Image
+              src={cfg.revealImage}
+              alt=""
+              fill
+              sizes="100vw"
+              quality={82}
+              priority={index <= 1}
+              className="object-cover bg-reveal"
+            />
+          )}
+        </>
       )}
     </div>
   )
