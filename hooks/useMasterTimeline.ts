@@ -34,11 +34,15 @@ export { copyIn, copyOut }
 
 /**
  * STATE DETERMINISM rule 5 — gsap.set initial states for all scenes/copy at
- * timeline build, so time=0 is also deterministic. Scene 1 copy is also hidden
- * here: the one-time preloader intro reveals it (time-based), after which the
- * scrubbed T1 copyOut owns its exit/return.
+ * timeline build, so time=0 is also deterministic.
+ *
+ * Scene 1 copy is special: the one-time preloader intro reveals it
+ * (time-based), after which the scrubbed T1 copyOut owns its exit/return.
+ * On REBUILDS (breakpoint change, autoSplit re-split) the intro has already
+ * played — scene 1 copy must be reset to its REVEALED rest state, or T1's
+ * copyOut records hidden start values and the logo copy never comes back.
  */
-export function setInitialStates(splits: SplitsMap) {
+export function setInitialStates(splits: SplitsMap, scene1CopyRevealed = false) {
   gsap.set('#scene-2, #scene-3, #scene-4, #scene-5, #scene-6, #scene-7', {
     autoAlpha: 0,
   })
@@ -53,15 +57,22 @@ export function setInitialStates(splits: SplitsMap) {
     const sel = `#${cfg.id}`
     const s = document.querySelector(sel)
     if (!s) continue
+    const revealed = cfg.id === 'scene-1' && scene1CopyRevealed
     const label = s.querySelector('.label')
-    if (label) gsap.set(label, { autoAlpha: 0, y: 26 })
+    if (label)
+      gsap.set(label, revealed ? { autoAlpha: 1, y: 0 } : { autoAlpha: 0, y: 26 })
     const split = splits.get(sel)
     if (split && split.words.length)
-      gsap.set(split.words, { autoAlpha: 0, yPercent: 110 })
+      gsap.set(
+        split.words,
+        revealed ? { autoAlpha: 1, yPercent: 0 } : { autoAlpha: 0, yPercent: 110 },
+      )
     const body = s.querySelector('.body-copy')
-    if (body) gsap.set(body, { autoAlpha: 0, y: 20 })
+    if (body)
+      gsap.set(body, revealed ? { autoAlpha: 1, y: 0 } : { autoAlpha: 0, y: 20 })
     const cta = s.querySelector('.cta-wrap')
-    if (cta) gsap.set(cta, { autoAlpha: 0, y: 18 })
+    if (cta)
+      gsap.set(cta, revealed ? { autoAlpha: 1, y: 0 } : { autoAlpha: 0, y: 18 })
     const chips = s.querySelectorAll('.chip')
     if (chips.length) gsap.set(chips, { autoAlpha: 0, y: 18 })
   }
@@ -77,10 +88,12 @@ export function buildMasterTimeline(opts: {
   TRAVEL: number
   splits: SplitsMap
   onUpdate: (self: ScrollTrigger) => void
+  /** true on rebuilds after the one-time intro has revealed scene 1 copy */
+  scene1CopyRevealed?: boolean
 }): MasterHandles {
   const { UNIT, TRAVEL, splits, onUpdate } = opts
 
-  setInitialStates(splits)
+  setInitialStates(splits, opts.scene1CopyRevealed)
 
   const master = gsap.timeline()
   master

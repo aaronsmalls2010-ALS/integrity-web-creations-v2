@@ -76,11 +76,15 @@ export default function Cinematic() {
     let currentUNIT = UNIT_DESKTOP
     let currentTRAVEL = TRAVEL_DESKTOP
     let rebuildTimer: ReturnType<typeof setTimeout> | undefined
+    let introPlayed = false
 
     const loop = createLoop({
       getMaster: () => ctl.master,
       getSmoother: () => smoother,
-      onWrap: () => chromeState.seen.clear(), // scene_view fires once per scene per cycle
+      onWrap: () => {
+        chromeState.seen.clear() // scene_view fires once per scene per cycle
+        if (ctl.st) updateChrome(ctl.st) // refresh counter/dots at the landing
+      },
     })
 
     // ── chrome ───────────────────────────────────────────────────────────────
@@ -112,11 +116,13 @@ export default function Cinematic() {
       }
     }
 
-    /** counter, dots, progress line, .is-active — from nearest scene label */
+    /** counter, dots, progress line, .is-active — from nearest scene label.
+     *  Uses the SCROLL-derived time (not the scrub-lagged playhead) so chrome
+     *  stays correct across instant jumps (wrap, dots) with no further scroll. */
     function updateChrome(self: ScrollTrigger) {
       const master = ctl.master
       if (!master) return
-      const t = master.time()
+      const t = self.progress * master.duration()
       let best: string = 'scene1'
       let bestDist = Infinity
       for (const l of SCENE_LABELS) {
@@ -149,6 +155,7 @@ export default function Cinematic() {
         TRAVEL,
         splits,
         onUpdate: onMasterUpdate,
+        scene1CopyRevealed: introPlayed,
       })
       ctl.master = handles.master
       ctl.st = handles.st
@@ -297,6 +304,7 @@ export default function Cinematic() {
       )
       intro.add(copyIn('#scene-1', splits), 0.5)
       await intro
+      introPlayed = true // rebuilds now reset scene 1 copy to revealed
       if (disposed) return
       smoother?.paused(false)
     }

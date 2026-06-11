@@ -14,7 +14,7 @@
  * the jump render the identical scene2-rest frame.
  */
 
-import type { ScrollSmoother } from '@/lib/gsap'
+import { ScrollTrigger, type ScrollSmoother } from '@/lib/gsap'
 import { track } from '@/lib/analytics'
 
 export interface LoopController {
@@ -46,9 +46,16 @@ export function createLoop(opts: {
     const st = master?.scrollTrigger
     if (!master || !smoother || !st) return
     smoother.scrollTop(st.labelToScroll('scene2')) // instant jump (no smoothing)
+    ScrollTrigger.update() // force the scrub to re-target the new scroll position
     const scrub = st.getTween()
     if (scrub) scrub.progress(1) // snap scrubbed playhead — prevents a visible
     //                              reverse fly-through across all scenes
+    // Belt & suspenders: if the scrub re-target was deferred to the next tick,
+    // progress(1) completed the OLD target — set the playhead directly. The
+    // deferred re-target then finds zero distance and renders no motion.
+    const t2 = master.labels['scene2']
+    if (t2 != null && Math.abs(master.totalTime() - t2) > 0.01)
+      master.totalTime(t2)
     cycle += 1
     opts.onWrap?.()
     track('loop_completed')
