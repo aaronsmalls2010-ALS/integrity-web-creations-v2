@@ -28,7 +28,10 @@ export type SplitsMap = Map<string, { words: Element[] }>
 
 /** ALL fromTo — explicit values (Determinism rule 1). Guards allow placeholder
  *  scenes (no copy DOM yet) to share the same timeline code. */
-export function copyIn(sel: string, splits: SplitsMap) {
+/** `pace` stretches every position/duration/stagger — "more scrolls between
+ *  reveals of text" (Aaron 2026-06-11): scenes pass a pace matched to their
+ *  widened hold weight. */
+export function copyIn(sel: string, splits: SplitsMap, pace = 1) {
   const tl = gsap.timeline()
   const s = document.querySelector(sel)
   if (!s) return tl
@@ -37,7 +40,7 @@ export function copyIn(sel: string, splits: SplitsMap) {
     tl.fromTo(
       monogram,
       { autoAlpha: 0, y: 34 },
-      { autoAlpha: 1, y: 0, duration: 0.32, ease: 'power3.out' },
+      { autoAlpha: 1, y: 0, duration: 0.32 * pace, ease: 'power3.out' },
       0,
     )
   const label = s.querySelector('.label')
@@ -45,24 +48,30 @@ export function copyIn(sel: string, splits: SplitsMap) {
     tl.fromTo(
       label,
       { autoAlpha: 0, y: 26 },
-      { autoAlpha: 1, y: 0, duration: 0.25, ease: 'power3.out' },
-      monogram ? 0.14 : 0,
+      { autoAlpha: 1, y: 0, duration: 0.25 * pace, ease: 'power3.out' },
+      (monogram ? 0.14 : 0) * pace,
     )
   const split = splits.get(sel)
   if (split && split.words.length)
     tl.fromTo(
       split.words,
       { autoAlpha: 0, yPercent: 110 },
-      { autoAlpha: 1, yPercent: 0, stagger: 0.04, duration: 0.45, ease: 'power3.out' },
-      monogram ? 0.22 : 0.08,
+      {
+        autoAlpha: 1,
+        yPercent: 0,
+        stagger: 0.04 * pace,
+        duration: 0.45 * pace,
+        ease: 'power3.out',
+      },
+      (monogram ? 0.22 : 0.08) * pace,
     )
   const body = s.querySelector('.body-copy')
   if (body)
     tl.fromTo(
       body,
       { autoAlpha: 0, y: 20 },
-      { autoAlpha: 1, y: 0, duration: 0.25, ease: 'power3.out' },
-      0.35,
+      { autoAlpha: 1, y: 0, duration: 0.25 * pace, ease: 'power3.out' },
+      0.35 * pace,
     )
   // concept-3 mockup columns — scroll-tied stagger
   const cols = s.querySelectorAll('.col')
@@ -70,24 +79,30 @@ export function copyIn(sel: string, splits: SplitsMap) {
     tl.fromTo(
       cols,
       { autoAlpha: 0, y: 24 },
-      { autoAlpha: 1, y: 0, stagger: 0.07, duration: 0.28, ease: 'power3.out' },
-      0.45,
+      {
+        autoAlpha: 1,
+        y: 0,
+        stagger: 0.07 * pace,
+        duration: 0.28 * pace,
+        ease: 'power3.out',
+      },
+      0.45 * pace,
     )
   const strap = s.querySelector('.strap')
   if (strap)
     tl.fromTo(
       strap,
       { autoAlpha: 0, y: 14 },
-      { autoAlpha: 1, y: 0, duration: 0.24, ease: 'power3.out' },
-      0.7,
+      { autoAlpha: 1, y: 0, duration: 0.24 * pace, ease: 'power3.out' },
+      0.7 * pace,
     )
   const cta = s.querySelector('.cta-wrap')
   if (cta)
     tl.fromTo(
       cta,
       { autoAlpha: 0, y: 18 },
-      { autoAlpha: 1, y: 0, duration: 0.22, ease: 'power3.out' },
-      0.5,
+      { autoAlpha: 1, y: 0, duration: 0.22 * pace, ease: 'power3.out' },
+      0.5 * pace,
     )
   return tl
 }
@@ -116,14 +131,14 @@ function pad(tl: gsap.core.Timeline, weight: number) {
 
 // ── scene holds (duration = weight; copy occupies first ~40%) ───────────────
 
-/** SCENE 1 hold: logo push-in only — copy is revealed by the one-time intro,
- *  then removed on scroll by T1's copyOut (reverses cleanly when scrolling up). */
+/** SCENE 1 hold: gentle zoom-out begins on the first scroll — NEVER zoom in
+ *  (Aaron 2026-06-11). T1 continues the pull-back from 0.96. */
 export function scene1_hold() {
   const tl = gsap.timeline()
   tl.fromTo(
     '#scene-1 .scene__bg',
     { scale: 1.0 },
-    { scale: 1.05, ease: 'none', duration: WEIGHTS.scene1 },
+    { scale: 0.96, ease: 'none', duration: WEIGHTS.scene1 },
     0,
   )
   return tl
@@ -131,7 +146,7 @@ export function scene1_hold() {
 
 export function scene2_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-2', splits), 0)
+  tl.add(copyIn('#scene-2', splits, 1.7), 0)
   tl.fromTo(
     '#scene-2 .scene__bg',
     { xPercent: 0 },
@@ -143,14 +158,14 @@ export function scene2_hold(splits: SplitsMap) {
 
 export function scene3_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-3', splits), 0)
+  tl.add(copyIn('#scene-3', splits, 1.3), 0)
   return pad(tl, WEIGHTS.scene3)
 }
 
 /** push toward monitors — foreshadows T4 (T4 zooms from 1.06) */
 export function scene4_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-4', splits), 0)
+  tl.add(copyIn('#scene-4', splits, 1.3), 0)
   tl.fromTo(
     '#scene-4 .scene__bg',
     { scale: 1.0 },
@@ -160,17 +175,24 @@ export function scene4_hold(splits: SplitsMap) {
   return tl
 }
 
-/** services chips: fromTo scrub-stagger 0.08 (canon) */
+/** services chips: fromTo scrub-stagger (canon 0.08 × pace) */
 export function scene5_hold(splits: SplitsMap) {
+  const PACE = 1.8
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-5', splits), 0)
+  tl.add(copyIn('#scene-5', splits, PACE), 0)
   const chips = document.querySelectorAll('#scene-5 .chip')
   if (chips.length)
     tl.fromTo(
       chips,
       { autoAlpha: 0, y: 18 },
-      { autoAlpha: 1, y: 0, stagger: 0.08, duration: 0.3, ease: 'power3.out' },
-      0.4,
+      {
+        autoAlpha: 1,
+        y: 0,
+        stagger: 0.08 * PACE,
+        duration: 0.3 * PACE,
+        ease: 'power3.out',
+      },
+      0.4 * PACE,
     )
   return pad(tl, WEIGHTS.scene5)
 }
@@ -178,7 +200,7 @@ export function scene5_hold(splits: SplitsMap) {
 /** breathing room after the black beat — T5 lands this bg at scale 1.04 */
 export function scene6_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-6', splits), 0)
+  tl.add(copyIn('#scene-6', splits, 1.3), 0)
   tl.fromTo(
     '#scene-6 .scene__bg',
     { scale: 1.04 },
@@ -191,7 +213,7 @@ export function scene6_hold(splits: SplitsMap) {
 /** floating drift (canon: yPercent 2→-2 fromTo) */
 export function scene7_hold(splits: SplitsMap) {
   const tl = gsap.timeline()
-  tl.add(copyIn('#scene-7', splits), 0)
+  tl.add(copyIn('#scene-7', splits, 1.5), 0)
   tl.fromTo(
     '#scene-7 .scene__bg',
     { yPercent: 2 },
@@ -209,18 +231,18 @@ export function scene7_hold(splits: SplitsMap) {
  *  which slides in flat from below (pure pan, no zoom on the incoming plate). */
 export function t1_panDown(TRAVEL: number) {
   const tl = gsap.timeline()
-  // phase A — pure zoom out
+  // phase A — pure zoom out, much deeper pull-back (from the hold's 0.96)
   tl.fromTo(
     '#scene-1 .scene__bg',
-    { scale: 1.05 },
-    { scale: 0.9, ease: 'power1.inOut', duration: 0.26 },
+    { scale: 0.96 },
+    { scale: 0.6, ease: 'power1.inOut', duration: 0.26 },
     0,
   )
   // phase B — then pan down
   tl.fromTo(
     '#scene-1 .scene__bg',
     { yPercent: 0 },
-    { yPercent: -26 * TRAVEL, ease: 'power1.inOut', duration: 0.34 },
+    { yPercent: -34 * TRAVEL, ease: 'power1.inOut', duration: 0.34 },
     0.26,
   )
   tl.fromTo(

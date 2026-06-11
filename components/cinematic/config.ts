@@ -17,29 +17,40 @@ export const TRAVEL_MOBILE = 0.6
 export const MOBILE_BREAKPOINT = 768
 
 /**
- * SEGMENT WEIGHT TABLE — exact (locked).
- * Total 13.0 units → PIN_DISTANCE = 13.0 × UNIT svh
- * (≈1495svh desktop · ≈910svh mobile).
+ * SEGMENT WEIGHT TABLE — client-tuned (Aaron 2026-06-11; supersedes the
+ * brief's locked 13.0-unit table).
+ *
+ * Transition timelines keep their canon internal timings and are stretched
+ * to T_SCALE× their weight via timeScale in the master builder ("all
+ * transitions take 3x more scrolls"). Scene holds were widened so text
+ * reveals get more scroll between elements.
  */
+export const T_SCALE = 3 // every tN spans WEIGHTS.tN × T_SCALE scroll units
+
 export const WEIGHTS = {
-  scene1: 1.0, // logo push-in — LOOP LANDING (copy revealed by intro / re-staggered by T7)
-  t1: 0.6, //    pan down
-  scene2: 1.0,
-  t2: 0.7, //    pan right — the one horizontal move
-  scene3: 1.0,
-  t3: 0.6, //    rise
-  scene4: 1.0,
-  t4: 0.6, //    zoom in
-  scene5: 1.5, // services stagger — longest content hold
-  t5: 1.0, //    lift over — includes black beat
-  scene6: 1.0,
-  t6: 0.7, //    glide out
-  scene7: 1.4, // CTA breathes fully before loop
-  t7: 0.7, //    descend loop — water → landing
+  scene1: 1.0, // logo at rest, gentle zoom-out begins — LOOP LANDING
+  t1: 0.6, //    zoom out, then pan down (spans 1.8 scaled)
+  scene2: 1.8, // car — headline/body/columns/strap spread across the hold
+  t2: 0.7, //    pan right — the one horizontal move (2.1 scaled)
+  scene3: 1.4,
+  t3: 0.6, //    rise (1.8 scaled)
+  scene4: 1.4,
+  t4: 0.6, //    zoom in (≈1.9 scaled)
+  scene5: 2.0, // services stagger — longest content hold
+  t5: 1.0, //    lift over — includes black beat (3.0 scaled)
+  scene6: 1.4,
+  t6: 0.7, //    glide out (2.1 scaled)
+  scene7: 1.6, // CTA breathes fully before loop
+  t7: 0.7, //    descend loop — water → landing (2.1 scaled)
   wrapZone: 0.2, // static; identical to scene1 rest; wrap fires here
 } as const
 
-export const TOTAL_WEIGHT = Object.values(WEIGHTS).reduce((a, b) => a + b, 0) // 13.0
+/** total scroll units including transition scaling (≈25.6) */
+export const TOTAL_WEIGHT =
+  Object.entries(WEIGHTS).reduce(
+    (a, [k, v]) => a + (k.startsWith('t') ? v * T_SCALE : v),
+    0,
+  )
 
 export const SCENE_LABELS = [
   'scene1',

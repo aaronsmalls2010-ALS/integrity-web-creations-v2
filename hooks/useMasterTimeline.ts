@@ -8,7 +8,7 @@
 
 import { gsap, ScrollTrigger } from '@/lib/gsap'
 import { SCENES } from '@/lib/sceneData'
-import { SCRUB } from '@/components/cinematic/config'
+import { SCRUB, T_SCALE } from '@/components/cinematic/config'
 import {
   copyIn,
   copyOut,
@@ -116,22 +116,25 @@ export function buildMasterTimeline(opts: {
 
   setInitialStates(splits, opts.scene1CopyRevealed)
 
+  // transitions keep canon internal timings; timeScale(1/T_SCALE) stretches
+  // each across T_SCALE× the scroll ("3x more scrolls", Aaron 2026-06-11)
+  const stretch = (tl: gsap.core.Timeline) => tl.timeScale(1 / T_SCALE)
   const master = gsap.timeline()
   master
     .add(scene1_hold(), 'scene1') // ← LOOP LANDING POINT (Aaron 2026-06-11)
-    .add(t1_panDown(TRAVEL), 't1')
+    .add(stretch(t1_panDown(TRAVEL)), 't1')
     .add(scene2_hold(splits), 'scene2')
-    .add(t2_panRight(TRAVEL), 't2')
+    .add(stretch(t2_panRight(TRAVEL)), 't2')
     .add(scene3_hold(splits), 'scene3')
-    .add(t3_rise(TRAVEL), 't3')
+    .add(stretch(t3_rise(TRAVEL)), 't3')
     .add(scene4_hold(splits), 'scene4')
-    .add(t4_zoomIn(TRAVEL), 't4')
+    .add(stretch(t4_zoomIn(TRAVEL)), 't4')
     .add(scene5_hold(splits), 'scene5')
-    .add(t5_liftOver(TRAVEL), 't5') //  black beat inside
+    .add(stretch(t5_liftOver(TRAVEL)), 't5') // black beat inside
     .add(scene6_hold(splits), 'scene6')
-    .add(t6_glideOut(TRAVEL), 't6')
+    .add(stretch(t6_glideOut(TRAVEL)), 't6')
     .add(scene7_hold(splits), 'scene7') // CTA — longest hold
-    .add(t7_descendLoop(TRAVEL), 't7') // water → back to the landing card
+    .add(stretch(t7_descendLoop(TRAVEL)), 't7') // water → back to the landing card
     .add(wrapBuffer(), 'wrapZone') //   static hold, visuals ≡ scene1 rest state
 
   // ScrollTrigger created AFTER children exist so the pin-distance function

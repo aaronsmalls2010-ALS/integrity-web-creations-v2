@@ -92,14 +92,16 @@ console.log('OPENING', JSON.stringify(opening.filter((s, i) => i % 2 === 0 || i 
 // 2) T1 phases (scroll-driven) + wrap landing
 const t1 = await evaljs(`(async () => {
   const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+  const TOTAL = 25.59 // scroll units incl. T_SCALE-stretched transitions
   const D = document.body.scrollHeight - innerHeight
   const op = (sel) => { const el = document.querySelector(sel); return el ? +(+getComputedStyle(el).opacity).toFixed(2) : null }
   const mat = () => new DOMMatrix(getComputedStyle(document.querySelector('#scene-1 .scene__bg')).transform)
   const out = {}
-  scrollTo(0, Math.round(D * 1.16 / 13.03)); await sleep(3200)
+  // T1 spans 1.0–2.8: zoom phase A ends ≈1.78, pan phase B after
+  scrollTo(0, Math.round(D * 1.55 / TOTAL)); await sleep(3200)
   let m = mat()
   out.zoomPhase = { scale: +m.a.toFixed(3), yPx: Math.round(m.f), s2: op('#scene-2') }
-  scrollTo(0, Math.round(D * 1.52 / 13.03)); await sleep(3200)
+  scrollTo(0, Math.round(D * 2.45 / TOTAL)); await sleep(3200)
   m = mat()
   out.panPhase = { scale: +m.a.toFixed(3), yPx: Math.round(m.f), s1: op('#scene-1'), s2: op('#scene-2') }
   scrollTo(0, D); await sleep(4500)
