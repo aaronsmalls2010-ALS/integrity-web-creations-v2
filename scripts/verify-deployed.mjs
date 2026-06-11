@@ -104,9 +104,12 @@ const t1 = await evaljs(`(async () => {
   scrollTo(0, Math.round(D * 2.45 / TOTAL)); await sleep(3200)
   m = mat()
   out.panPhase = { scale: +m.a.toFixed(3), yPx: Math.round(m.f), s1: op('#scene-1'), s2: op('#scene-2') }
-  scrollTo(0, D); await sleep(4500)
+  scrollTo(0, D); await sleep(5500)
   const rv = document.querySelector('#scene-1 .bg-reveal')
-  out.afterWrap = { y: Math.round(scrollY), s1: op('#scene-1'), reveal: op('#scene-1 .bg-reveal'), wipe: getComputedStyle(rv).getPropertyValue('--wipe').trim(), counter: document.getElementById('scene-counter').textContent }
+  out.afterWrap = { y: Math.round(scrollY), s1: op('#scene-1'), reveal: op('#scene-1 .bg-reveal'), wipe: getComputedStyle(rv).getPropertyValue('--wipe').trim() }
+  out.frameFullscreen = (() => { const r = document.getElementById('movie-frame').getBoundingClientRect(); return r.width === innerWidth && r.height === innerHeight })()
+  out.chromeRemoved = !document.getElementById('scene-counter') && !document.getElementById('nav-dots')
+  out.arrowCue = !!document.querySelector('.scroll-cue__arrow')
   return out
 })()`)
 console.log('T1_AND_WRAP', JSON.stringify(t1))
