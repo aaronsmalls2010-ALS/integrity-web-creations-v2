@@ -49,7 +49,13 @@ export function setInitialStates(splits: SplitsMap, scene1CopyRevealed = false) 
   })
   gsap.set('#scene-1', { autoAlpha: 1 })
   const reveal = document.querySelector('#scene-1 .bg-reveal')
-  if (reveal) gsap.set(reveal, { autoAlpha: scene1CopyRevealed ? 1 : 0 })
+  if (reveal)
+    gsap.set(
+      reveal,
+      scene1CopyRevealed
+        ? { autoAlpha: 1, '--wipe': '140%' } // intro played: card fully wiped in
+        : { autoAlpha: 0, '--wipe': '0%' },
+    )
   gsap.set('#black-beat', { autoAlpha: 0 })
   const beatText = document.querySelector('#black-beat p')
   if (beatText) beatText.textContent = ''

@@ -294,19 +294,26 @@ export default function Cinematic() {
       }
 
       // time-based intro (not scrubbed) — plays once: settle the clean
-      // backdrop, then dissolve the complete logo card in over it
+      // backdrop, then the complete logo card wipes in TOP→BOTTOM, slow and
+      // dramatic (Aaron 2026-06-11)
       const intro = gsap.timeline()
       intro.fromTo(
         '#scene-1 .scene__bg',
         { scale: 1.08 },
-        { scale: 1.0, duration: 2.4, ease: 'power2.out' },
+        { scale: 1.0, duration: 3.0, ease: 'power2.out' },
         0,
       )
       intro.fromTo(
         '#scene-1 .bg-reveal',
         { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 1.8, ease: 'power2.inOut' },
-        0.7,
+        { autoAlpha: 1, duration: 0.9, ease: 'power1.inOut' },
+        0.9,
+      )
+      intro.fromTo(
+        '#scene-1 .bg-reveal',
+        { '--wipe': '0%' },
+        { '--wipe': '140%', duration: 3.4, ease: 'power2.inOut' },
+        0.9,
       )
       await intro
       introPlayed = true // rebuilds now keep the reveal plate visible

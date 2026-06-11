@@ -203,37 +203,44 @@ export function scene7_hold(splits: SplitsMap) {
 
 // ── transitions ──────────────────────────────────────────────────────────────
 
-/** T1 — DESCEND to the Driveway (filmic rework, Aaron 2026-06-11): the
- *  skyline scales DOWN as the camera pulls back and pans; the driveway
- *  rises to meet it through a long dissolve with continuous motion on both
- *  plates — a movie move, not a slide. */
+/** T1 — ZOOM OUT, then PAN DOWN to the Driveway (Aaron 2026-06-11):
+ *  sequenced, not simultaneous — first the camera pulls straight back from
+ *  the logo card (pure zoom out, no travel), THEN it pans down to image 2,
+ *  which slides in flat from below (pure pan, no zoom on the incoming plate). */
 export function t1_panDown(TRAVEL: number) {
   const tl = gsap.timeline()
-  // buildings shrink + drift up-frame as the camera pulls away
+  // phase A — pure zoom out
   tl.fromTo(
     '#scene-1 .scene__bg',
-    { scale: 1.05, yPercent: 0 },
-    { scale: 0.88, yPercent: -12 * TRAVEL, ease: 'power1.inOut', duration: 0.6 },
+    { scale: 1.05 },
+    { scale: 0.9, ease: 'power1.inOut', duration: 0.26 },
     0,
+  )
+  // phase B — then pan down
+  tl.fromTo(
+    '#scene-1 .scene__bg',
+    { yPercent: 0 },
+    { yPercent: -26 * TRAVEL, ease: 'power1.inOut', duration: 0.34 },
+    0.26,
   )
   tl.fromTo(
     '#scene-1',
     { autoAlpha: 1 },
-    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.42 },
-    0.16,
+    { autoAlpha: 0, ease: 'power1.inOut', duration: 0.3 },
+    0.28,
   )
-  // the driveway settles in beneath, still moving as it lands
+  // image 2 rises in flat from below — pure pan, settling at rest
   tl.fromTo(
     '#scene-2 .scene__bg',
-    { xPercent: 0, yPercent: 22 * TRAVEL, scale: 1.16 },
-    { xPercent: 0, yPercent: 0, scale: 1, ease: 'power1.out', duration: 0.6 },
-    0,
+    { xPercent: 0, yPercent: 30 * TRAVEL, scale: 1 },
+    { xPercent: 0, yPercent: 0, scale: 1, ease: 'power1.out', duration: 0.36 },
+    0.24,
   )
   tl.fromTo(
     '#scene-2',
     { autoAlpha: 0 },
-    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.4 },
-    0.1,
+    { autoAlpha: 1, ease: 'power1.inOut', duration: 0.3 },
+    0.26,
   )
   tl.add(copyOut('#scene-1'), 0)
   return pad(tl, WEIGHTS.t1)

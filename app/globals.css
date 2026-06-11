@@ -163,10 +163,22 @@ body {
   object-position: var(--focal-desktop, center);
 }
 /* landing reveal plate (complete logo card): hidden pre-JS; the one-time
-   intro dissolves it in and it stays revealed for the session */
+   intro wipes it in TOP→BOTTOM (feathered gradient mask driven by --wipe)
+   and it stays revealed for the session */
 .scene__bg img.bg-reveal {
   opacity: 0;
   visibility: hidden;
+  --wipe: 0%;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--wipe) - 30%),
+    transparent var(--wipe)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 calc(var(--wipe) - 30%),
+    transparent var(--wipe)
+  );
 }
 @media (max-width: 768px) {
   .scene__bg img {
@@ -747,5 +759,7 @@ body {
   .reduced-motion .scene__bg img.bg-reveal {
     opacity: 1 !important;
     visibility: visible !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
   }
 }
