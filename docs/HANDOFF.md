@@ -24,22 +24,33 @@ Current state:
 - DNS is at **Bluehost** (NOT Vercel — intended NS ≠ current NS); www is
   CNAME → cname.vercel-dns.com, apex A → 76.76.21.21.
 
-**Remaining cutover steps (in order, no downtime):**
-1. [AARON, Bluehost DNS] add CNAME `crm` → `cname.vercel-dns.com.`
-2. [agent] attach crm.integritywebcreations.com to the v2 Vercel project;
-   verify CRM serves there (custom domains bypass deployment protection).
-3. [AARON or agent w/ approval] SMTP_HOST/PORT/USER/PASS onto v3 project
-   (Production) — values in local .env; classifier blocks the agent doing
-   it silently. Contact form 500s until then.
-4. [AARON approves] move www + apex domains from v2 project → v3 project
-   (dashboard: v2 Settings→Domains remove, v3 add; DNS needs no change).
-5. Verify www: cinematic site, /admin login via proxy, an existing
-   /i/<token> link, Stripe webhook delivery (Stripe dashboard → recent
-   events), cron runs next 8:00 UTC on v2.
-6. Optionally repoint Stripe webhook + bookmark to crm.* directly; new
-   invoice emails will carry whatever origin Aaron uses for /admin (the
-   CRM builds links from request origin).
-7. After stability: archive the v2 GitHub repo (read-only) if desired.
+**CUTOVER COMPLETE (2026-06-11 evening). www.integritywebcreations.com is
+the cinematic v3 site; /admin, /api/admin, /api/webhooks, /i/* proxy to
+the CRM on the v2 project.** How it's wired:
+- Aaron turned OFF Vercel Authentication on the v2 project (Deployment
+  Protection) so its prod alias serves the proxy; CRM security = its own
+  login + 2FA + token-gated /i pages. CRM_ORIGIN default (next.config.ts)
+  = https://integrity-web-creations-v2-aaron-smalls-projects.vercel.app.
+- Aaron moved www + apex to the v3 project in the dashboard (apex 308s to
+  www). DNS at Bluehost unchanged; "DNS Change Recommended" banners are
+  optional (old records keep working per Vercel).
+- Verified live: homepage/subpages 200 (cinematic), /admin login form via
+  www, /admin 302→login, fake /i token → CRM 404, unsigned Stripe webhook
+  POST → 403 (signature check alive), apex redirect.
+
+**Still open after cutover:**
+1. SMTP_HOST/PORT/USER/PASS on the v3 project (Production) — contact form
+   errors until Aaron adds them (classifier blocks the agent).
+2. Watch the v2 crons fire next 8:00 UTC; check Stripe dashboard webhook
+   deliveries after the next real event.
+3. The Bluehost `crm` CNAME Aaron started is now OPTIONAL — cancel or
+   keep (if kept + attached to v2, switch CRM_ORIGIN to it for a prettier
+   origin in new invoice emails; CRM builds links from request origin).
+4. After stability: archive the v2 GitHub repo if desired; new-site SEO
+   (sitemap/robots/JSON-LD/canonicals), Lighthouse pass, reduced-motion
+   page, real-device QA — the brief's remaining steps now apply to v3.
+5. Working copy still has remotes: origin=v2 repo, v3=v3 repo. Keep
+   pushing the branch to BOTH (v3's master is production).
 
 Read this first in a fresh session, alongside `IWC_ClaudeCode_Prompt.md`
 (the original brief — many of its specifics have since been superseded by
