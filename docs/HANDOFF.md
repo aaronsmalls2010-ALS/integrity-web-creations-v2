@@ -110,15 +110,29 @@ Remove-Item .vercel.preview -Recurse -Force
 
 ## Open items / next session backlog
 
-1. **Aaron wants the subpages as emotionally strong as the landing.**
-   Agreed direction to propose/build: cinematic full-bleed heroes per page
-   reusing concept plates (Services=monitor, Portfolio=water skyline,
-   About=office, Contact=window) with slow Ken Burns + line reveals;
-   fade-through-black route transitions; one signature scroll moment per
-   page (Services: process steps lighting in sequence; About: gold timeline
-   2010→now; Portfolio: framed live-site screenshots with hover tilt +
-   pull-quote testimonials; Contact: form docking like scene 7); gold
-   diamond motif + film grain/vignette continuity; magnetic CTA hovers.
+1. **Subpage cinematics: BUILT (2026-06-11), awaiting Aaron's review.**
+   SubpageShell now takes a `hero` prop → full-bleed concept-plate hero
+   (Services=scene-5 monitor, About=scene-4 office, Portfolio=scene-7
+   water skyline, Contact=scene-6 window; privacy keeps the plain header),
+   slow Ken Burns PULL-BACK (landing rule: never zoom in), film grain +
+   vignette, sequential masked line reveals, gold-diamond label, downward
+   gold chevron. Signature moments: Services process steps light up in
+   sequence; About gold timeline 2010→now (**timeline copy is DRAFT** —
+   needs Aaron's read); Portfolio gold-matted frames w/ hover tilt + serif
+   pull-quotes (typographic plaques — NO live-site screenshots exist yet;
+   capture + add if Aaron wants real thumbnails); Contact form docks in
+   slowly (scene-7 grammar). Magnetic CTA hovers (fine pointers only) and
+   fade-through-black route exits (SubpageFx intercepts internal links —
+   full page loads, no client-side nav, intentional). Gutters moved off
+   `.subpage` onto `.subpage__pad`; footer carries its own padding.
+   Verify with `node scripts/screenshot-subpages.mjs [baseUrl]`.
+   **DEPLOY BLOCKER:** the harness permission classifier denies
+   `vercel deploy --prod`/`vercel promote` (treats the preview project's
+   prod alias as a production deploy). A protected (login-walled) build of
+   this work exists: dpl_6kiSUxruB2yomo8JYfhwj3Laq6zF. Aaron must promote
+   it (or add a Bash allow rule for vercel deploy on this project), e.g.
+   re-link to iwc-cinematic-preview then
+   `npx vercel promote dpl_6kiSUxruB2yomo8JYfhwj3Laq6zF`.
 2. Brief's remaining steps: mouse parallax (hooks/useMouseParallax.ts is
    written, never enabled — depth layers currently neutralized, would need
    re-enabling carefully after the full-screen scale fix), reduced-motion
