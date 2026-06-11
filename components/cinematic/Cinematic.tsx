@@ -232,23 +232,23 @@ export default function Cinematic() {
         if (barFill)
           barFill.style.transform = `scaleX(${done / Math.max(imgs.length, 1)})`
       }
-      await Promise.race([
-        Promise.all(
-          imgs.map(async (img) => {
-            try {
-              if (!img.complete)
-                await new Promise((res) => {
-                  img.addEventListener('load', res, { once: true })
-                  img.addEventListener('error', res, { once: true })
-                })
-              await img.decode().catch(() => {})
-            } finally {
-              bump()
-            }
-          }),
-        ),
-        new Promise((res) => setTimeout(res, 12000)), // never trap the user on a stalled asset
-      ])
+      // Canon: EVERY image decodes before the experience starts — the loop
+      // revisits all scenes. Broken assets resolve via their error event, so
+      // this cannot trap the user; only the decode guarantee is absolute.
+      await Promise.all(
+        imgs.map(async (img) => {
+          try {
+            if (!img.complete)
+              await new Promise((res) => {
+                img.addEventListener('load', res, { once: true })
+                img.addEventListener('error', res, { once: true })
+              })
+            await img.decode().catch(() => {})
+          } finally {
+            bump()
+          }
+        }),
+      )
       await document.fonts.ready
       if (disposed) return
 
