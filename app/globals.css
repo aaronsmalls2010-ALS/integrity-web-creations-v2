@@ -858,6 +858,18 @@ body {
   transform: translateX(-50%) translateY(0);
 }
 
+/* desktop wide/short windows (a maximized 1080p browser is ~2:1 after the
+   browser chrome): cover-cropping the 4:3 logo card inflates the artwork
+   ~50% past the viewport — the wordmark blows up, the web is sheared, and
+   the in-image monogram collides with the fixed nav (Aaron 2026-06-11 PM).
+   Past 3:2 show the COMPLETE card, pillarboxed on black like mobile. */
+@media (min-width: 769px) and (min-aspect-ratio: 3/2) {
+  #scene-1 .scene__bg img {
+    object-fit: contain;
+    object-position: center center !important;
+  }
+}
+
 /* mobile: full-screen copy fits within boundaries */
 @media (max-width: 768px) {
   /* the logo card is landscape art — cover-cropping it in portrait shears
