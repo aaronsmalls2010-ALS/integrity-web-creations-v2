@@ -616,13 +616,13 @@ body {
 .brand-mark__monogram {
   font-family: var(--font-playfair), serif;
   font-weight: 900;
-  font-size: 1.15rem;
+  font-size: 1rem;
   letter-spacing: 0.14em;
   color: var(--white);
 }
 .brand-mark__name {
-  font-size: 0.42rem;
-  letter-spacing: 0.4em;
+  font-size: 0.38rem;
+  letter-spacing: 0.38em;
   text-transform: uppercase;
   color: var(--gold);
 }
@@ -635,23 +635,25 @@ body {
 }
 .top-nav__links {
   display: flex;
-  gap: clamp(0.5rem, 1vw, 0.9rem);
+  gap: clamp(0.35rem, 0.7vw, 0.7rem);
   list-style: none;
   margin: 0;
   padding: 0;
 }
-/* larger, boxed nav items with hover animation (Aaron 2026-06-11) */
+/* boxed nav items with hover animation (Aaron 2026-06-11) — sized fluidly
+   so the row shrinks with the viewport and never crowds the IWC mark
+   (Aaron 2026-06-11 PM: chrome had grown too large / clashing) */
 .top-nav__links a {
   display: inline-block;
-  font-size: 0.72rem;
+  font-size: clamp(0.54rem, 0.45vw + 0.28rem, 0.64rem);
   font-weight: 500;
-  letter-spacing: 0.26em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #ffffff;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.45);
   background: rgba(5, 8, 16, 0.35);
-  padding: 0.65rem 1.05rem;
+  padding: clamp(0.45rem, 0.55vw, 0.58rem) clamp(0.65rem, 0.95vw, 0.95rem);
   transition:
     color 0.3s ease,
     border-color 0.3s ease,
@@ -699,8 +701,9 @@ body {
 #mobile-menu {
   display: none;
 }
-/* hamburger when width OR height is tight (phones in either orientation) */
-@media (max-width: 768px), (max-height: 520px) {
+/* hamburger when width OR height is tight — kicks in at 960px so the link
+   row never gets close enough to the brand mark to clash */
+@media (max-width: 960px), (max-height: 520px) {
   .top-nav__links {
     display: none;
   }
