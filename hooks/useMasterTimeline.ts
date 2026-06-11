@@ -107,9 +107,9 @@ export function buildMasterTimeline(opts: {
 
   const master = gsap.timeline()
   master
-    .add(scene1_hold(), 'scene1') //   logo — one-time intro territory
+    .add(scene1_hold(), 'scene1') // ← LOOP LANDING POINT (Aaron 2026-06-11)
     .add(t1_panDown(TRAVEL), 't1')
-    .add(scene2_hold(splits), 'scene2') // ← LOOP LANDING POINT
+    .add(scene2_hold(splits), 'scene2')
     .add(t2_panRight(TRAVEL), 't2')
     .add(scene3_hold(splits), 'scene3')
     .add(t3_rise(TRAVEL), 't3')
@@ -120,8 +120,8 @@ export function buildMasterTimeline(opts: {
     .add(scene6_hold(splits), 'scene6')
     .add(t6_glideOut(TRAVEL), 't6')
     .add(scene7_hold(splits), 'scene7') // CTA — longest hold
-    .add(t7_descendLoop(TRAVEL), 't7') // water → back down to the driveway
-    .add(wrapBuffer(), 'wrapZone') //   static hold, visuals ≡ scene2 rest state
+    .add(t7_descendLoop(TRAVEL, splits), 't7') // water → back to the landing
+    .add(wrapBuffer(), 'wrapZone') //   static hold, visuals ≡ scene1 rest state
 
   // ScrollTrigger created AFTER children exist so the pin-distance function
   // sees the full duration. PIN_DISTANCE = total weight × UNIT svh.

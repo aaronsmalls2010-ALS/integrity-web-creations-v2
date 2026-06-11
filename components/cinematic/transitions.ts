@@ -402,10 +402,15 @@ export function t6_glideOut(TRAVEL: number) {
   return pad(tl, WEIGHTS.t6)
 }
 
-/** T7 — DESCEND Back to the Driveway (LOOP TRANSITION): camera comes down from
- *  over the water back to street level; mirrors T1's downward grammar.
- *  Scene 2 re-enters image-only (its copy re-types during the next scene2 hold). */
-export function t7_descendLoop(TRAVEL: number) {
+/** T7 — DESCEND Back to the Landing (LOOP TRANSITION) — Aaron 2026-06-11:
+ *  the loop returns to the very first landing page, not the car. The camera
+ *  comes down from over the water onto the night-skyline backdrop and the
+ *  landing text staggers back in, scroll-tied, so the wrap lands on a frame
+ *  identical to the scene1-label render (copy at revealed rest).
+ *
+ *  EXPLICIT resets — T1 leaves scene-1 bg at scale 0.88 / yPercent -12 and
+ *  the scene at autoAlpha 0; every one of those appears in a fromTo below. */
+export function t7_descendLoop(TRAVEL: number, splits: SplitsMap) {
   const tl = gsap.timeline()
   tl.fromTo(
     '#scene-7 .scene__bg',
@@ -419,24 +424,28 @@ export function t7_descendLoop(TRAVEL: number) {
     { autoAlpha: 0, ease: 'power1.in', duration: 0.26 },
     0.4,
   )
-  // EXPLICIT resets — scene 2 was left at xPercent:-45/autoAlpha:0 by T2 last cycle:
   tl.fromTo(
-    '#scene-2 .scene__bg',
-    { xPercent: 0, yPercent: 38 * TRAVEL, scale: 1 },
-    { xPercent: 0, yPercent: 0, scale: 1, ease: 'power1.out', duration: 0.45 },
+    '#scene-1 .scene__bg',
+    { xPercent: 0, yPercent: -10 * TRAVEL, scale: 0.94 },
+    { xPercent: 0, yPercent: 0, scale: 1, ease: 'power1.out', duration: 0.5 },
     0.12,
   )
   tl.fromTo(
-    '#scene-2',
+    '#scene-1',
     { autoAlpha: 0 },
     { autoAlpha: 1, ease: 'power1.out', duration: 0.3 },
-    0.18,
+    0.16,
   )
+  // landing text staggers back in and reaches its revealed rest values
+  // BEFORE the segment ends (wrap contract) — timeScale compresses the
+  // shared copyIn to fit the 0.7 weight
+  tl.add(copyIn('#scene-1', splits).timeScale(1.6), 0.22)
   tl.add(copyOut('#scene-7'), 0)
   return pad(tl, WEIGHTS.t7)
 }
 
-/** static hold ≡ scene2 rest state — the wrap fires inside this zone */
+/** static hold ≡ scene1 rest state (landing, copy revealed) — the wrap fires
+ *  inside this zone */
 export function wrapBuffer() {
   return gsap.timeline().to({}, { duration: WEIGHTS.wrapZone })
 }

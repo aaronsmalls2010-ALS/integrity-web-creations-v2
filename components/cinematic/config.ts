@@ -6,8 +6,11 @@
  */
 export const SMOOTH = 1.5
 export const SCRUB = 1.2
-export const UNIT_DESKTOP = 115 // svh per weight unit
-export const UNIT_MOBILE = 70
+// Aaron (2026-06-11): "way too much scrolling between transitions" — cut to
+// roughly half the brief's defaults (115/70), below its 90/55 floor by
+// explicit client direction.
+export const UNIT_DESKTOP = 60 // svh per weight unit
+export const UNIT_MOBILE = 45
 export const TRAVEL_DESKTOP = 1.0 // multiplies ALL transition xPercent/yPercent
 export const TRAVEL_MOBILE = 0.6
 
@@ -19,9 +22,9 @@ export const MOBILE_BREAKPOINT = 768
  * (≈1495svh desktop · ≈910svh mobile).
  */
 export const WEIGHTS = {
-  scene1: 1.0, // logo push-in + copy (copy revealed by one-time intro)
+  scene1: 1.0, // logo push-in — LOOP LANDING (copy revealed by intro / re-staggered by T7)
   t1: 0.6, //    pan down
-  scene2: 1.0, // LOOP LANDING — copy re-types every cycle
+  scene2: 1.0,
   t2: 0.7, //    pan right — the one horizontal move
   scene3: 1.0,
   t3: 0.6, //    rise
@@ -32,8 +35,8 @@ export const WEIGHTS = {
   scene6: 1.0,
   t6: 0.7, //    glide out
   scene7: 1.4, // CTA breathes fully before loop
-  t7: 0.7, //    descend loop — water → driveway
-  wrapZone: 0.2, // static; identical to scene2 rest; wrap fires here
+  t7: 0.7, //    descend loop — water → landing
+  wrapZone: 0.2, // static; identical to scene1 rest; wrap fires here
 } as const
 
 export const TOTAL_WEIGHT = Object.values(WEIGHTS).reduce((a, b) => a + b, 0) // 13.0

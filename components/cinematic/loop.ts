@@ -3,15 +3,20 @@
 /**
  * LOOP MECHANICS — the wrap.
  *
+ * Loop target: SCENE 1 (the landing) — Aaron 2026-06-11, answering the brief's
+ * open question #2 the other way: the wrap returns to the very first landing
+ * page, not the car.
+ *
  * Contract: the visual state at every point inside wrapZone is pixel-identical
- * to the state at the `scene2` label (scene 2 at rest: bg xPercent:0/yPercent:0/
- * scale:1/autoAlpha:1; scene 2 copy hidden at pre-copyIn from-values; all other
- * scenes autoAlpha:0). T7 ends in exactly that state; wrapBuffer holds it.
+ * to the state at the `scene1` label (landing at rest: bg xPercent:0/yPercent:0/
+ * scale:1/autoAlpha:1; landing copy at its REVEALED rest values — T7 scrubs it
+ * back in; all other scenes autoAlpha:0). T7 ends in exactly that state;
+ * wrapBuffer holds it.
  *
  * Wrap fires only on FORWARD direction — scrolling up inside wrapZone simply
  * reverses T7 (valid and coherent). The 0.2-weight buffer absorbs scrub lag and
  * fast-flick overshoot: even if the snap lands a few pixels off, both sides of
- * the jump render the identical scene2-rest frame.
+ * the jump render the identical scene1-rest frame.
  */
 
 import { ScrollTrigger, type ScrollSmoother } from '@/lib/gsap'
@@ -45,7 +50,7 @@ export function createLoop(opts: {
     const smoother = opts.getSmoother()
     const st = master?.scrollTrigger
     if (!master || !smoother || !st) return
-    smoother.scrollTop(st.labelToScroll('scene2')) // instant jump (no smoothing)
+    smoother.scrollTop(st.labelToScroll('scene1')) // instant jump (no smoothing)
     ScrollTrigger.update() // force the scrub to re-target the new scroll position
     const scrub = st.getTween()
     if (scrub) scrub.progress(1) // snap scrubbed playhead — prevents a visible
@@ -53,9 +58,9 @@ export function createLoop(opts: {
     // Belt & suspenders: if the scrub re-target was deferred to the next tick,
     // progress(1) completed the OLD target — set the playhead directly. The
     // deferred re-target then finds zero distance and renders no motion.
-    const t2 = master.labels['scene2']
-    if (t2 != null && Math.abs(master.totalTime() - t2) > 0.01)
-      master.totalTime(t2)
+    const t1 = master.labels['scene1']
+    if (t1 != null && Math.abs(master.totalTime() - t1) > 0.01)
+      master.totalTime(t1)
     cycle += 1
     opts.onWrap?.()
     track('loop_completed')

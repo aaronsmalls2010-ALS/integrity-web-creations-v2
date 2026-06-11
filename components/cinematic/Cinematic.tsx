@@ -185,7 +185,9 @@ export default function Cinematic() {
     }
 
     function scrollToLabel(label: string) {
-      if (!ctl.st || !smoother) return
+      // navigating mid-intro would let the scrubbed copyOut record scene-1's
+      // half-revealed copy as its start values — permanent ghost state
+      if (!introPlayed || !ctl.st || !smoother) return
       smoother.scrollTo(ctl.st.labelToScroll(label), true)
     }
     scrollToLabelRef.current = scrollToLabel
