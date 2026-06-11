@@ -1,5 +1,46 @@
 # IWC Cinematic Rebuild — Session Hand-off (2026-06-11)
 
+## ⚡ ARCHITECTURE CHANGED (2026-06-11 PM) — v3 SPLIT
+
+Aaron's direction: archive v2, branch the cinematic site into **v3**.
+Current state:
+
+- **Repo `integrity-web-creations-v3`** (private, GitHub): cinematic site;
+  its `master` = this branch. Push there via the `v3` git remote
+  (`git push v3 feat/cinematic-rebuild:master`). Keep the v2 remote
+  (`origin`) in sync too until the working copy migrates.
+- **Vercel project `integrity-web-creations-v3`**: git-connected to that
+  repo, auto-deploys master to production. LIVE + public:
+  https://integrity-web-creations-v3.vercel.app (all routes verified 200).
+- **v2 project/repo: UNTOUCHED — the CRM (Astro+Supabase invoicing) keeps
+  running there** with all its env vars, crons, Stripe webhook. `crm-live`
+  branch = snapshot of master. v2's vercel.app prod URL is behind Vercel
+  Authentication, hence the subdomain plan below.
+- v3 PROXIES the CRM paths (next.config.ts rewrites): /admin, /api/admin,
+  /api/webhooks, /i/* → CRM_ORIGIN (default
+  https://crm.integritywebcreations.com, override via env). vercel.json
+  CSP is scoped OFF those paths so the CRM's own headers apply. Verified:
+  /admin/login proxies (502 until the crm subdomain exists).
+- DNS is at **Bluehost** (NOT Vercel — intended NS ≠ current NS); www is
+  CNAME → cname.vercel-dns.com, apex A → 76.76.21.21.
+
+**Remaining cutover steps (in order, no downtime):**
+1. [AARON, Bluehost DNS] add CNAME `crm` → `cname.vercel-dns.com.`
+2. [agent] attach crm.integritywebcreations.com to the v2 Vercel project;
+   verify CRM serves there (custom domains bypass deployment protection).
+3. [AARON or agent w/ approval] SMTP_HOST/PORT/USER/PASS onto v3 project
+   (Production) — values in local .env; classifier blocks the agent doing
+   it silently. Contact form 500s until then.
+4. [AARON approves] move www + apex domains from v2 project → v3 project
+   (dashboard: v2 Settings→Domains remove, v3 add; DNS needs no change).
+5. Verify www: cinematic site, /admin login via proxy, an existing
+   /i/<token> link, Stripe webhook delivery (Stripe dashboard → recent
+   events), cron runs next 8:00 UTC on v2.
+6. Optionally repoint Stripe webhook + bookmark to crm.* directly; new
+   invoice emails will carry whatever origin Aaron uses for /admin (the
+   CRM builds links from request origin).
+7. After stability: archive the v2 GitHub repo (read-only) if desired.
+
 Read this first in a fresh session, alongside `IWC_ClaudeCode_Prompt.md`
 (the original brief — many of its specifics have since been superseded by
 Aaron's live direction; THIS document + the git log are current truth).
