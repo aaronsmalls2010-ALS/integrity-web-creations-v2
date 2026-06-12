@@ -17,6 +17,7 @@ import { SCENES } from '@/lib/sceneData'
 import { track } from '@/lib/analytics'
 import {
   DESKTOP_MEDIA,
+  FILM,
   MOBILE_MEDIA,
   SCENE_LABELS,
   TRAVEL_DESKTOP,
@@ -24,7 +25,7 @@ import {
   UNIT_DESKTOP,
   UNIT_MOBILE,
 } from './config'
-import { buildMasterTimeline } from '@/hooks/useMasterTimeline'
+import { buildFilmTimeline, buildMasterTimeline } from '@/hooks/useMasterTimeline'
 import { createSmoother } from '@/hooks/useScrollSmoother'
 import { createLoop } from './loop'
 import type { SplitsMap } from './transitions'
@@ -76,6 +77,10 @@ export default function Cinematic() {
     let rebuildTimer: ReturnType<typeof setTimeout> | undefined
     let introPlayed = false
     let cueAlways = false // mobile keeps the scroll hint on every scene
+    // FILM MODE (Aaron 2026-06-11 night): desktop scrubs the rendered film;
+    // mobile keeps the classic engine with per-scene segment videos
+    let filmMode = false
+    const filmEl = () => document.getElementById('film') as HTMLVideoElement | null
 
     const loop = createLoop({
       getMaster: () => ctl.master,
@@ -93,6 +98,21 @@ export default function Cinematic() {
       document
         .querySelectorAll('#cinematic .scene')
         .forEach((s) => s.classList.toggle('is-active', s.id === `scene-${n}`))
+      // mobile living scenes: the active scene's film segment plays once
+      // (from its first frame) and freezes; others pause (Aaron: B on mobile)
+      if (!filmMode) {
+        document
+          .querySelectorAll<HTMLVideoElement>('#cinematic .scene-video')
+          .forEach((v) => {
+            const active = v.closest('.scene')?.id === `scene-${n}`
+            if (active && getComputedStyle(v).display !== 'none') {
+              try {
+                v.currentTime = 0
+              } catch {}
+              v.play().catch(() => {})
+            } else if (!v.paused) v.pause()
+          })
+      }
       if (!chromeState.seen.has(label)) {
         chromeState.seen.add(label)
         track('scene_view', { scene: n, cycle: loop.cycle })
@@ -134,13 +154,22 @@ export default function Cinematic() {
     function buildForContext(UNIT: number, TRAVEL: number) {
       currentUNIT = UNIT
       currentTRAVEL = TRAVEL
-      const handles = buildMasterTimeline({
-        UNIT,
-        TRAVEL,
-        splits,
-        onUpdate: onMasterUpdate,
-        scene1CopyRevealed: introPlayed,
-      })
+      const video = filmMode ? filmEl() : null
+      const handles =
+        filmMode && video
+          ? buildFilmTimeline({
+              splits,
+              video,
+              onUpdate: onMasterUpdate,
+              introGate: () => introPlayed,
+            })
+          : buildMasterTimeline({
+              UNIT,
+              TRAVEL,
+              splits,
+              onUpdate: onMasterUpdate,
+              scene1CopyRevealed: introPlayed,
+            })
       ctl.master = handles.master
       ctl.st = handles.st
       loop.refresh() // recompute WRAP_AT_PROGRESS after every (re)build
@@ -241,6 +270,28 @@ export default function Cinematic() {
       await document.fonts.ready
       if (disposed) return
 
+      // film mode boots only when the film can play (capped — never trap)
+      if (matchMedia(DESKTOP_MEDIA).matches) {
+        const v = filmEl()
+        if (v && !v.src) {
+          v.src = FILM.src
+          v.preload = 'auto'
+          v.load()
+        }
+        if (v && v.readyState < 3) {
+          await new Promise<void>((res) => {
+            const ok = () => {
+              clearTimeout(cap)
+              res()
+            }
+            const cap = setTimeout(ok, 15000)
+            v.addEventListener('canplay', ok, { once: true })
+            v.addEventListener('error', ok, { once: true })
+          })
+        }
+        if (disposed) return
+      }
+
       // SplitText: build once per headline after fonts.ready; autoSplit
       // re-splits on resize/reflow (requestRebuild re-references words).
       // Scenes may carry TWO headlines (desktop + mobile wording) — both are
@@ -273,11 +324,28 @@ export default function Cinematic() {
         (ctx) => {
           const { isMobile } = ctx.conditions as { isMobile: boolean }
           cueAlways = isMobile // never let mobile users sit wondering
+          // desktop = film mode (scroll scrubs the rendered film); the class
+          // swaps imagery via CSS (#film shows, .scene__bg stills hide)
+          filmMode = !isMobile && !!filmEl()
+          document.documentElement.classList.toggle('film-mode', filmMode)
+          if (filmMode) {
+            const v = filmEl()
+            if (v && !v.src) {
+              // resized desktop mid-session: attach + fetch the film now
+              v.src = FILM.src
+              v.preload = 'auto'
+              v.load()
+            }
+            if (v && introPlayed) v.currentTime = FILM.introEnd // scrub corrects
+          }
           buildForContext(
             isMobile ? UNIT_MOBILE : UNIT_DESKTOP,
             isMobile ? TRAVEL_MOBILE : TRAVEL_DESKTOP,
           )
-          return () => teardownMaster() // mm auto-reverts inline styles
+          return () => {
+            teardownMaster() // mm auto-reverts inline styles
+            document.documentElement.classList.remove('film-mode')
+          }
         },
       )
       ScrollTrigger.refresh()
@@ -290,36 +358,66 @@ export default function Cinematic() {
         pre.style.display = 'none'
       }
 
-      // time-based intro (not scrubbed) — plays once. Aaron's spec:
-      // start BLACK → fade to image 0 → wipe to image 1, slowed 1.5x on
-      // desktop and 2.5x on mobile (2026-06-11).
-      const F = matchMedia(MOBILE_MEDIA).matches ? 2.5 : 1.5
-      const intro = gsap.timeline()
-      intro.fromTo(
-        '#scene-1 .scene__bg',
-        { scale: 1.08 },
-        { scale: 1.0, duration: 4.0 * F, ease: 'power2.out' },
-        0,
-      )
-      intro.fromTo(
-        '#scene-1 .bg-base',
-        { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 1.0 * F, ease: 'power1.inOut' },
-        0,
-      )
-      intro.fromTo(
-        '#scene-1 .bg-reveal',
-        { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 0.6 * F, ease: 'power1.inOut' },
-        1.0 * F,
-      )
-      intro.fromTo(
-        '#scene-1 .bg-reveal',
-        { '--wipe': '0%' },
-        { '--wipe': '140%', duration: 3.0 * F, ease: 'power2.inOut' },
-        1.0 * F,
-      )
-      await intro
+      const filmVideo = filmMode ? filmEl() : null
+      if (filmVideo) {
+        // FILM intro — the 0–8s logo formation plays once in real time
+        // (muted + playsinline: autoplay-safe), then the playhead parks on
+        // the landing frame and scroll takes over (scrub range 8s→end).
+        filmVideo.currentTime = 0
+        let autoplayOk = true
+        try {
+          await filmVideo.play()
+        } catch {
+          autoplayOk = false // blocked: jump straight to the landing frame
+        }
+        if (autoplayOk) {
+          await new Promise<void>((res) => {
+            const done = () => {
+              filmVideo.removeEventListener('timeupdate', check)
+              clearTimeout(cap)
+              res()
+            }
+            const check = () => {
+              if (filmVideo.currentTime >= FILM.introEnd - 0.06) done()
+            }
+            const cap = setTimeout(done, (FILM.introEnd + 4) * 1000)
+            filmVideo.addEventListener('timeupdate', check)
+          })
+        }
+        filmVideo.pause()
+        filmVideo.currentTime = FILM.introEnd
+      } else {
+        // time-based intro (not scrubbed) — plays once. Aaron's spec:
+        // start BLACK → fade to image 0 → wipe to image 1, slowed 1.5x on
+        // desktop and 2.5x on mobile (2026-06-11).
+        const F = matchMedia(MOBILE_MEDIA).matches ? 2.5 : 1.5
+        const intro = gsap.timeline()
+        intro.fromTo(
+          '#scene-1 .scene__bg',
+          { scale: 1.08 },
+          { scale: 1.0, duration: 4.0 * F, ease: 'power2.out' },
+          0,
+        )
+        intro.fromTo(
+          '#scene-1 .bg-base',
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 1.0 * F, ease: 'power1.inOut' },
+          0,
+        )
+        intro.fromTo(
+          '#scene-1 .bg-reveal',
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.6 * F, ease: 'power1.inOut' },
+          1.0 * F,
+        )
+        intro.fromTo(
+          '#scene-1 .bg-reveal',
+          { '--wipe': '0%' },
+          { '--wipe': '140%', duration: 3.0 * F, ease: 'power2.inOut' },
+          1.0 * F,
+        )
+        await intro
+      }
       introPlayed = true // rebuilds now keep the reveal plate visible
       if (disposed) return
       smoother?.paused(false)
@@ -349,6 +447,19 @@ export default function Cinematic() {
           {/* the movie screen: 16:9 letterboxed frame; site chrome lives
               around it (Aaron, 2026-06-11) */}
           <div id="movie-frame">
+            {/* FILM MODE (desktop): Aaron's rendered film — scroll scrubs it;
+                the DOM scenes below become text-overlay layers (CSS hides
+                their stills when .film-mode is set) */}
+            {/* src is attached at runtime on DESKTOP only — phones never
+                download the 33MB film (they get per-scene segments) */}
+            <video
+              id="film"
+              muted
+              playsInline
+              preload="none"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
             {SCENES.map((cfg, i) => (
               <Scene
                 key={cfg.id}

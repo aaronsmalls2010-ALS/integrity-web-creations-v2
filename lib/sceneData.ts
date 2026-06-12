@@ -31,6 +31,9 @@ export interface SceneColumn {
 export interface SceneConfig {
   id: string
   image: string
+  /** mobile living-scene film segment (plays once on activation; desktop
+   *  film mode scrubs the full film instead) */
+  video?: string
   /** second plate that dissolves in over `image` on load (scene 1: the
    *  complete logo card — image text, not DOM text, per Aaron 2026-06-11) */
   revealImage?: string
@@ -97,6 +100,7 @@ export const SCENES: SceneConfig[] = [
     // animations — text layout still follows the IWC_Concept_3.png mockup)
     id: 'scene-2',
     image: '/images/scenes/scene-2-desktop.webp',
+    video: '/video/scene-2.mp4',
     objectPosition: { desktop: 'center 55%', mobile: '62% center' }, // keep the glowing tower
     gradient:
       'linear-gradient(115deg, rgba(8,9,12,.8), rgba(8,9,12,.28) 40%, transparent 62%), linear-gradient(to top, rgba(8,9,12,.88), rgba(8,9,12,.08) 50%, rgba(8,9,12,.25))',
@@ -147,6 +151,7 @@ export const SCENES: SceneConfig[] = [
     // SCENE 3 — Designed to Convert · plate IWC_Concept_4.png
     id: 'scene-3',
     image: '/images/scenes/scene-3-desktop.webp',
+    video: '/video/scene-3.mp4',
     objectPosition: { desktop: 'center center', mobile: '40% center' },
     gradient:
       'linear-gradient(to left, rgba(8,9,12,.85), rgba(8,9,12,.22) 52%, transparent)',
@@ -182,6 +187,7 @@ export const SCENES: SceneConfig[] = [
     // SCENE 4 — The Expert · plate IWC_Concept_5.png
     id: 'scene-4',
     image: '/images/scenes/scene-4-desktop.webp',
+    video: '/video/scene-4.mp4',
     objectPosition: { desktop: 'center center', mobile: 'center 38%' },
     gradient:
       'linear-gradient(to top, rgba(8,9,12,.95), rgba(8,9,12,.3) 50%, transparent)',
@@ -200,6 +206,7 @@ export const SCENES: SceneConfig[] = [
     // SCENE 5 — Services · plate IWC_Concept_6.png
     id: 'scene-5',
     image: '/images/scenes/scene-5-desktop.webp',
+    video: '/video/scene-5.mp4',
     objectPosition: { desktop: 'center center', mobile: 'center 30%' },
     gradient: 'radial-gradient(ellipse at center, rgba(5,6,9,.55), transparent 68%), linear-gradient(135deg, rgba(8,9,12,.6), rgba(8,9,12,.1) 60%)',
     copyLayout: 'center', // Aaron 2026-06-11: centered on the monitor screen
@@ -229,6 +236,7 @@ export const SCENES: SceneConfig[] = [
     // SCENE 6 — Built for Growth · plate IWC_Concept_7.png
     id: 'scene-6',
     image: '/images/scenes/scene-6-desktop.webp',
+    video: '/video/scene-6.mp4',
     objectPosition: { desktop: 'center center', mobile: 'center 40%' },
     gradient:
       'linear-gradient(to bottom, rgba(8,9,12,.84), rgba(8,9,12,.16) 46%, rgba(8,9,12,.75))',
@@ -272,6 +280,7 @@ export const SCENES: SceneConfig[] = [
     // SCENE 7 — Final CTA · plate IWC_Concept_8.png
     id: 'scene-7',
     image: '/images/scenes/scene-7-desktop.webp',
+    video: '/video/scene-7.mp4',
     objectPosition: { desktop: 'center center', mobile: 'center 55%' },
     // Aaron 2026-06-11: text left half + contact form right half; heavy
     // left scrim for readability

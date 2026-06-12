@@ -57,6 +57,21 @@ export default function SceneBg({
               className="object-cover bg-reveal"
             />
           )}
+          {cfg.video && (
+            // mobile "living scene" (Aaron 2026-06-11 night): the scene's
+            // film segment plays once over the still when the scene becomes
+            // active (Cinematic.setActiveScene), then freezes. Hidden on
+            // desktop (film mode scrubs the full film instead).
+            <video
+              className="scene-video"
+              src={cfg.video}
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              tabIndex={-1}
+            />
+          )}
         </>
       )}
     </div>

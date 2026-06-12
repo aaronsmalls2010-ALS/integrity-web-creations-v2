@@ -144,6 +144,41 @@ body {
   position: absolute;
   inset: 0;
 }
+/* ── FILM MODE (desktop, Aaron 2026-06-11 night): scroll scrubs the rendered
+   film; scenes become text-overlay layers — their stills hide. The film is
+   pillarboxed-in-frame already, so contain on black is seamless. */
+#film {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+  pointer-events: none;
+}
+.film-mode #film {
+  display: block;
+}
+.film-mode .scene__bg {
+  display: none;
+}
+/* the film-mode loop seam reuses #black-beat as a plain black card */
+.film-mode #black-beat p,
+.film-mode #black-beat .cursor-dot {
+  display: none;
+}
+/* mobile "living scene" segment video — sits over the still, activated by
+   Cinematic.setActiveScene; desktop (film mode) and landscape keep stills */
+.scene-video {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
 .scene__bg img {
   object-position: var(--focal-desktop, center);
 }
@@ -898,9 +933,14 @@ body {
      the imagery past the screen (Aaron 2026-06-11 night: scene-2 desk
      setup "too large"). Contain shows each COMPLETE image, letterboxed
      on black, like scenes 1+3 always were. */
-  .scene__bg img {
+  .scene__bg img,
+  .scene__bg video {
     object-fit: contain;
     object-position: center center !important;
+  }
+  /* living scenes: each active scene's film segment plays over its still */
+  .scene-video {
+    display: block;
   }
   .headline {
     line-height: 1.05;
@@ -1801,6 +1841,10 @@ body.route-leave::after {
     transform: none;
   }
   .reduced-motion #black-beat {
+    display: none;
+  }
+  .reduced-motion .scene-video,
+  .reduced-motion #film {
     display: none;
   }
   .reduced-motion .scene__bg img.bg-base,

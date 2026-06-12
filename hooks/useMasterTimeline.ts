@@ -8,7 +8,7 @@
 
 import { gsap, ScrollTrigger } from '@/lib/gsap'
 import { SCENES } from '@/lib/sceneData'
-import { SCRUB, T_SCALE } from '@/components/cinematic/config'
+import { FILM, SCRUB, T_SCALE } from '@/components/cinematic/config'
 import {
   copyIn,
   copyOut,
@@ -149,6 +149,93 @@ export function buildMasterTimeline(opts: {
     start: 'top top',
     end: () =>
       '+=' + Math.round(master.duration() * UNIT * (window.innerHeight / 100)),
+    pin: true,
+    anticipatePin: 1,
+    scrub: SCRUB,
+    invalidateOnRefresh: true,
+    onUpdate,
+  })
+
+  return { master, st }
+}
+
+/**
+ * FILM-MODE master (desktop, Aaron 2026-06-11 night): scroll scrubs the
+ * rendered film; the DOM copy choreography overlays Aaron's segment map
+ * (config.FILM). 1 timeline unit = 1 film second. The scrub range starts at
+ * FILM.introEnd (the landing frame) — the 0–8s intro plays ONCE in real time
+ * at boot (Cinematic), exactly like the old logo-dissolve intro.
+ *
+ * Loop seam: #black-beat fades to full black over the film's last
+ * `blackOut` seconds; `wrapZone` sits inside the black hold, so the wrap's
+ * water→logo jump lands while the screen is black (invisible).
+ *
+ * `introGate` keeps the scrub's video seeks inert until the boot intro has
+ * finished playing 0→8 (ScrollTrigger.refresh fires onUpdate during boot).
+ */
+export function buildFilmTimeline(opts: {
+  splits: SplitsMap
+  video: HTMLVideoElement
+  onUpdate: (self: ScrollTrigger) => void
+  introGate: () => boolean
+}): MasterHandles {
+  const { splits, video, onUpdate, introGate } = opts
+
+  setInitialStates(splits, true)
+
+  const D = FILM.duration - FILM.introEnd
+  const master = gsap.timeline()
+  const film = { t: FILM.introEnd }
+  master.fromTo(
+    film,
+    { t: FILM.introEnd },
+    {
+      t: FILM.duration - 0.05,
+      ease: 'none',
+      duration: D,
+      onUpdate: () => {
+        if (!introGate()) return
+        if (video.readyState >= 2 && Math.abs(video.currentTime - film.t) > 0.034)
+          video.currentTime = film.t
+      },
+    },
+    0,
+  )
+
+  master.addLabel('scene1', 0)
+  for (const [label, [a, b]] of Object.entries(FILM.segments)) {
+    const sel = `#scene-${label.replace('scene', '')}`
+    const s = a - FILM.introEnd
+    const e = b - FILM.introEnd
+    master.addLabel(label, s)
+    master.fromTo(
+      sel,
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.5, ease: 'power1.inOut' },
+      s + 0.15,
+    )
+    master.add(copyIn(sel, splits, (e - s) * 0.5), s + 0.6)
+    master.add(copyOut(sel), e - 1.4)
+    master.to(sel, { autoAlpha: 0, duration: 0.4, ease: 'power1.inOut' }, e - 0.5)
+  }
+
+  // loop seam — fade to black over the last film moments, hold, wrap inside
+  master.fromTo(
+    '#black-beat',
+    { autoAlpha: 0 },
+    { autoAlpha: 1, duration: FILM.blackOut, ease: 'power1.inOut' },
+    D - FILM.blackOut,
+  )
+  master.addLabel('wrapZone', D + FILM.wrapHold * 0.3)
+  master.to({}, { duration: FILM.wrapHold }, D)
+
+  const st = ScrollTrigger.create({
+    animation: master,
+    trigger: '#cinematic',
+    start: 'top top',
+    end: () =>
+      '+=' +
+      Math.round(master.duration() * FILM.UNIT * (window.innerHeight / 100)),
     pin: true,
     anticipatePin: 1,
     scrub: SCRUB,

@@ -58,6 +58,39 @@ export const TOTAL_WEIGHT =
     0,
   )
 
+/**
+ * FILM MODE (Aaron 2026-06-11 night): on DESKTOP the cinematic is Aaron's
+ * rendered film (FullVideo.mp4 → keyframe-dense /video/film-720.mp4) and
+ * SCROLL SCRUBS IT — the DOM text choreography overlays per segment below.
+ * Mobile keeps the classic still-plate engine, with each scene's film
+ * segment playing as a living background (see SceneBg).
+ *
+ * Segment map is Aaron's, verbatim: intro 0–8 (plays once on load, like the
+ * old logo dissolve — no overlay, it's in the film), transition 8–14 (no
+ * overlay), then scene 2 overlays begin. Times are FILM SECONDS.
+ */
+export const FILM = {
+  src: '/video/film-720.mp4',
+  /** true decodable end (container metadata over-reports) */
+  duration: 63.9,
+  /** scroll scrub range starts here — the completed-logo landing frame */
+  introEnd: 8,
+  segments: {
+    scene2: [14, 22],
+    scene3: [22, 30],
+    scene4: [30, 38],
+    scene5: [38, 46],
+    scene6: [46, 54],
+    scene7: [54, 63.9],
+  } as Record<string, [number, number]>,
+  /** svh of scroll per film second — total pin ≈ (55.9+0.8)×27 ≈ today's */
+  UNIT: 27,
+  /** the loop seam: black fades in over the film's last 1.2s; the wrap
+   *  fires inside the black so the water→logo jump is invisible */
+  blackOut: 1.2,
+  wrapHold: 0.8,
+}
+
 export const SCENE_LABELS = [
   'scene1',
   'scene2',
