@@ -31,10 +31,11 @@ const DOCS_DIR = path.join(root, 'docs')
 /**
  * Asset map (Aaron, 2026-06-11): concepts are before/after pairs —
  * 0 = clean logo backdrop (ships) · 1 = load end-state MOCKUP (text → DOM)
- * 2 = clean car plate (ships)     · 3 = car end-state MOCKUP (text → DOM)
+ * scene 2 = IWC_Concept_8_notext (desk setup at dusk, clean re-export,
+ *   Aaron 2026-06-11 evening — replaces the car; concept-3 copy stays DOM)
  * 4–8 = penthouse · monitors · code · window · water
  */
-const SCENE_SOURCES = [0, 2, 4, 5, 6, 7, 8]
+const SCENE_SOURCES = [0, '8_notext', 4, 5, 6, 7, 8]
 const SCENES = SCENE_SOURCES.map((c, i) => ({
   n: String(i + 1),
   src: path.join(SRC_DIR, `IWC_Concept_${c}.png`),

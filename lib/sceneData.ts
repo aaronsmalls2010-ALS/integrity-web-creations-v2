@@ -92,12 +92,12 @@ export const SCENES: SceneConfig[] = [
     cameraHold: 'push-in',
   },
   {
-    // SCENE 2 — The Car (LOOP LANDING) · plate IWC_Concept_2.png (clean)
-    // composition target: IWC_Concept_3.png mockup — supersedes brief v3's
-    // "Premium From / Day One" copy per Aaron 2026-06-11
+    // SCENE 2 — The Desk Setup · plate IWC_Concept_8_notext.png (clean,
+    // Aaron 2026-06-11 evening: desk setup replaces the car; same copy +
+    // animations — text layout still follows the IWC_Concept_3.png mockup)
     id: 'scene-2',
     image: '/images/scenes/scene-2-desktop.webp',
-    objectPosition: { desktop: 'center 55%', mobile: '62% center' }, // keep grille
+    objectPosition: { desktop: 'center 55%', mobile: '62% center' }, // keep the glowing tower
     gradient:
       'linear-gradient(115deg, rgba(8,9,12,.8), rgba(8,9,12,.28) 40%, transparent 62%), linear-gradient(to top, rgba(8,9,12,.88), rgba(8,9,12,.08) 50%, rgba(8,9,12,.25))',
     copyLayout: 'spread',
