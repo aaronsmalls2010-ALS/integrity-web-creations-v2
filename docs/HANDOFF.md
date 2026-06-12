@@ -49,8 +49,17 @@ the CRM on the v2 project.** How it's wired:
 4. After stability: archive the v2 GitHub repo if desired; new-site SEO
    (sitemap/robots/JSON-LD/canonicals), Lighthouse pass, reduced-motion
    page, real-device QA — the brief's remaining steps now apply to v3.
-5. Working copy still has remotes: origin=v2 repo, v3=v3 repo. Keep
-   pushing the branch to BOTH (v3's master is production).
+5. **WORK FROM THE v3 FOLDER NOW:** `Web Projects\integrity-web-creations-v3`
+   (fresh clone of the v3 repo, master, origin=v3 repo only, .env copied,
+   deps installed). Pushing master there auto-deploys the LIVE site. This
+   v2 folder stays as the archived CRM codebase + the cinematic branch
+   history (its remotes: origin=v2 repo, v3=v3 repo).
+6. Scene-2 (car) swap is PENDING a clean re-export: Aaron's new
+   IWC_Concept_8.png (Downloads, 2026-06-11 8:09pm — desk setup at dusk)
+   has the marketing copy BAKED IN (it's a mockup; DOM already animates
+   that copy). Asked Aaron for the same render with NO text, ideally
+   ≥2560w. Then: drop into Storyboard/, point scene 2's entry in
+   scripts/optimize-images.mjs at it, `npm run optimize-images`, deploy.
 
 Read this first in a fresh session, alongside `IWC_ClaudeCode_Prompt.md`
 (the original brief — many of its specifics have since been superseded by
