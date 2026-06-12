@@ -894,14 +894,11 @@ body {
 
 /* mobile: full-screen copy fits within boundaries */
 @media (max-width: 768px) {
-  /* the logo card is landscape art — cover-cropping it in portrait shears
-     the wordmark. Contain shows the COMPLETE card, letterboxed on black. */
-  #scene-1 .scene__bg img {
-    object-fit: contain;
-    object-position: center center !important;
-  }
-  /* penthouse plate shown complete on phones — no crop, no distortion */
-  #scene-3 .scene__bg img {
+  /* ALL plates are landscape art — cover-cropping them in portrait blows
+     the imagery past the screen (Aaron 2026-06-11 night: scene-2 desk
+     setup "too large"). Contain shows each COMPLETE image, letterboxed
+     on black, like scenes 1+3 always were. */
+  .scene__bg img {
     object-fit: contain;
     object-position: center center !important;
   }
@@ -949,9 +946,10 @@ body {
   .point__body {
     font-size: 0.6rem;
   }
-  /* lift "Built With Intention" onto the dark monitor area */
+  /* "Built With Intention" centers on the contained monitor plate (the
+     28cqh cover-crop lift is obsolete now that plates show complete) */
   #scene-5 .scene__copy.copy--center {
-    padding-bottom: 28cqh;
+    padding-bottom: 0;
   }
   /* scene 3 portrait: image is contained mid-screen — headline stays in the
      top dark band, the three line items move to the BOTTOM dark band */
