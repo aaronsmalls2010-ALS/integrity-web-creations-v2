@@ -61,6 +61,7 @@ const base = Astro.url.origin;
 
   <!-- ── Action error banner ── -->
   <p id="actionErr" role="alert" class="hidden mt-4 rounded-lg bg-[#ff6b6b]/15 px-4 py-2 text-sm text-[#ff6b6b]"></p>
+  <p id="actionOk" role="status" class="hidden mt-4 rounded-lg bg-[#22c55e]/15 px-4 py-2 text-sm text-[#22c55e]"></p>
 
   <!-- ── Action buttons ── -->
   <div class="mt-6 flex flex-wrap gap-2" data-id={inv.id}>
@@ -72,6 +73,9 @@ const base = Astro.url.origin;
     )}
     {inv.status !== 'draft' && (
       <a href={`/api/admin/invoices/${inv.id}/pdf`} class="btn-ghost">Download PDF</a>
+    )}
+    {inv.status !== 'draft' && inv.status !== 'void' && (
+      <button id="resend" class="btn-ghost">Resend email</button>
     )}
     <button id="dup" class="btn-ghost">Duplicate</button>
     {inv.status !== 'paid' && inv.status !== 'void' && (
@@ -166,6 +170,14 @@ const base = Astro.url.origin;
       const el = document.getElementById('actionErr')!;
       el.textContent = msg;
       el.classList.remove('hidden');
+      document.getElementById('actionOk')!.classList.add('hidden');
+    }
+
+    function showActionOk(msg: string) {
+      const el = document.getElementById('actionOk')!;
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      document.getElementById('actionErr')!.classList.add('hidden');
     }
 
     /* ── confirm dialog ── */
@@ -218,6 +230,19 @@ const base = Astro.url.origin;
       if (!(await confirmDialog('Send invoice?', 'This assigns a number and locks the invoice.', 'Send'))) return;
       const r = await fetch(`/api/admin/invoices/${id}/send`, { method: 'POST' });
       if (r.ok) location.reload(); else showActionErr((await r.json()).error ?? 'Failed to send invoice.');
+    });
+
+    /* ── resend email ── */
+    document.getElementById('resend')?.addEventListener('click', async () => {
+      if (!(await confirmDialog('Resend invoice email?', 'Emails the current invoice to the client again (no changes to the invoice).', 'Resend'))) return;
+      const btn = document.getElementById('resend') as HTMLButtonElement;
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/admin/invoices/${id}/resend`, { method: 'POST' });
+        const j = await r.json().catch(() => ({}));
+        if (r.ok) showActionOk(`Email resent to ${j.to}.`);
+        else showActionErr(j.error ?? 'Failed to resend invoice email.');
+      } finally { btn.disabled = false; }
     });
 
     /* ── duplicate ── */

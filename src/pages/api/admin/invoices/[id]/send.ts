@@ -13,7 +13,10 @@ export const POST: APIRoute = async ({ params, cookies, url }) => {
       const to = inv.bill_to_snapshot?.email || inv.client?.email;
       if (to) {
         const e = invoiceEmail(inv, url.origin);
-        await sendEmail({ to, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody });
+        // CC the owner on every invoice that goes out (INVOICE_CC overrides;
+        // defaults to the sending mailbox so Aaron keeps a copy of each one).
+        const cc = import.meta.env.INVOICE_CC ?? import.meta.env.SMTP_USER;
+        await sendEmail({ to, cc, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody });
       }
     } catch (err) { console.error('[send] invoice email failed (non-fatal):', err); }
     return json({ invoice: inv });

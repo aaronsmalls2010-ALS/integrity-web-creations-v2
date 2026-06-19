@@ -28,6 +28,7 @@ export interface SendEmailOpts {
   textBody?: string;
   attachments?: EmailAttachment[];
   replyTo?: string;
+  cc?: string | string[];
 }
 
 export async function sendEmail(opts: SendEmailOpts): Promise<void> {
@@ -55,6 +56,7 @@ export async function sendEmail(opts: SendEmailOpts): Promise<void> {
   const info = await transporter.sendMail({
     from: `Integrity Web Creations <${from}>`,
     to: opts.to,
+    cc: opts.cc,
     subject: opts.subject,
     html: opts.htmlBody,
     text: opts.textBody,
