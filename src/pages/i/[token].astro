@@ -15,6 +15,15 @@ const subtotalCents: number = inv.lines.reduce((s: number, l: any) => s + (l.amo
 const discountCents: number = inv.discount_cents ?? 0;
 const taxCents: number = inv.tax_cents ?? 0;
 const totalCents: number = inv.total_cents ?? (subtotalCents - discountCents + taxCents);
+
+/* issuer contact: app_settings has no phone/website columns, so these are fixed
+   (IWC is the only issuer). Email comes from the snapshot's from_email. */
+const BIZ_PHONE = '(843) 263-0072';
+const BIZ_WEB = 'www.integritywebcreations.com';
+const bizEmail = issuer.from_email ?? issuer.reply_to ?? 'asmalls@integritywebcreations.com';
+const bizName = issuer.business_name ?? 'Integrity Web Creations';
+const paymentText = (issuer.payment_instructions && String(issuer.payment_instructions).trim())
+  || `Pay securely online with the button above, or contact us at ${bizEmail} or ${BIZ_PHONE}. Please make checks payable to ${bizName}.`;
 ---
 <!doctype html>
 <html lang="en">
@@ -394,9 +403,10 @@ const totalCents: number = inv.total_cents ?? (subtotalCents - discountCents + t
         <address>
           {issuer.address_line1 && <>{issuer.address_line1}<br /></>}
           {issuer.address_line2 && <>{issuer.address_line2}<br /></>}
-          {issuer.city && issuer.state && <>{issuer.city}, {issuer.state} {issuer.zip}<br /></>}
-          {issuer.email && <>{issuer.email}<br /></>}
-          {issuer.phone && <>{issuer.phone}</>}
+          {issuer.city && issuer.state && <>{issuer.city}, {issuer.state} {issuer.postal_code}<br /></>}
+          {bizEmail}<br />
+          {BIZ_PHONE}<br />
+          {BIZ_WEB}
         </address>
       </div>
     </header>
@@ -430,7 +440,7 @@ const totalCents: number = inv.total_cents ?? (subtotalCents - discountCents + t
         <address>
           {bill.address_line1 && <>{bill.address_line1}<br /></>}
           {bill.address_line2 && <>{bill.address_line2}<br /></>}
-          {bill.city && bill.state && <>{bill.city}, {bill.state} {bill.zip}<br /></>}
+          {bill.city && bill.state && <>{bill.city}, {bill.state} {bill.postal_code}<br /></>}
           {bill.email && <>{bill.email}</>}
         </address>
       </div>
@@ -506,12 +516,8 @@ const totalCents: number = inv.total_cents ?? (subtotalCents - discountCents + t
       <!-- Footer: payment instructions + PDF -->
       <div class="invoice-footer">
         <div class="payment-instructions">
-          {issuer.payment_instructions && (
-            <>
-              <div class="instructions-label">Payment Instructions</div>
-              {issuer.payment_instructions}
-            </>
-          )}
+          <div class="instructions-label">Payment Instructions</div>
+          {paymentText}
         </div>
         <a href={`/i/${token}/pdf`} class="pdf-link">Download PDF</a>
       </div>
