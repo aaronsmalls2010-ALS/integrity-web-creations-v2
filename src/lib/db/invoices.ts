@@ -10,6 +10,7 @@ export interface DraftLine { service_id?: string|null; description: string; quan
 export interface DraftInput {
   client_id: string; issue_date: string; due_date: string;
   tax_rate: number; discount_cents: number; terms?: string; notes?: string;
+  late_fee_enabled?: boolean; late_fee_percent?: number; late_fee_grace_days?: number;
   lines: DraftLine[];
 }
 
@@ -26,6 +27,10 @@ export async function createDraft(cookies: AstroCookies, input: DraftInput) {
     tax_rate: input.tax_rate, discount_cents: input.discount_cents,
     subtotal_cents: t.subtotalCents, tax_cents: t.taxCents, total_cents: t.totalCents,
     balance_cents: t.totalCents, terms: input.terms, notes: input.notes,
+    // undefined keys are omitted by supabase-js, so DB defaults apply
+    late_fee_enabled: input.late_fee_enabled,
+    late_fee_percent: input.late_fee_percent,
+    late_fee_grace_days: input.late_fee_grace_days,
   }).select().single();
   if (error) throw error;
   const invAny = inv as any;

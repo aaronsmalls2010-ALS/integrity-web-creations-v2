@@ -61,6 +61,23 @@ const services = await listServices(Astro.cookies);
         <div class="text-right font-semibold text-[#e6edf5] w-full" id="totalPreview">Total: $0.00</div>
       </div>
     </div>
+    <fieldset class="rounded border border-white/10 p-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+        <label class="flex items-center gap-2 text-sm text-[#e6edf5] pb-2">
+          <input id="late_fee_enabled" type="checkbox" checked />
+          Apply late fee if overdue
+        </label>
+        <div>
+          <label class="lbl" for="late_fee_percent">Late fee (% of balance)</label>
+          <input id="late_fee_percent" type="number" step="0.1" min="0" value="1.5" class="input" />
+        </div>
+        <div>
+          <label class="lbl" for="late_fee_grace_days">Grace days after due</label>
+          <input id="late_fee_grace_days" type="number" step="1" min="0" value="5" class="input" />
+        </div>
+      </div>
+      <p class="mt-2 text-xs text-[#9fb3c8]">If unpaid past the due date + grace, the fee is added once and the updated invoice is emailed automatically.</p>
+    </fieldset>
     <div>
       <label class="lbl" for="notes">Notes / terms</label>
       <textarea id="notes" name="notes" placeholder="Notes / terms" class="input w-full"></textarea>
@@ -144,6 +161,9 @@ const services = await listServices(Astro.cookies);
         tax_rate: Number(taxRateEl.value || '0'),
         discount_cents: safeCents(discountEl.value),
         notes: (form.elements.namedItem('notes') as HTMLTextAreaElement).value,
+        late_fee_enabled: (document.getElementById('late_fee_enabled') as HTMLInputElement).checked,
+        late_fee_percent: Number((document.getElementById('late_fee_percent') as HTMLInputElement).value || '0'),
+        late_fee_grace_days: Number((document.getElementById('late_fee_grace_days') as HTMLInputElement).value || '0'),
         lines,
       };
       const res = await fetch('/api/admin/invoices', {
