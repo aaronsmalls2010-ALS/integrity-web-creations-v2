@@ -24,6 +24,10 @@ const bizEmail = issuer.from_email ?? issuer.reply_to ?? 'asmalls@integritywebcr
 const bizName = issuer.business_name ?? 'Integrity Web Creations';
 const paymentText = (issuer.payment_instructions && String(issuer.payment_instructions).trim())
   || `Pay securely online with the button above, or contact us at ${bizEmail} or ${BIZ_PHONE}. Please make checks payable to ${bizName}.`;
+const LOGO_URL = 'https://integrity-web-creations-v2-aaron-smalls-projects.vercel.app/invoice-logo.png';
+const termsText = (inv.terms && String(inv.terms).trim())
+  || 'Payment is due within 21 days of the invoice date (Net 21). Late balances may be subject to a 1.5% monthly service charge. All work is provided under the service agreement between the client and Integrity Web Creations. Please retain this invoice for your records.';
+const notesText = inv.notes && String(inv.notes).trim();
 ---
 <!doctype html>
 <html lang="en">
@@ -59,13 +63,19 @@ const paymentText = (issuer.payment_instructions && String(issuer.payment_instru
 
     /* ── Branded header band ──────────────────────────────────────── */
     .invoice-header {
-      background: #000d1a;
-      padding: 28px 36px 24px;
+      background: #000715;
+      padding: 24px 36px;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
       gap: 24px;
       flex-wrap: wrap;
+    }
+    .invoice-logo {
+      width: 230px;
+      max-width: 60vw;
+      height: auto;
+      display: block;
     }
 
     .logo-block {
@@ -393,10 +403,7 @@ const paymentText = (issuer.payment_instructions && String(issuer.payment_instru
     <!-- Branded header band -->
     <header class="invoice-header">
       <div class="logo-block">
-        <div class="logo-wordmark">
-          <span class="logo-integrity">integrity</span><span class="logo-wc"> WEB CREATIONS</span>
-        </div>
-        <div class="logo-tagline">Professional Web Services</div>
+        <img class="invoice-logo" src={LOGO_URL} alt={bizName} />
       </div>
       <div class="issuer-block">
         <div class="issuer-name">{issuer.business_name}</div>
@@ -512,6 +519,18 @@ const paymentText = (issuer.payment_instructions && String(issuer.payment_instru
           <a href={`/i/${token}/pay`} class="pay-btn">Pay {formatUSD(inv.balance_cents)} Now</a>
         </div>
       )}
+
+      <!-- Terms & notes -->
+      <div style="margin-top:28px;border-top:1px solid #e2e8f0;padding-top:18px;font-size:13px;color:#64748b;line-height:1.7;max-width:560px">
+        <div class="instructions-label">Terms</div>
+        <p>{termsText}</p>
+        {notesText && (
+          <>
+            <div class="instructions-label" style="margin-top:14px">Notes</div>
+            <p>{notesText}</p>
+          </>
+        )}
+      </div>
 
       <!-- Footer: payment instructions + PDF -->
       <div class="invoice-footer">

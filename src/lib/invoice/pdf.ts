@@ -11,6 +11,15 @@ function esc(v: unknown): string {
 // phone/website columns). Update here if the number/site ever changes.
 const BIZ_PHONE = '(843) 263-0072';
 const BIZ_WEB = 'www.integritywebcreations.com';
+// Logo is a static asset on the v2 deployment (public/invoice-logo.png),
+// referenced by absolute URL so it loads in the PDF (Puppeteer), the proxied
+// public page, and email alike.
+const LOGO_URL =
+  'https://integrity-web-creations-v2-aaron-smalls-projects.vercel.app/invoice-logo.png';
+// Fallback terms shown when an invoice has none set (app_settings.default_terms
+// populates inv.terms for new invoices).
+const DEFAULT_TERMS =
+  'Payment is due within 21 days of the invoice date (Net 21). Late balances may be subject to a 1.5% monthly service charge. All work is provided under the service agreement between the client and Integrity Web Creations. Please retain this invoice for your records.';
 
 function fmtDate(d: unknown): string {
   if (!d) return '';
@@ -60,20 +69,23 @@ export function invoiceHtml(inv: any): string {
   const balance = inv.balance_cents ?? inv.total_cents ?? 0;
   const isPaid = inv.status === 'paid' || balance <= 0;
 
-  const paymentText =
-    (issuer.payment_instructions && String(issuer.payment_instructions).trim()) ||
-    `Pay securely online using the link in your invoice email. Questions about this invoice? Email ${bizEmail} or call ${BIZ_PHONE}. Please make checks payable to ${biz}.`;
-
   const issuerAddr = addressLines(issuer);
   const billAddr = addressLines(bill);
+
+  const paymentText =
+    (issuer.payment_instructions && String(issuer.payment_instructions).trim()) ||
+    `Pay securely online with a credit or debit card using the link in your invoice email. ` +
+      `To pay by check, make it payable to ${biz}${issuerAddr ? ` and mail to ${addressLines(issuer).replace(/<br\/>/g, ', ')}` : ''}. ` +
+      `Questions about this invoice? Email ${bizEmail} or call ${BIZ_PHONE}.`;
+
+  const terms = (inv.terms && String(inv.terms).trim()) || DEFAULT_TERMS;
+  const notes = inv.notes && String(inv.notes).trim();
 
   return `<!doctype html><html><head><meta charset="utf-8"><style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Helvetica Neue',Arial,sans-serif;color:#0f172a;font-size:13px;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .header{background:#000d1a;color:#fff;padding:32px 48px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px}
-    .wordmark{font-size:21px;font-weight:800;letter-spacing:-.4px;line-height:1}
-    .wordmark .a{color:#00bcd4}.wordmark .b{color:#fff}
-    .tagline{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:5px}
+    .header{background:#000715;color:#fff;padding:28px 48px;display:flex;justify-content:space-between;align-items:center;gap:24px}
+    .logo{width:230px;height:auto;display:block}
     .issuer{text-align:right;font-size:11.5px;color:rgba(255,255,255,.7);line-height:1.6}
     .issuer .name{font-size:14px;font-weight:700;color:#fff;margin-bottom:3px}
     .body{padding:36px 48px 28px}
@@ -109,10 +121,7 @@ export function invoiceHtml(inv: any): string {
     .paid-stamp{display:inline-block;border:2px solid #15803d;color:#15803d;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:12px;padding:5px 14px;border-radius:6px;transform:rotate(-4deg)}
   </style></head><body>
     <div class="header">
-      <div>
-        <div class="wordmark"><span class="a">integrity</span><span class="b"> WEB CREATIONS</span></div>
-        <div class="tagline">Professional Web Services</div>
-      </div>
+      <img class="logo" src="${LOGO_URL}" alt="${esc(biz)}" />
       <div class="issuer">
         <div class="name">${esc(biz)}</div>
         ${issuerAddr ? `${issuerAddr}<br/>` : ''}${esc(bizEmail)}<br/>${esc(BIZ_PHONE)}<br/>${esc(BIZ_WEB)}
@@ -157,6 +166,13 @@ export function invoiceHtml(inv: any): string {
         <div class="label">Payment</div>
         <div class="text">${esc(paymentText)}</div>
       </div>
+
+      <div class="pay">
+        <div class="label">Terms</div>
+        <div class="text">${esc(terms)}</div>
+      </div>
+
+      ${notes ? `<div class="pay"><div class="label">Notes</div><div class="text">${esc(notes)}</div></div>` : ''}
 
       <div class="thanks">
         <div class="big">Thank you for your business.</div>

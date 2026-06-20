@@ -6,14 +6,14 @@ function esc(v: unknown): string {
 
 const BIZ_PHONE = '(843) 263-0072';
 const BIZ_WEB = 'www.integritywebcreations.com';
+const LOGO_URL = 'https://integrity-web-creations-v2-aaron-smalls-projects.vercel.app/invoice-logo.png';
 
-/** Branded email shell: navy header band + card body + contact footer. */
+/** Branded email shell: logo header band + card body + contact footer. */
 function shell(inner: string, footerContact = ''): string {
   return `<div style="background:#f1f5f9;padding:24px 0;font-family:'Segoe UI',Arial,Helvetica,sans-serif;color:#0f172a;line-height:1.6">
     <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.08)">
-      <div style="background:#000d1a;padding:22px 32px">
-        <span style="font-size:19px;font-weight:800;letter-spacing:-.4px"><span style="color:#00bcd4">integrity</span><span style="color:#fff"> WEB CREATIONS</span></span>
-        <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:4px">Professional Web Services</div>
+      <div style="background:#000715;padding:18px 32px">
+        <img src="${LOGO_URL}" alt="Integrity Web Creations" width="210" style="display:block;width:210px;max-width:62%;height:auto" />
       </div>
       <div style="padding:28px 32px">${inner}</div>
       ${footerContact ? `<div style="border-top:1px solid #e2e8f0;padding:16px 32px;font-size:11px;color:#94a3b8;text-align:center">${footerContact}</div>` : ''}
