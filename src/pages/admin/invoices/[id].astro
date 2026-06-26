@@ -66,7 +66,13 @@ const base = Astro.url.origin;
   <!-- ── Action buttons ── -->
   <div class="mt-6 flex flex-wrap gap-2" data-id={inv.id}>
     {inv.status === 'draft' && (
-      <button id="send" class="btn-primary">Send</button>
+      <a href={`/api/admin/invoices/${inv.id}/pdf?preview=1`} target="_blank" rel="noopener" class="btn-ghost">Preview PDF</a>
+    )}
+    {inv.status === 'draft' && (
+      <button id="issue" class="btn-primary">Issue</button>
+    )}
+    {inv.status === 'draft' && (
+      <button id="issueEmail" class="btn-primary">Issue &amp; email</button>
     )}
     {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && (
       <button id="pay" class="btn-primary">Record payment</button>
@@ -75,7 +81,7 @@ const base = Astro.url.origin;
       <a href={`/api/admin/invoices/${inv.id}/pdf`} class="btn-ghost">Download PDF</a>
     )}
     {inv.status !== 'draft' && inv.status !== 'void' && (
-      <button id="resend" class="btn-ghost">Resend email</button>
+      <button id="resend" class="btn-ghost">Email to client</button>
     )}
     <button id="dup" class="btn-ghost">Duplicate</button>
     {inv.status !== 'paid' && inv.status !== 'void' && (
@@ -225,23 +231,52 @@ const base = Astro.url.origin;
       document.body.style.overflow = '';
     }
 
-    /* ── send ── */
-    document.getElementById('send')?.addEventListener('click', async () => {
-      if (!(await confirmDialog('Send invoice?', 'This assigns a number and locks the invoice.', 'Send'))) return;
-      const r = await fetch(`/api/admin/invoices/${id}/send`, { method: 'POST' });
-      if (r.ok) location.reload(); else showActionErr((await r.json()).error ?? 'Failed to send invoice.');
-    });
+    /* ── issue (assign number + lock, no email) ── */
+    async function issue(email: boolean) {
+      const ok = email
+        ? await confirmDialog('Issue & email invoice?', 'Assigns the permanent invoice number, locks the invoice, and emails it to the client now.', 'Issue & email')
+        : await confirmDialog('Issue invoice?', 'Assigns the permanent invoice number and locks the invoice. The client is NOT emailed — you can send it afterward with “Email to client”.', 'Issue');
+      if (!ok) return;
+      const btnIds = ['issue', 'issueEmail'];
+      btnIds.forEach((b) => { const el = document.getElementById(b) as HTMLButtonElement | null; if (el) el.disabled = true; });
+      try {
+        const r = await fetch(`/api/admin/invoices/${id}/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { showActionErr(j.error ?? 'Failed to issue invoice.'); return; }
+        // Issued OK. If an email was requested but didn't go out, surface why on reload.
+        if (j.emailError) { sessionStorage.setItem('invoiceFlash', j.emailError); }
+        else if (email && j.emailed) { sessionStorage.setItem('invoiceFlashOk', 'Invoice issued and emailed to the client.'); }
+        else { sessionStorage.setItem('invoiceFlashOk', 'Invoice issued. Use “Email to client” when you’re ready to send it.'); }
+        location.reload();
+      } finally {
+        btnIds.forEach((b) => { const el = document.getElementById(b) as HTMLButtonElement | null; if (el) el.disabled = false; });
+      }
+    }
+    document.getElementById('issue')?.addEventListener('click', () => issue(false));
+    document.getElementById('issueEmail')?.addEventListener('click', () => issue(true));
 
-    /* ── resend email ── */
+    /* ── flash message after issue reload ── */
+    {
+      const flashErr = sessionStorage.getItem('invoiceFlash');
+      const flashOk = sessionStorage.getItem('invoiceFlashOk');
+      if (flashErr) { showActionErr(flashErr); sessionStorage.removeItem('invoiceFlash'); }
+      else if (flashOk) { showActionOk(flashOk); sessionStorage.removeItem('invoiceFlashOk'); }
+    }
+
+    /* ── email to client (works for first send or re-send; same number/token) ── */
     document.getElementById('resend')?.addEventListener('click', async () => {
-      if (!(await confirmDialog('Resend invoice email?', 'Emails the current invoice to the client again (no changes to the invoice).', 'Resend'))) return;
+      if (!(await confirmDialog('Email invoice to client?', 'Emails the current invoice to the client (no changes to the invoice number or contents).', 'Email'))) return;
       const btn = document.getElementById('resend') as HTMLButtonElement;
       btn.disabled = true;
       try {
         const r = await fetch(`/api/admin/invoices/${id}/resend`, { method: 'POST' });
         const j = await r.json().catch(() => ({}));
-        if (r.ok) showActionOk(`Email resent to ${j.to}.`);
-        else showActionErr(j.error ?? 'Failed to resend invoice email.');
+        if (r.ok) showActionOk(`Email sent to ${j.to}.`);
+        else showActionErr(j.error ?? 'Failed to email invoice.');
       } finally { btn.disabled = false; }
     });
 

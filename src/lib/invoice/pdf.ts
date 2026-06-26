@@ -1,5 +1,6 @@
 import { getAdminClient } from '../supabase/admin';
 import { formatUSD } from '../money';
+import { buildIssuerSnapshot, buildBillToSnapshot } from './snapshot';
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
 
@@ -44,7 +45,8 @@ function addressLines(a: Record<string, any>): string {
  * format, print-color-exact (the navy header band prints). Mirrors the public
  * invoice page so the PDF and the online view look like the same document.
  */
-export function invoiceHtml(inv: any): string {
+export function invoiceHtml(inv: any, opts: { preview?: boolean } = {}): string {
+  const isPreview = !!opts.preview;
   const issuer = inv.issuer_snapshot ?? {};
   const bill = inv.bill_to_snapshot ?? {};
   const biz = issuer.business_name ?? 'Integrity Web Creations';
@@ -119,7 +121,10 @@ export function invoiceHtml(inv: any): string {
     .thanks .big{font-size:15px;font-weight:700;color:#000d1a;margin-bottom:3px}
     .foot{margin-top:22px;border-top:1px solid #e2e8f0;padding-top:12px;text-align:center;font-size:10.5px;color:#94a3b8;line-height:1.6}
     .paid-stamp{display:inline-block;border:2px solid #15803d;color:#15803d;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:12px;padding:5px 14px;border-radius:6px;transform:rotate(-4deg)}
+    .wm{position:fixed;top:38%;left:0;right:0;text-align:center;transform:rotate(-22deg);font-size:88px;font-weight:800;letter-spacing:10px;color:rgba(15,23,42,.06);z-index:0;pointer-events:none}
+    .preview-tag{display:inline-block;margin-top:8px;background:#fff4ed;border:1px solid #f5b78a;color:#b4541b;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:10px;padding:3px 9px;border-radius:5px}
   </style></head><body>
+    ${isPreview ? '<div class="wm">PREVIEW</div>' : ''}
     <div class="header">
       <img class="logo" src="${LOGO_URL}" alt="${esc(biz)}" />
       <div class="issuer">
@@ -133,6 +138,7 @@ export function invoiceHtml(inv: any): string {
         <div>
           <div class="label">Invoice</div>
           <div class="inv-no">${esc(inv.invoice_number ?? 'DRAFT')}</div>
+          ${isPreview ? '<div><span class="preview-tag">Preview · not yet issued</span></div>' : ''}
           ${isPaid ? '<div style="margin-top:8px"><span class="paid-stamp">Paid</span></div>' : ''}
         </div>
         <div class="dates">
@@ -186,11 +192,30 @@ export function invoiceHtml(inv: any): string {
   </body></html>`;
 }
 
-export async function renderInvoicePdf(invoiceId: string): Promise<string> {
+export async function renderInvoicePdf(
+  invoiceId: string,
+  opts: { preview?: boolean } = {},
+): Promise<string> {
   const sb = getAdminClient();
   const { data: inv, error } = await sb.from('invoices')
     .select('*, lines:invoice_line_items(*)').eq('id', invoiceId).single();
   if (error || !inv) throw new Error('Invoice not found');
+
+  // A draft has no snapshots yet (they're frozen at issue time). Synthesize them
+  // from the live app_settings + client so a pre-issue preview shows the real
+  // issuer and Bill-To blocks instead of blanks. Issued invoices already carry
+  // their snapshots, so this is a no-op for them.
+  if (!inv.issuer_snapshot) {
+    const { data: settings } = await sb.from('app_settings').select('*').eq('id', true).single();
+    if (settings) inv.issuer_snapshot = buildIssuerSnapshot(settings as Record<string, any>);
+  }
+  if (!inv.bill_to_snapshot && inv.client_id) {
+    const { data: client } = await sb.from('clients').select('*').eq('id', inv.client_id).single();
+    if (client) inv.bill_to_snapshot = buildBillToSnapshot(client as Record<string, any>);
+  }
+
+  // Treat any not-yet-issued invoice as a preview (watermark + throwaway file).
+  const isPreview = !!opts.preview || inv.status === 'draft';
 
   const browser = await puppeteer.launch({
     args: chromium.args,
@@ -198,14 +223,18 @@ export async function renderInvoicePdf(invoiceId: string): Promise<string> {
     headless: true,
   });
   const page = await browser.newPage();
-  await page.setContent(invoiceHtml(inv), { waitUntil: 'networkidle0' });
+  await page.setContent(invoiceHtml(inv, { preview: isPreview }), { waitUntil: 'networkidle0' });
   // pdf() returns Uint8Array (an ArrayBufferView), accepted directly by Supabase FileBody
   const pdf = await page.pdf({ format: 'letter', printBackground: true });
   await browser.close();
 
-  const path = `${invoiceId}.pdf`;
+  // Previews go to a throwaway path and never touch pdf_storage_path — the issued
+  // PDF stays the single source of truth for what the client actually received.
+  const path = isPreview ? `${invoiceId}-preview.pdf` : `${invoiceId}.pdf`;
   await sb.storage.from('invoice-pdfs').upload(path, pdf, { contentType: 'application/pdf', upsert: true });
-  await sb.from('invoices').update({ pdf_storage_path: path }).eq('id', invoiceId);
+  if (!isPreview) {
+    await sb.from('invoices').update({ pdf_storage_path: path }).eq('id', invoiceId);
+  }
   const { data: signed } = await sb.storage.from('invoice-pdfs').createSignedUrl(path, 60 * 10);
   return signed!.signedUrl;
 }
