@@ -1,9 +1,13 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { getService } from '../../../lib/db/services';
+import { getService, listServices } from '../../../lib/db/services';
 import { centsToDollars } from '../../../lib/money';
 const s = await getService(Astro.cookies, Astro.params.id!);
+const existing = await listServices(Astro.cookies, true);
+const categories = [...new Set((existing ?? []).map((x: any) => x.category).filter(Boolean))];
+const subcategories = [...new Set((existing ?? []).map((x: any) => x.subcategory).filter(Boolean))];
+const UNITS = ['one-time', 'month', 'year', 'hour', 'page', 'each'];
 ---
 <AdminLayout title={s.name}>
   <h1 class="text-2xl font-bold text-[#e6edf5]">{s.name}</h1>
@@ -15,6 +19,22 @@ const s = await getService(Astro.cookies, Astro.params.id!);
     <div class="sm:col-span-2">
       <label class="lbl" for="description">Description</label>
       <textarea id="description" name="description" class="input">{s.description ?? ''}</textarea>
+    </div>
+    <div>
+      <label class="lbl" for="category">Category</label>
+      <input id="category" name="category" list="catList" value={s.category ?? ''} class="input" />
+      <datalist id="catList">{categories.map((c) => <option value={c} />)}</datalist>
+    </div>
+    <div>
+      <label class="lbl" for="subcategory">Subcategory</label>
+      <input id="subcategory" name="subcategory" list="subcatList" value={s.subcategory ?? ''} class="input" />
+      <datalist id="subcatList">{subcategories.map((c) => <option value={c} />)}</datalist>
+    </div>
+    <div>
+      <label class="lbl" for="unit">Billing unit</label>
+      <select id="unit" name="unit" class="input">
+        {UNITS.map((u) => <option value={u} selected={s.unit === u}>{u}</option>)}
+      </select>
     </div>
     <div>
       <label class="lbl" for="price">Default price (USD)</label>
@@ -49,6 +69,9 @@ const s = await getService(Astro.cookies, Astro.params.id!);
       const body = {
         name: (form.elements.namedItem('name') as HTMLInputElement).value,
         description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
+        category: (form.elements.namedItem('category') as HTMLInputElement).value,
+        subcategory: (form.elements.namedItem('subcategory') as HTMLInputElement).value,
+        unit: (form.elements.namedItem('unit') as HTMLSelectElement).value,
         price: (form.elements.namedItem('price') as HTMLInputElement).value,
         default_quantity: (form.elements.namedItem('default_quantity') as HTMLInputElement).value,
         taxable: (form.elements.namedItem('taxable') as HTMLInputElement).checked,

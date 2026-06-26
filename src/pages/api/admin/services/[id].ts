@@ -13,10 +13,14 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
   try { price = dollarsToCents(String(raw.price ?? '0')); } catch { return unprocessable('Invalid price'); }
   const parsed = serviceSchema.safeParse({
     name: raw.name, description: raw.description,
+    category: raw.category || undefined,
+    subcategory: raw.subcategory || undefined,
+    unit: raw.unit || undefined,
     default_unit_price_cents: price,
     default_quantity: Number(raw.default_quantity ?? 1),
     taxable: raw.taxable === true || raw.taxable === 'on',
     active: raw.active === undefined ? true : (raw.active === true || raw.active === 'on'),
+    sort_order: raw.sort_order != null && raw.sort_order !== '' ? Number(raw.sort_order) : undefined,
   });
   if (!parsed.success) return unprocessable(parsed.error.issues[0].message);
   try { return json({ service: await updateService(cookies, params.id!, parsed.data) }); }

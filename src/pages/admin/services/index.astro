@@ -15,7 +15,9 @@ const services = await listServices(Astro.cookies, true);
       <thead>
         <tr class="text-left text-[#9fb3c8]">
           <th scope="col" class="p-2">Name</th>
+          <th scope="col">Category</th>
           <th scope="col">Price</th>
+          <th scope="col">Unit</th>
           <th scope="col">Taxable</th>
           <th scope="col">Active</th>
         </tr>
@@ -24,7 +26,9 @@ const services = await listServices(Astro.cookies, true);
         {services.map((s) => (
           <tr class="border-t border-white/[0.08] hover:bg-white/5">
             <td class="p-2"><a class="font-medium text-[#00e5ff] hover:underline" href={`/admin/services/${s.id}`}>{s.name}</a></td>
+            <td class="text-[#9fb3c8]">{s.category ?? '—'}{s.subcategory ? ` › ${s.subcategory}` : ''}</td>
             <td>{formatUSD(s.default_unit_price_cents)}</td>
+            <td class="text-[#9fb3c8]">{s.unit ?? '—'}</td>
             <td>{s.taxable ? 'Yes' : 'No'}</td>
             <td>{s.active ? 'Yes' : 'No'}</td>
           </tr>

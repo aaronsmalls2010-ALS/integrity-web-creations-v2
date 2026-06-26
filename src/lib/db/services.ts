@@ -4,7 +4,7 @@ import type { ServiceInput } from '../validation';
 
 export async function listServices(cookies: AstroCookies, includeInactive = false) {
   const sb = getServerClient(cookies);
-  let q = sb.from('services').select('*').order('name');
+  let q = sb.from('services').select('*').order('sort_order', { ascending: true }).order('name');
   if (!includeInactive) q = q.eq('active', true);
   const { data, error } = await q;
   if (error) throw error;

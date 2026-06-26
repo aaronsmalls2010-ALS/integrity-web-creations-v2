@@ -77,6 +77,9 @@ const base = Astro.url.origin;
     {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && (
       <button id="pay" class="btn-primary">Record payment</button>
     )}
+    {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && (
+      <button id="markPaid" class="btn-ghost" style="color:#22c55e;border-color:#22c55e55;">Mark as paid</button>
+    )}
     {inv.status !== 'draft' && (
       <a href={`/api/admin/invoices/${inv.id}/pdf`} class="btn-ghost">Download PDF</a>
     )}
@@ -278,6 +281,18 @@ const base = Astro.url.origin;
         if (r.ok) showActionOk(`Email sent to ${j.to}.`);
         else showActionErr(j.error ?? 'Failed to email invoice.');
       } finally { btn.disabled = false; }
+    });
+
+    /* ── mark as paid (records a payment for the full balance) ── */
+    document.getElementById('markPaid')?.addEventListener('click', async () => {
+      if (!(await confirmDialog('Mark invoice as paid?', 'Records a payment for the full remaining balance and marks the invoice paid. Use this for invoices settled by check, cash, or Zelle.', 'Mark paid'))) return;
+      const btn = document.getElementById('markPaid') as HTMLButtonElement;
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/admin/invoices/${id}/mark-paid`, { method: 'POST' });
+        if (r.ok) location.reload();
+        else { showActionErr((await r.json().catch(() => ({}))).error ?? 'Failed to mark invoice as paid.'); btn.disabled = false; }
+      } catch { showActionErr('Failed to mark invoice as paid.'); btn.disabled = false; }
     });
 
     /* ── duplicate ── */

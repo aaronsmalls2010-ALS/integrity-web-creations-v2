@@ -5,6 +5,16 @@ import { listClients } from '../../../lib/db/clients';
 import { listServices } from '../../../lib/db/services';
 const clients = await listClients(Astro.cookies);
 const services = await listServices(Astro.cookies);
+
+// Group services by category for the preset picker (services arrive ordered by
+// sort_order, so categories + items keep their intended order). Unit becomes a
+// readable price suffix, e.g. "$15/mo" or "$110/hr".
+const unitSuffix: Record<string, string> = { month: '/mo', year: '/yr', hour: '/hr', page: '/page', each: ' ea' };
+const priceLabel = (s: any) => `$${(s.default_unit_price_cents / 100).toFixed(2)}${unitSuffix[s.unit as string] ?? ''}`;
+const servicesByCategory = (services ?? []).reduce((acc: Record<string, any[]>, s: any) => {
+  (acc[s.category ?? 'Other'] ??= []).push(s);
+  return acc;
+}, {} as Record<string, any[]>);
 ---
 <AdminLayout title="New Invoice">
   <h1 class="text-2xl font-bold text-[#e6edf5]">New invoice</h1>
@@ -41,10 +51,16 @@ const services = await listServices(Astro.cookies);
     </table>
     <div class="flex gap-2 flex-wrap">
       <button type="button" id="addLine" class="btn-ghost text-sm px-3 py-1">+ Line</button>
-      <select id="presetPicker" class="input w-auto text-sm">
-        <option value="">Add from preset…</option>
-        {services.map((s) => (
-          <option value={s.id} data-desc={s.name} data-price={(s.default_unit_price_cents/100).toFixed(2)} data-tax={String(s.taxable)}>{s.name} — ${(s.default_unit_price_cents/100).toFixed(2)}</option>
+      <select id="presetPicker" class="input w-auto text-sm max-w-full">
+        <option value="">Add service from catalog…</option>
+        {Object.entries(servicesByCategory).map(([cat, items]) => (
+          <optgroup label={cat}>
+            {items.map((s) => (
+              <option value={s.id} data-desc={s.name} data-price={(s.default_unit_price_cents/100).toFixed(2)} data-tax={String(s.taxable)}>
+                {s.subcategory ? `${s.subcategory} · ` : ''}{s.name} — {priceLabel(s)}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
     </div>

@@ -21,10 +21,14 @@ export type ClientInput = z.infer<typeof clientSchema>;
 export const serviceSchema = z.object({
   name: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).optional(),
+  category: z.string().trim().max(100).optional(),
+  subcategory: z.string().trim().max(100).optional(),
+  unit: z.string().trim().max(40).optional(),
   default_unit_price_cents: z.number().int().nonnegative(),
   default_quantity: z.number().positive().default(1),
   taxable: z.boolean().default(false),
   active: z.boolean().default(true),
+  sort_order: z.number().int().optional(),
 });
 export type ServiceInput = z.infer<typeof serviceSchema>;
 
