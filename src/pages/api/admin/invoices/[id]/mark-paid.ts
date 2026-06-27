@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getInvoice, recordPayment } from '../../../../../lib/db/invoices';
 import { json, unprocessable, serverError } from '../../../../../lib/http';
+import { sendEmail } from '../../../../../lib/email/postmark';
+import { receiptEmail, ownerAlertEmail } from '../../../../../lib/email/content';
 
 export const prerender = false;
 
@@ -10,7 +12,7 @@ export const prerender = false;
  * still reconcile and there's an audit trail — recordPayment then recomputes the
  * status to 'paid'. Optional body { method, reference } customizes the record.
  */
-export const POST: APIRoute = async ({ params, cookies, request }) => {
+export const POST: APIRoute = async ({ params, cookies, request, url }) => {
   try {
     let method = 'other';
     let reference: string | undefined = 'Marked as paid';
@@ -25,11 +27,28 @@ export const POST: APIRoute = async ({ params, cookies, request }) => {
     if (inv.status === 'void') return unprocessable('Cannot mark a void invoice as paid.');
     if ((inv.balance_cents ?? 0) <= 0) return unprocessable('This invoice is already fully paid.');
 
-    const updated = await recordPayment(cookies, params.id!, {
-      amount_cents: inv.balance_cents,
+    const amount = inv.balance_cents; // the balance being settled
+    const updated: any = await recordPayment(cookies, params.id!, {
+      amount_cents: amount,
       method,
       reference,
     });
+
+    // Email the client the updated (now PAID) invoice — same receipt the Record
+    // Payment and Stripe paths send. Non-fatal so the UI still reports success.
+    try {
+      const to = updated.bill_to_snapshot?.email || updated.client?.email;
+      if (to) {
+        const e = receiptEmail(updated, amount, url.origin);
+        await sendEmail({ to, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody });
+      }
+      const owner = import.meta.env.ADMIN_ALLOWLIST_EMAIL;
+      if (updated.status === 'paid' && owner) {
+        const oa = ownerAlertEmail('paid', updated);
+        await sendEmail({ to: owner, subject: oa.subject, htmlBody: oa.htmlBody, textBody: oa.textBody });
+      }
+    } catch (err) { console.error('[mark-paid] email failed (non-fatal):', err); }
+
     return json({ invoice: updated });
   } catch (e) {
     console.error('[mark-paid]', e);

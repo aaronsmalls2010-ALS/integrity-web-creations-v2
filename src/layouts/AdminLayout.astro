@@ -10,6 +10,17 @@ const path = Astro.url.pathname;
   <meta name="robots" content="noindex,nofollow" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <title>{title} — IWC Admin</title>
+  <style>
+    /* Make native date pickers usable in the dark admin theme: dark popup +
+       a visible, clickable calendar icon on every date field. */
+    input[type="date"] { color-scheme: dark; }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.85);
+      cursor: pointer;
+      opacity: 0.9;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+  </style>
 </head>
 <body class="min-h-screen bg-[#000d1a] text-[#e6edf5]" style="font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
   <header class="flex items-center justify-between border-b border-white/[0.08] bg-[#0a1626] px-4 py-3 lg:hidden">

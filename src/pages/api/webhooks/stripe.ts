@@ -4,6 +4,7 @@ import { getAdminClient } from '../../../lib/supabase/admin';
 import { applyPayments, type InvoiceStatus } from '../../../lib/invoice/status';
 import { sendEmail } from '../../../lib/email/postmark';
 import { receiptEmail, ownerAlertEmail } from '../../../lib/email/content';
+import { syncRefundsForPaymentIntent } from '../../../lib/db/refunds';
 
 export const prerender = false;
 
@@ -73,6 +74,23 @@ export const POST: APIRoute = async ({ request }) => {
         }
       }
     }
+
+    // Refunds issued from the Stripe dashboard (or elsewhere) reconcile back here.
+    if (event.type === 'charge.refunded') {
+      const charge = event.data.object as any;
+      const pi = typeof charge.payment_intent === 'string' ? charge.payment_intent : null;
+      const refunds = (charge.refunds?.data ?? []).map((r: any) => ({ id: r.id, amount: r.amount }));
+      if (pi && refunds.length) {
+        const invoiceId = await syncRefundsForPaymentIntent(sb, pi, refunds);
+        if (invoiceId) {
+          await sb.from('activity_log').insert({
+            entity_type: 'invoice', entity_id: invoiceId, action: 'refunded',
+            detail: { via: 'stripe_webhook', event: event.id, amount_refunded: charge.amount_refunded },
+          });
+        }
+      }
+    }
+
     return ok({ received: true });
   } catch (e) {
     console.error('[stripe webhook] processing failed:', e);

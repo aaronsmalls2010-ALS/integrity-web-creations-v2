@@ -3,6 +3,7 @@ import { getInvoice, logActivity } from '../../../../../lib/db/invoices';
 import { json, unprocessable, serverError } from '../../../../../lib/http';
 import { sendEmail } from '../../../../../lib/email/postmark';
 import { invoiceEmail } from '../../../../../lib/email/content';
+import { renderInvoicePdfBytes } from '../../../../../lib/invoice/pdf';
 
 export const prerender = false;
 
@@ -24,7 +25,13 @@ export const POST: APIRoute = async ({ params, cookies, url }) => {
     const e = invoiceEmail(inv, url.origin);
     const cc = import.meta.env.INVOICE_CC ?? import.meta.env.SMTP_USER;
     try {
-      await sendEmail({ to, cc, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody });
+      const { bytes } = await renderInvoicePdfBytes(inv.id, { baseUrl: url.origin });
+      const attachments = [{
+        name: `Invoice-${inv.invoice_number}.pdf`,
+        contentBase64: Buffer.from(bytes).toString('base64'),
+        contentType: 'application/pdf',
+      }];
+      await sendEmail({ to, cc, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody, attachments });
     } catch (err: any) {
       console.error('[resend] email failed:', err);
       return json({ error: `Email failed: ${err?.message ?? 'unknown error'}` }, 502);

@@ -45,8 +45,9 @@ function addressLines(a: Record<string, any>): string {
  * format, print-color-exact (the navy header band prints). Mirrors the public
  * invoice page so the PDF and the online view look like the same document.
  */
-export function invoiceHtml(inv: any, opts: { preview?: boolean } = {}): string {
+export function invoiceHtml(inv: any, opts: { preview?: boolean; payUrl?: string } = {}): string {
   const isPreview = !!opts.preview;
+  const payUrl = opts.payUrl;
   const issuer = inv.issuer_snapshot ?? {};
   const bill = inv.bill_to_snapshot ?? {};
   const biz = issuer.business_name ?? 'Integrity Web Creations';
@@ -120,7 +121,7 @@ export function invoiceHtml(inv: any, opts: { preview?: boolean } = {}): string 
     .thanks{margin-top:26px;text-align:center;color:#64748b;font-size:12px}
     .thanks .big{font-size:15px;font-weight:700;color:#000d1a;margin-bottom:3px}
     .foot{margin-top:22px;border-top:1px solid #e2e8f0;padding-top:12px;text-align:center;font-size:10.5px;color:#94a3b8;line-height:1.6}
-    .paid-stamp{display:inline-block;border:2px solid #15803d;color:#15803d;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:12px;padding:5px 14px;border-radius:6px;transform:rotate(-4deg)}
+    .paid-stamp{display:inline-block;border:4px solid #c0392b;color:#c0392b;font-weight:900;letter-spacing:7px;text-transform:uppercase;font-size:40px;line-height:1;padding:8px 28px 6px;border-radius:10px;transform:rotate(-9deg);opacity:.92;box-shadow:0 0 0 1px #c0392b inset}
     .wm{position:fixed;top:38%;left:0;right:0;text-align:center;transform:rotate(-22deg);font-size:88px;font-weight:800;letter-spacing:10px;color:rgba(15,23,42,.06);z-index:0;pointer-events:none}
     .preview-tag{display:inline-block;margin-top:8px;background:#fff4ed;border:1px solid #f5b78a;color:#b4541b;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:10px;padding:3px 9px;border-radius:5px}
   </style></head><body>
@@ -139,7 +140,7 @@ export function invoiceHtml(inv: any, opts: { preview?: boolean } = {}): string 
           <div class="label">Invoice</div>
           <div class="inv-no">${esc(inv.invoice_number ?? 'DRAFT')}</div>
           ${isPreview ? '<div><span class="preview-tag">Preview · not yet issued</span></div>' : ''}
-          ${isPaid ? '<div style="margin-top:8px"><span class="paid-stamp">Paid</span></div>' : ''}
+          ${isPaid ? '<div style="margin-top:14px"><span class="paid-stamp">Paid</span></div>' : ''}
         </div>
         <div class="dates">
           <div><div class="label">Date Issued</div><div class="v">${fmtDate(inv.issue_date)}</div></div>
@@ -171,6 +172,10 @@ export function invoiceHtml(inv: any, opts: { preview?: boolean } = {}): string 
       <div class="pay">
         <div class="label">Payment</div>
         <div class="text">${esc(paymentText)}</div>
+        ${payUrl && !isPaid ? `<div style="margin-top:12px">
+          <a href="${esc(payUrl)}" style="display:inline-block;background:#0052cc;color:#fff;padding:10px 26px;border-radius:6px;text-decoration:none;font-weight:700;font-size:12.5px;letter-spacing:.3px">Pay This Invoice Online</a>
+          <div style="margin-top:6px;font-size:10.5px;color:#64748b">Or pay at: ${esc(payUrl)}</div>
+        </div>` : ''}
       </div>
 
       <div class="pay">
@@ -192,10 +197,15 @@ export function invoiceHtml(inv: any, opts: { preview?: boolean } = {}): string 
   </body></html>`;
 }
 
-export async function renderInvoicePdf(
+/**
+ * Render the invoice PDF and return the raw bytes (for emailing as an
+ * attachment). Pass `baseUrl` to embed a clickable "Pay This Invoice Online"
+ * link in the PDF (skipped for paid invoices).
+ */
+export async function renderInvoicePdfBytes(
   invoiceId: string,
-  opts: { preview?: boolean } = {},
-): Promise<string> {
+  opts: { preview?: boolean; baseUrl?: string } = {},
+): Promise<{ bytes: Uint8Array; isPreview: boolean }> {
   const sb = getAdminClient();
   const { data: inv, error } = await sb.from('invoices')
     .select('*, lines:invoice_line_items(*)').eq('id', invoiceId).single();
@@ -216,6 +226,7 @@ export async function renderInvoicePdf(
 
   // Treat any not-yet-issued invoice as a preview (watermark + throwaway file).
   const isPreview = !!opts.preview || inv.status === 'draft';
+  const payUrl = opts.baseUrl && inv.public_token ? `${opts.baseUrl}/i/${inv.public_token}` : undefined;
 
   const browser = await puppeteer.launch({
     args: chromium.args,
@@ -223,15 +234,24 @@ export async function renderInvoicePdf(
     headless: true,
   });
   const page = await browser.newPage();
-  await page.setContent(invoiceHtml(inv, { preview: isPreview }), { waitUntil: 'networkidle0' });
+  await page.setContent(invoiceHtml(inv, { preview: isPreview, payUrl }), { waitUntil: 'networkidle0' });
   // pdf() returns Uint8Array (an ArrayBufferView), accepted directly by Supabase FileBody
-  const pdf = await page.pdf({ format: 'letter', printBackground: true });
+  const bytes = await page.pdf({ format: 'letter', printBackground: true });
   await browser.close();
+  return { bytes, isPreview };
+}
+
+export async function renderInvoicePdf(
+  invoiceId: string,
+  opts: { preview?: boolean; baseUrl?: string } = {},
+): Promise<string> {
+  const sb = getAdminClient();
+  const { bytes, isPreview } = await renderInvoicePdfBytes(invoiceId, opts);
 
   // Previews go to a throwaway path and never touch pdf_storage_path — the issued
   // PDF stays the single source of truth for what the client actually received.
   const path = isPreview ? `${invoiceId}-preview.pdf` : `${invoiceId}.pdf`;
-  await sb.storage.from('invoice-pdfs').upload(path, pdf, { contentType: 'application/pdf', upsert: true });
+  await sb.storage.from('invoice-pdfs').upload(path, bytes, { contentType: 'application/pdf', upsert: true });
   if (!isPreview) {
     await sb.from('invoices').update({ pdf_storage_path: path }).eq('id', invoiceId);
   }

@@ -2,10 +2,17 @@
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getInvoice } from '../../../lib/db/invoices';
+import { getAdminClient } from '../../../lib/supabase/admin';
+import { refundableCents } from '../../../lib/db/refunds';
 import { formatUSD } from '../../../lib/money';
 import { statusBadge } from '../../../lib/statusBadge';
 const inv: any = await getInvoice(Astro.cookies, Astro.params.id!);
 const base = Astro.url.origin;
+// Refunds are service-role-only; read them with the admin client (page is admin-gated).
+const sbAdmin = getAdminClient();
+const { data: refunds } = await sbAdmin.from('refunds').select('*').eq('invoice_id', inv.id).order('created_at', { ascending: false });
+const refundable = inv.stripe_payment_intent_id ? await refundableCents(sbAdmin, inv.id) : 0;
+const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'void';
 ---
 <AdminLayout title={inv.invoice_number ?? 'Draft invoice'}>
 
@@ -80,6 +87,9 @@ const base = Astro.url.origin;
     {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && (
       <button id="markPaid" class="btn-ghost" style="color:#22c55e;border-color:#22c55e55;">Mark as paid</button>
     )}
+    {canRefund && (
+      <button id="refund" class="btn-ghost" style="color:#f59e0b;border-color:#f59e0b55;" data-refundable={refundable}>Refund</button>
+    )}
     {inv.status !== 'draft' && (
       <a href={`/api/admin/invoices/${inv.id}/pdf`} class="btn-ghost">Download PDF</a>
     )}
@@ -125,6 +135,57 @@ const base = Astro.url.origin;
     )}
   </section>
 
+  <!-- ── Refunds ── -->
+  {refunds && refunds.length > 0 && (
+    <section class="mt-8">
+      <h2 class="font-semibold text-[#e6edf5]">Refunds</h2>
+      <div class="card mt-3 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/8 text-left">
+              <th scope="col" class="px-4 py-3 font-medium text-[#9fb3c8]">Amount</th>
+              <th scope="col" class="px-4 py-3 font-medium text-[#9fb3c8]">Date</th>
+              <th scope="col" class="px-4 py-3 font-medium text-[#9fb3c8]">Reason</th>
+              <th scope="col" class="px-4 py-3 font-medium text-[#9fb3c8]">Stripe ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {refunds.map((r: any) => (
+              <tr class="border-t border-white/8">
+                <td class="px-4 py-3 text-[#f59e0b]">−{formatUSD(r.amount_cents)}</td>
+                <td class="px-4 py-3 text-[#9fb3c8]">{new Date(r.created_at).toLocaleDateString()}</td>
+                <td class="px-4 py-3 text-[#9fb3c8]">{r.reason ?? '—'}</td>
+                <td class="px-4 py-3 text-[#9fb3c8] font-mono text-xs">{r.stripe_refund_id ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )}
+
+  <!-- ── Refund modal ── -->
+  <div id="refundModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4"
+       role="dialog" aria-modal="true" aria-labelledby="refundTitle">
+    <form id="refundForm" class="card w-full max-w-sm space-y-4 p-6">
+      <h2 id="refundTitle" class="text-lg font-bold text-[#e6edf5]">Refund payment</h2>
+      <p class="text-sm text-[#9fb3c8]">Refundable: <strong class="text-[#e6edf5]">{formatUSD(refundable)}</strong> (via Stripe). Leave the amount full for a complete refund.</p>
+      <div>
+        <label class="lbl" for="refundAmount">Amount (USD)</label>
+        <input id="refundAmount" class="input" inputmode="decimal" />
+      </div>
+      <div>
+        <label class="lbl" for="refundReason">Reason (optional)</label>
+        <input id="refundReason" class="input" placeholder="e.g. Service cancelled" />
+      </div>
+      <p id="refundErr" role="alert" class="hidden text-sm text-[#ff6b6b]"></p>
+      <div class="flex justify-end gap-2">
+        <button type="button" id="refundCancel" class="btn-ghost">Cancel</button>
+        <button type="submit" id="refundSubmit" class="btn-primary">Issue refund</button>
+      </div>
+    </form>
+  </div>
+
   <!-- ── Confirm modal ── -->
   <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4"
        role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
@@ -146,6 +207,10 @@ const base = Astro.url.origin;
       <div>
         <label class="lbl" for="payAmount">Amount (USD)</label>
         <input id="payAmount" class="input" inputmode="decimal" placeholder="0.00" required />
+      </div>
+      <div>
+        <label class="lbl" for="payDate">Payment date</label>
+        <input id="payDate" type="date" class="input" />
       </div>
       <div>
         <label class="lbl" for="payMethod">Method</label>
@@ -218,6 +283,8 @@ const base = Astro.url.origin;
       const m = document.getElementById('payModal')!;
       (document.getElementById('payAmount') as HTMLInputElement).value = '';
       (document.getElementById('payRef') as HTMLInputElement).value = '';
+      // default the payment date to today
+      (document.getElementById('payDate') as HTMLInputElement).value = new Date().toISOString().slice(0, 10);
       const errEl = document.getElementById('payErr')!;
       errEl.textContent = '';
       errEl.classList.add('hidden');
@@ -295,6 +362,49 @@ const base = Astro.url.origin;
       } catch { showActionErr('Failed to mark invoice as paid.'); btn.disabled = false; }
     });
 
+    /* ── refund (Stripe) ── */
+    const refundBtn = document.getElementById('refund');
+    if (refundBtn) {
+      const refundableCentsVal = Number((refundBtn as HTMLElement).dataset.refundable || '0');
+      const openRefund = () => {
+        const m = document.getElementById('refundModal')!;
+        (document.getElementById('refundAmount') as HTMLInputElement).value = (refundableCentsVal / 100).toFixed(2);
+        (document.getElementById('refundReason') as HTMLInputElement).value = '';
+        const err = document.getElementById('refundErr')!; err.textContent = ''; err.classList.add('hidden');
+        m.classList.remove('hidden'); m.classList.add('flex'); document.body.style.overflow = 'hidden';
+      };
+      const closeRefund = () => {
+        const m = document.getElementById('refundModal')!;
+        m.classList.add('hidden'); m.classList.remove('flex'); document.body.style.overflow = '';
+      };
+      refundBtn.addEventListener('click', openRefund);
+      document.getElementById('refundCancel')?.addEventListener('click', closeRefund);
+      document.getElementById('refundModal')?.addEventListener('click', (e: Event) => {
+        if ((e as MouseEvent).target === document.getElementById('refundModal')) closeRefund();
+      });
+      document.getElementById('refundForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = document.getElementById('refundErr')!; err.textContent = ''; err.classList.add('hidden');
+        let amount_cents: number;
+        try { amount_cents = dollarsToCents((document.getElementById('refundAmount') as HTMLInputElement).value.trim() || '0'); }
+        catch { err.textContent = 'Enter a valid dollar amount.'; err.classList.remove('hidden'); return; }
+        if (amount_cents <= 0) { err.textContent = 'Amount must be greater than $0.00.'; err.classList.remove('hidden'); return; }
+        if (amount_cents > refundableCentsVal) { err.textContent = 'Amount exceeds the refundable balance.'; err.classList.remove('hidden'); return; }
+        const reason = (document.getElementById('refundReason') as HTMLInputElement).value.trim() || undefined;
+        const btn = document.getElementById('refundSubmit') as HTMLButtonElement;
+        btn.disabled = true; btn.textContent = 'Refunding…';
+        const r = await fetch(`/api/admin/invoices/${id}/refund`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount_cents, reason }),
+        });
+        if (r.ok) { closeRefund(); location.reload(); }
+        else {
+          const j = await r.json().catch(() => ({}));
+          err.textContent = j.error ?? 'Refund failed.'; err.classList.remove('hidden');
+          btn.disabled = false; btn.textContent = 'Issue refund';
+        }
+      });
+    }
+
     /* ── duplicate ── */
     document.getElementById('dup')?.addEventListener('click', async () => {
       const r = await fetch(`/api/admin/invoices/${id}/duplicate`, { method: 'POST' });
@@ -347,6 +457,7 @@ const base = Astro.url.origin;
 
       const method = (document.getElementById('payMethod') as HTMLSelectElement).value;
       const reference = (document.getElementById('payRef') as HTMLInputElement).value.trim() || undefined;
+      const paid_at = (document.getElementById('payDate') as HTMLInputElement).value || undefined;
       const submitBtn = document.getElementById('paySubmit') as HTMLButtonElement;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Recording…';
@@ -354,7 +465,7 @@ const base = Astro.url.origin;
       const r = await fetch('/api/admin/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invoice_id: id, amount_cents, method, reference }),
+        body: JSON.stringify({ invoice_id: id, amount_cents, method, reference, paid_at }),
       });
 
       if (r.ok) {

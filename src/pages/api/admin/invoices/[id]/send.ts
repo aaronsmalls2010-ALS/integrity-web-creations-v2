@@ -3,6 +3,7 @@ import { sendInvoice } from '../../../../../lib/db/invoices';
 import { json, unprocessable, serverError } from '../../../../../lib/http';
 import { sendEmail } from '../../../../../lib/email/postmark';
 import { invoiceEmail } from '../../../../../lib/email/content';
+import { renderInvoicePdfBytes } from '../../../../../lib/invoice/pdf';
 
 export const prerender = false;
 
@@ -29,7 +30,14 @@ export const POST: APIRoute = async ({ params, cookies, url, request }) => {
           // CC the owner on every invoice that goes out (INVOICE_CC overrides;
           // defaults to the sending mailbox so Aaron keeps a copy of each one).
           const cc = import.meta.env.INVOICE_CC ?? import.meta.env.SMTP_USER;
-          await sendEmail({ to, cc, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody });
+          // Attach the branded PDF (with the embedded pay link).
+          const { bytes } = await renderInvoicePdfBytes(inv.id, { baseUrl: url.origin });
+          const attachments = [{
+            name: `Invoice-${inv.invoice_number}.pdf`,
+            contentBase64: Buffer.from(bytes).toString('base64'),
+            contentType: 'application/pdf',
+          }];
+          await sendEmail({ to, cc, subject: e.subject, htmlBody: e.htmlBody, textBody: e.textBody, attachments });
           emailed = true;
         } catch (err: any) {
           console.error('[send] invoice email failed:', err);
