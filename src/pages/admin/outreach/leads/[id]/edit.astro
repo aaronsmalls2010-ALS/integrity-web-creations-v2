@@ -1,0 +1,64 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../../../layouts/AdminLayout.astro';
+import { getLead } from '../../../../../lib/outreach/db';
+import { WEB_PRESENCES } from '../../../../../lib/outreach/validation';
+
+const id = Astro.params.id!;
+let lead: any;
+try { lead = await getLead(id); } catch { return Astro.redirect('/admin/outreach/leads'); }
+const categories = ['restaurant', 'trades', 'barber_beauty', 'church', 'nonprofit', 'greek', 'professional', 'retail', 'auto', 'cleaning', 'childcare', 'other'];
+---
+<AdminLayout title={`Edit — ${lead.business_name}`}>
+  <h1 class="text-2xl font-bold text-[#e6edf5]">Edit lead</h1>
+  <form id="f" class="card mt-4 grid max-w-2xl grid-cols-1 gap-4 p-6 sm:grid-cols-2">
+    <div class="sm:col-span-2"><label class="lbl" for="business_name">Business name *</label>
+      <input id="business_name" name="business_name" class="input w-full" required maxlength="200" value={lead.business_name} /></div>
+    <div><label class="lbl" for="category">Category</label>
+      <select id="category" name="category" class="input w-full">{categories.map((c) => <option value={c} selected={lead.category === c}>{c}</option>)}</select></div>
+    <div><label class="lbl" for="town">Town</label><input id="town" name="town" class="input w-full" value={lead.town ?? ''} /></div>
+    <div><label class="lbl" for="contact_name">Contact name</label><input id="contact_name" name="contact_name" class="input w-full" value={lead.contact_name ?? ''} /></div>
+    <div><label class="lbl" for="email">Email</label><input id="email" name="email" type="email" class="input w-full" value={lead.email ?? ''} /></div>
+    <div><label class="lbl" for="phone">Phone</label><input id="phone" name="phone" class="input w-full" value={lead.phone ?? ''} /></div>
+    <div><label class="lbl" for="web_presence">Web presence</label>
+      <select id="web_presence" name="web_presence" class="input w-full">{WEB_PRESENCES.map((p) => <option value={p} selected={lead.web_presence === p}>{p.replace('_', ' ')}</option>)}</select></div>
+    <div><label class="lbl" for="facebook_url">Facebook URL</label><input id="facebook_url" name="facebook_url" type="url" class="input w-full" value={lead.facebook_url ?? ''} /></div>
+    <div><label class="lbl" for="website_url">Website URL</label><input id="website_url" name="website_url" type="url" class="input w-full" value={lead.website_url ?? ''} /></div>
+    <div class="sm:col-span-2"><label class="lbl" for="presence_notes">Presence notes</label>
+      <textarea id="presence_notes" name="presence_notes" class="input w-full" rows="2">{lead.presence_notes ?? ''}</textarea></div>
+    <div class="sm:col-span-2"><label class="lbl" for="pitch_angle">Pitch angle</label>
+      <input id="pitch_angle" name="pitch_angle" class="input w-full" value={lead.pitch_angle ?? ''} /></div>
+    <div class="sm:col-span-2"><label class="lbl" for="notes">Notes</label>
+      <textarea id="notes" name="notes" class="input w-full" rows="3">{lead.notes ?? ''}</textarea></div>
+    <p id="err" class="hidden text-sm text-[#ff6b6b] sm:col-span-2" role="alert"></p>
+    <div class="flex gap-2 sm:col-span-2">
+      <button type="submit" class="btn-primary">Save</button>
+      <a href={`/admin/outreach/leads/${lead.id}`} class="btn-ghost">Cancel</a>
+      <button type="button" id="del" class="ml-auto rounded-lg px-3 py-2 text-sm text-[#ff6b6b] hover:bg-[#ff6b6b]/10">Delete lead</button>
+    </div>
+  </form>
+  <script define:vars={{ leadId: id }}>
+    const f = document.getElementById('f');
+    const err = document.getElementById('err');
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.classList.add('hidden');
+      const data = Object.fromEntries(new FormData(f).entries());
+      for (const k of Object.keys(data)) if (data[k] === '') data[k] = null;
+      const res = await fetch(`/api/admin/outreach/leads/${leadId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+      });
+      const out = await res.json();
+      if (!res.ok) { err.textContent = out.error ?? 'Save failed'; err.classList.remove('hidden'); return; }
+      window.location.href = `/admin/outreach/leads/${leadId}`;
+    });
+    document.getElementById('del').addEventListener('click', async () => {
+      if (!window.confirm) return;
+      // Simple double-step confirm without native dialogs styling issues.
+      const sure = document.getElementById('del').dataset.sure;
+      if (!sure) { document.getElementById('del').dataset.sure = '1'; document.getElementById('del').textContent = 'Click again to confirm delete'; return; }
+      const res = await fetch(`/api/admin/outreach/leads/${leadId}`, { method: 'DELETE' });
+      if (res.ok) window.location.href = '/admin/outreach/leads';
+    });
+  </script>
+</AdminLayout>

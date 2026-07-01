@@ -1,0 +1,110 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getOutreachClient } from '../../../lib/supabase/outreach';
+
+const sb = getOutreachClient();
+const { data: runs } = await sb.from('research_runs').select('*').order('created_at', { ascending: false }).limit(10);
+const { data: candidates } = await sb.from('candidates').select('*').eq('status', 'pending').order('created_at').limit(100);
+const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+---
+<AdminLayout title="Find Leads">
+  <h1 class="text-2xl font-bold text-[#e6edf5]">Find new leads</h1>
+  <p class="mt-1 text-sm text-[#9fb3c8]">Claude researches the area with live web search using the house methodology — verify the business operates, judge its web presence, never fabricate contact info. Everything it finds waits below for your approval before entering the lead pool.</p>
+
+  <form id="f" class="card mt-4 flex max-w-3xl flex-wrap items-end gap-3 p-5">
+    <div class="min-w-[200px] flex-1"><label class="lbl" for="area">Area</label>
+      <input id="area" name="area" class="input w-full" value="Beaufort County, SC" required /></div>
+    <div class="min-w-[260px] flex-[2]"><label class="lbl" for="categories">Categories</label>
+      <input id="categories" name="categories" class="input w-full" value="restaurants, contractors, barbershops, churches, nonprofits" required /></div>
+    <div class="w-24"><label class="lbl" for="max_candidates">Max</label>
+      <input id="max_candidates" name="max_candidates" type="number" min="1" max="20" value="10" class="input w-full" /></div>
+    <button id="runBtn" type="submit" class="btn-primary">Run research</button>
+    <p id="runMsg" class="w-full text-sm text-[#9fb3c8]"></p>
+  </form>
+
+  <section class="mt-8">
+    <h2 class="font-semibold text-[#e6edf5]">Pending candidates ({candidates?.length ?? 0})</h2>
+    <div class="mt-2 space-y-3">
+      {(!candidates || candidates.length === 0) && <div class="card p-5 text-sm text-[#9fb3c8]">Nothing pending. Run a research pass above.</div>}
+      {candidates?.map((c: any) => {
+        const p = c.payload ?? {};
+        return (
+          <div class="card p-4" data-id={c.id}>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-semibold text-[#e6edf5]">{p.business_name}</span>
+              <span class="text-xs text-[#9fb3c8]">{p.category} · {p.town} · {String(p.web_presence ?? '').replace('_', ' ')}</span>
+              <span class="ml-auto flex gap-2">
+                <button class="appr btn-primary text-xs" data-id={c.id}>Approve + draft opener</button>
+                <button class="apprOnly btn-ghost text-xs" data-id={c.id}>Approve only</button>
+                <button class="rej rounded-lg px-2 py-1 text-xs text-[#ff6b6b] hover:bg-[#ff6b6b]/10" data-id={c.id}>Reject</button>
+              </span>
+            </div>
+            <p class="mt-2 text-sm text-[#9fb3c8]">{p.presence_notes}</p>
+            <p class="mt-1 text-xs italic text-[#9fb3c8]">{p.pitch_angle}</p>
+            <p class="mt-1 text-xs text-[#9fb3c8]">{p.email ?? 'no email'} · {p.phone ?? 'no phone'} {p.facebook_url && <a class="text-[#00e5ff] hover:underline" href={p.facebook_url} target="_blank" rel="noopener noreferrer">FB ↗</a>} {p.website_url && <a class="text-[#00e5ff] hover:underline" href={p.website_url} target="_blank" rel="noopener noreferrer">site ↗</a>}</p>
+            <p class="err mt-2 hidden text-sm text-[#ff6b6b]" role="alert"></p>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="font-semibold text-[#e6edf5]">Recent runs</h2>
+    <div class="card mt-2 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead><tr class="text-left text-[#9fb3c8]"><th class="p-2">When</th><th>Query</th><th>Status</th><th>Found</th></tr></thead>
+        <tbody>
+          {(!runs || runs.length === 0) && <tr><td colspan="4" class="p-3 text-[#9fb3c8]">No runs yet.</td></tr>}
+          {runs?.map((r: any) => (
+            <tr class="border-t border-white/[0.08]">
+              <td class="p-2 whitespace-nowrap text-[#9fb3c8]">{fmt(r.created_at)}</td>
+              <td class="max-w-[320px] truncate text-[#9fb3c8]">{r.query}</td>
+              <td class="text-[#9fb3c8]">{r.status}{r.error ? ` — ${r.error.slice(0, 80)}` : ''}</td>
+              <td class="text-[#9fb3c8]">{r.candidates_found}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    const f = document.getElementById('f') as HTMLFormElement;
+    const runBtn = document.getElementById('runBtn') as HTMLButtonElement;
+    const runMsg = document.getElementById('runMsg')!;
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      runBtn.disabled = true;
+      runMsg.textContent = 'Researching… this takes a minute or two (live web searches).';
+      const data = Object.fromEntries(new FormData(f).entries());
+      const res = await fetch('/api/admin/outreach/research', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ area: data.area, categories: data.categories, max_candidates: Number(data.max_candidates) }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) { runMsg.textContent = out.error ?? 'Research failed'; runBtn.disabled = false; return; }
+      runMsg.textContent = `Found ${out.found} candidate(s) — reloading…`;
+      window.location.reload();
+    });
+
+    const act = async (id: string, action: string, draft: boolean, btn: HTMLButtonElement) => {
+      btn.disabled = true;
+      const orig = btn.textContent;
+      if (action === 'approve' && draft) btn.textContent = 'Drafting…';
+      const res = await fetch(`/api/admin/outreach/candidates/${id}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, draft_opener: draft }),
+      });
+      if (res.ok) { document.querySelector(`.card[data-id="${id}"]`)?.remove(); return; }
+      const out = await res.json().catch(() => ({}));
+      const err = document.querySelector(`.card[data-id="${id}"] .err`) as HTMLElement;
+      if (err) { err.textContent = out.error ?? 'Action failed'; err.classList.remove('hidden'); }
+      btn.disabled = false; btn.textContent = orig;
+    };
+    document.querySelectorAll('.appr').forEach((b) => b.addEventListener('click', () => act((b as HTMLElement).dataset.id!, 'approve', true, b as HTMLButtonElement)));
+    document.querySelectorAll('.apprOnly').forEach((b) => b.addEventListener('click', () => act((b as HTMLElement).dataset.id!, 'approve', false, b as HTMLButtonElement)));
+    document.querySelectorAll('.rej').forEach((b) => b.addEventListener('click', () => act((b as HTMLElement).dataset.id!, 'reject', false, b as HTMLButtonElement)));
+  </script>
+</AdminLayout>

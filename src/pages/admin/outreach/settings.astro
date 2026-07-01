@@ -1,0 +1,70 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { getSettings } from '../../../lib/outreach/db';
+import { HARD_DAILY_CEILING } from '../../../lib/outreach/validation';
+
+const s = await getSettings();
+---
+<AdminLayout title="Send Settings">
+  <h1 class="text-2xl font-bold text-[#e6edf5]">Send settings</h1>
+  <p class="mt-1 text-sm text-[#9fb3c8]">These limits are enforced server-side at the moment of every send — the UI can't bypass them, and the daily cap has a hard ceiling of {HARD_DAILY_CEILING} no matter what.</p>
+
+  <form id="f" class="card mt-4 grid max-w-2xl grid-cols-1 gap-4 p-6 sm:grid-cols-2">
+    <div class="card flex items-center justify-between gap-3 p-4 sm:col-span-2" style="background:#131f31">
+      <div>
+        <p class="font-semibold text-[#e6edf5]">Kill switch</p>
+        <p class="text-xs text-[#9fb3c8]">Instantly halts all sending, everywhere, regardless of anything else.</p>
+      </div>
+      <label class="flex cursor-pointer items-center gap-2 text-sm font-semibold text-[#ff6b6b]">
+        <input type="checkbox" name="kill_switch" class="h-5 w-5 accent-[#ff6b6b]" checked={s.kill_switch} /> STOP ALL SENDS
+      </label>
+    </div>
+
+    <div><label class="lbl" for="daily_cap">Daily cap (max {HARD_DAILY_CEILING})</label>
+      <input id="daily_cap" name="daily_cap" type="number" min="1" max={HARD_DAILY_CEILING} value={s.daily_cap} class="input w-full" /></div>
+    <div class="grid grid-cols-2 gap-2">
+      <div><label class="lbl" for="min_gap_minutes">Min gap (min)</label>
+        <input id="min_gap_minutes" name="min_gap_minutes" type="number" min="1" max="120" value={s.min_gap_minutes} class="input w-full" /></div>
+      <div><label class="lbl" for="max_gap_minutes">Max gap (min)</label>
+        <input id="max_gap_minutes" name="max_gap_minutes" type="number" min="1" max="240" value={s.max_gap_minutes} class="input w-full" /></div>
+    </div>
+    <div><label class="lbl" for="send_window_start">Window start (hour, {s.timezone})</label>
+      <input id="send_window_start" name="send_window_start" type="number" min="0" max="23" value={s.send_window_start} class="input w-full" /></div>
+    <div><label class="lbl" for="send_window_end">Window end (hour)</label>
+      <input id="send_window_end" name="send_window_end" type="number" min="1" max="24" value={s.send_window_end} class="input w-full" /></div>
+    <div><label class="lbl" for="from_name">From name</label>
+      <input id="from_name" name="from_name" value={s.from_name} class="input w-full" maxlength="100" /></div>
+    <div class="sm:col-span-2"><label class="lbl" for="physical_address">Physical business address (required on every email — CAN-SPAM)</label>
+      <input id="physical_address" name="physical_address" value={s.physical_address} class="input w-full" maxlength="300" placeholder="Street, City, ST ZIP" /></div>
+    <p class="text-xs text-[#9fb3c8] sm:col-span-2">Weekends are always skipped. The signature, address, and unsubscribe link are appended to every email automatically.</p>
+    <p id="msg" class="hidden text-sm sm:col-span-2" role="alert"></p>
+    <div class="sm:col-span-2"><button type="submit" class="btn-primary">Save settings</button></div>
+  </form>
+
+  <script>
+    const f = document.getElementById('f') as HTMLFormElement;
+    const msg = document.getElementById('msg')!;
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(f);
+      const body = {
+        kill_switch: fd.get('kill_switch') === 'on',
+        daily_cap: Number(fd.get('daily_cap')),
+        min_gap_minutes: Number(fd.get('min_gap_minutes')),
+        max_gap_minutes: Number(fd.get('max_gap_minutes')),
+        send_window_start: Number(fd.get('send_window_start')),
+        send_window_end: Number(fd.get('send_window_end')),
+        from_name: String(fd.get('from_name') ?? ''),
+        physical_address: String(fd.get('physical_address') ?? ''),
+      };
+      const res = await fetch('/api/admin/outreach/settings', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const out = await res.json().catch(() => ({}));
+      msg.classList.remove('hidden');
+      if (res.ok) { msg.textContent = 'Saved ✓'; msg.className = 'text-sm text-emerald-300 sm:col-span-2'; }
+      else { msg.textContent = out.error ?? 'Save failed'; msg.className = 'text-sm text-[#ff6b6b] sm:col-span-2'; }
+    });
+  </script>
+</AdminLayout>

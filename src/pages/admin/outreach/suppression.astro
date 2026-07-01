@@ -1,0 +1,62 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { listSuppression } from '../../../lib/outreach/db';
+
+const suppression = await listSuppression();
+const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', year: 'numeric' });
+---
+<AdminLayout title="Suppression List">
+  <h1 class="text-2xl font-bold text-[#e6edf5]">Suppression list <span class="text-base font-normal text-[#9fb3c8]">({suppression.length})</span></h1>
+  <p class="mt-1 text-sm text-[#9fb3c8]">Addresses here are never emailed — checked again at the moment of every send. Unsubscribes land here automatically and should not be removed.</p>
+
+  <form id="f" class="mt-4 flex max-w-md items-end gap-2">
+    <div class="flex-1"><label class="lbl" for="email">Add address manually</label>
+      <input id="email" name="email" type="email" required class="input w-full" placeholder="name@example.com" /></div>
+    <button class="btn-primary" type="submit">Suppress</button>
+  </form>
+  <p id="err" class="mt-2 hidden text-sm text-[#ff6b6b]" role="alert"></p>
+
+  <div class="card mt-4 max-w-2xl overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-[#9fb3c8]"><th class="p-2">Email</th><th>Reason</th><th>Added</th><th></th></tr></thead>
+      <tbody>
+        {suppression.length === 0 && <tr><td colspan="4" class="p-4 text-[#9fb3c8]">Empty — no one has opted out yet.</td></tr>}
+        {suppression.map((s: any) => (
+          <tr class="border-t border-white/[0.08]">
+            <td class="p-2">{s.email}</td>
+            <td class="text-[#9fb3c8]">{s.reason}</td>
+            <td class="text-[#9fb3c8]">{fmt(s.created_at)}</td>
+            <td class="text-right">
+              {s.reason === 'manual'
+                ? <button class="rm rounded-lg px-2 py-1 text-xs text-[#ff6b6b] hover:bg-[#ff6b6b]/10" data-email={s.email}>Remove</button>
+                : <span class="text-xs text-[#5a7089]" title="Unsubscribed/bounced addresses stay suppressed">locked</span>}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const err = document.getElementById('err')!;
+    document.getElementById('f')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = (document.getElementById('email') as HTMLInputElement).value;
+      const res = await fetch('/api/admin/outreach/suppression', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }),
+      });
+      if (res.ok) { window.location.reload(); return; }
+      const out = await res.json().catch(() => ({}));
+      err.textContent = out.error ?? 'Failed'; err.classList.remove('hidden');
+    });
+    document.querySelectorAll('.rm').forEach((b) => b.addEventListener('click', async () => {
+      if (!(b as HTMLElement).dataset.sure) { (b as HTMLElement).dataset.sure = '1'; b.textContent = 'Confirm remove'; return; }
+      const res = await fetch('/api/admin/outreach/suppression', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: (b as HTMLElement).dataset.email }),
+      });
+      if (res.ok) window.location.reload();
+    }));
+  </script>
+</AdminLayout>

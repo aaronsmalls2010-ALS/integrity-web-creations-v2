@@ -1,0 +1,52 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import OutreachHeartbeat from '../../../../components/admin/OutreachHeartbeat.astro';
+import { listBatches } from '../../../../lib/outreach/db';
+import { getOutreachClient } from '../../../../lib/supabase/outreach';
+
+const batches = await listBatches();
+const sb = getOutreachClient();
+const { data: msgCounts } = await sb.from('messages').select('batch_id, status').not('batch_id', 'is', null);
+const prog: Record<string, { total: number; sent: number; failed: number; queued: number }> = {};
+for (const m of msgCounts ?? []) {
+  const p = (prog[m.batch_id] ??= { total: 0, sent: 0, failed: 0, queued: 0 });
+  p.total++;
+  if (m.status === 'sent') p.sent++;
+  if (m.status === 'failed') p.failed++;
+  if (m.status === 'queued') p.queued++;
+}
+const badge = (s: string) =>
+  s === 'sending' ? 'bg-[#0066ff]/15 text-[#00e5ff]'
+  : s === 'completed' ? 'bg-emerald-400/15 text-emerald-300'
+  : s === 'paused' ? 'bg-amber-400/15 text-amber-300'
+  : s === 'canceled' ? 'bg-[#ff6b6b]/15 text-[#ff6b6b]'
+  : 'bg-white/5 text-[#9fb3c8]';
+const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+---
+<AdminLayout title="Batches">
+  <h1 class="text-2xl font-bold text-[#e6edf5]">Batches</h1>
+  <div class="mt-4"><OutreachHeartbeat /></div>
+  <div class="card mt-4 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-[#9fb3c8]">
+        <th class="p-2">Batch</th><th>Status</th><th>Progress</th><th>Created</th><th>Approved</th>
+      </tr></thead>
+      <tbody>
+        {batches.length === 0 && <tr><td colspan="5" class="p-4 text-[#9fb3c8]">No batches yet — approve drafts in the review queue.</td></tr>}
+        {batches.map((b: any) => {
+          const p = prog[b.id] ?? { total: 0, sent: 0, failed: 0, queued: 0 };
+          return (
+            <tr class="border-t border-white/[0.08] hover:bg-white/5">
+              <td class="p-2"><a class="text-[#00e5ff] hover:underline" href={`/admin/outreach/batches/${b.id}`}>{b.name}</a></td>
+              <td><span class:list={["rounded-full px-2 py-0.5 text-xs font-semibold uppercase", badge(b.status)]}>{b.status}</span></td>
+              <td class="text-[#9fb3c8]">{p.sent}/{p.total} sent{p.failed ? ` · ${p.failed} failed` : ''}{p.queued ? ` · ${p.queued} queued` : ''}</td>
+              <td class="text-[#9fb3c8]">{fmt(b.created_at)}</td>
+              <td class="text-[#9fb3c8]">{fmt(b.approved_at)}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>

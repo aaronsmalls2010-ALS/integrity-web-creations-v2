@@ -1,0 +1,94 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import OutreachHeartbeat from '../../../components/admin/OutreachHeartbeat.astro';
+import { dashboardStats, getSettings, nextScheduled, recentEvents, sentSince } from '../../../lib/outreach/db';
+
+const [stats, settings, upcoming, events] = await Promise.all([
+  dashboardStats(), getSettings(), nextScheduled(8), recentEvents(15),
+]);
+const c = stats.leadCounts;
+const pool = (c.new ?? 0) + (c.qualified ?? 0);
+const inFlight = (c.queued ?? 0) + (c.contacted ?? 0) + (c.followup_1 ?? 0) + (c.followup_2 ?? 0);
+const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString('en-US', { timeZone: settings.timezone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+---
+<AdminLayout title="Outreach">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-bold text-[#e6edf5]">Outreach Campaign</h1>
+    {settings.kill_switch &&
+      <span class="rounded-full bg-[#ff6b6b]/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#ff6b6b]">Kill switch ON — nothing will send</span>}
+  </div>
+
+  <div class="mt-4"><OutreachHeartbeat /></div>
+
+  <div class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-5">
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-[#9fb3c8]">Lead pool</p>
+      <p class="mt-1 text-2xl font-bold text-[#e6edf5]">{pool}</p>
+      <p class="text-xs text-[#9fb3c8]">new + qualified</p>
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-[#9fb3c8]">In flight</p>
+      <p class="mt-1 text-2xl font-bold text-[#00e5ff]">{inFlight}</p>
+      <p class="text-xs text-[#9fb3c8]">{stats.queuedMessages} queued send(s)</p>
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-[#9fb3c8]">Replied</p>
+      <p class="mt-1 text-2xl font-bold text-emerald-300">{c.replied ?? 0}</p>
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-[#9fb3c8]">Won</p>
+      <p class="mt-1 text-2xl font-bold text-emerald-300">{c.won ?? 0}</p>
+      <p class="text-xs text-[#9fb3c8]">{c.lost ?? 0} lost · {c.opted_out ?? 0} opted out</p>
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold uppercase tracking-wide text-[#9fb3c8]">Drafts to review</p>
+      <p class="mt-1 text-2xl font-bold text-amber-300">{stats.draftMessages}</p>
+      <a href="/admin/outreach/review" class="text-xs text-[#00e5ff] hover:underline">Open review queue →</a>
+    </div>
+  </div>
+
+  <div class="mt-6 flex flex-wrap gap-2">
+    <a href="/admin/outreach/review" class="btn-primary">Review drafts</a>
+    <a href="/admin/outreach/research" class="btn-ghost">Find new leads</a>
+    <a href="/admin/outreach/leads/new" class="btn-ghost">Add lead manually</a>
+  </div>
+
+  <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <section>
+      <h2 class="font-semibold text-[#e6edf5]">Next scheduled sends</h2>
+      <div class="card mt-2 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-[#9fb3c8]"><th class="p-2">When ({settings.timezone.split('/')[1]?.replace('_',' ')})</th><th>To</th><th>Subject</th></tr></thead>
+          <tbody>
+            {upcoming.length === 0 && <tr><td colspan="3" class="p-3 text-[#9fb3c8]">Nothing queued. Approve a batch to schedule sends.</td></tr>}
+            {upcoming.map((m: any) => (
+              <tr class="border-t border-white/[0.08]">
+                <td class="p-2 whitespace-nowrap">{fmt(m.scheduled_after)}</td>
+                <td class="text-[#9fb3c8]">{m.lead?.business_name}</td>
+                <td class="max-w-[220px] truncate text-[#9fb3c8]">{m.subject}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section>
+      <h2 class="font-semibold text-[#e6edf5]">Recent activity</h2>
+      <div class="card mt-2 overflow-x-auto">
+        <table class="w-full text-sm">
+          <tbody>
+            {events.length === 0 && <tr><td class="p-3 text-[#9fb3c8]">No activity yet.</td></tr>}
+            {events.map((e: any) => (
+              <tr class="border-t border-white/[0.08] first:border-t-0">
+                <td class="p-2 whitespace-nowrap text-xs text-[#9fb3c8]">{fmt(e.created_at)}</td>
+                <td class="p-2"><span class="rounded-full bg-white/5 px-2 py-0.5 text-xs font-semibold">{e.type}</span></td>
+                <td class="p-2 text-[#9fb3c8]">{e.lead?.business_name ?? (e.detail?.email ?? '')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</AdminLayout>

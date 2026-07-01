@@ -1,0 +1,48 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { WEB_PRESENCES } from '../../../../lib/outreach/validation';
+const categories = ['restaurant', 'trades', 'barber_beauty', 'church', 'nonprofit', 'greek', 'professional', 'retail', 'auto', 'cleaning', 'childcare', 'other'];
+---
+<AdminLayout title="New Lead">
+  <h1 class="text-2xl font-bold text-[#e6edf5]">Add lead</h1>
+  <form id="f" class="card mt-4 grid max-w-2xl grid-cols-1 gap-4 p-6 sm:grid-cols-2">
+    <div class="sm:col-span-2"><label class="lbl" for="business_name">Business name *</label>
+      <input id="business_name" name="business_name" class="input w-full" required maxlength="200" /></div>
+    <div><label class="lbl" for="category">Category</label>
+      <select id="category" name="category" class="input w-full">{categories.map((c) => <option value={c}>{c}</option>)}</select></div>
+    <div><label class="lbl" for="town">Town</label><input id="town" name="town" class="input w-full" /></div>
+    <div><label class="lbl" for="contact_name">Contact name</label><input id="contact_name" name="contact_name" class="input w-full" /></div>
+    <div><label class="lbl" for="email">Email</label><input id="email" name="email" type="email" class="input w-full" /></div>
+    <div><label class="lbl" for="phone">Phone</label><input id="phone" name="phone" class="input w-full" /></div>
+    <div><label class="lbl" for="web_presence">Web presence</label>
+      <select id="web_presence" name="web_presence" class="input w-full">{WEB_PRESENCES.map((p) => <option value={p}>{p.replace('_', ' ')}</option>)}</select></div>
+    <div><label class="lbl" for="facebook_url">Facebook URL</label><input id="facebook_url" name="facebook_url" type="url" class="input w-full" placeholder="https://facebook.com/…" /></div>
+    <div><label class="lbl" for="website_url">Website URL</label><input id="website_url" name="website_url" type="url" class="input w-full" placeholder="https://…" /></div>
+    <div class="sm:col-span-2"><label class="lbl" for="presence_notes">Presence notes (what's wrong / evidence)</label>
+      <textarea id="presence_notes" name="presence_notes" class="input w-full" rows="2"></textarea></div>
+    <div class="sm:col-span-2"><label class="lbl" for="pitch_angle">Pitch angle (one line)</label>
+      <input id="pitch_angle" name="pitch_angle" class="input w-full" /></div>
+    <p id="err" class="hidden text-sm text-[#ff6b6b] sm:col-span-2" role="alert"></p>
+    <div class="flex gap-2 sm:col-span-2">
+      <button type="submit" class="btn-primary">Create lead</button>
+      <a href="/admin/outreach/leads" class="btn-ghost">Cancel</a>
+    </div>
+  </form>
+  <script>
+    const f = document.getElementById('f') as HTMLFormElement;
+    const err = document.getElementById('err')!;
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.classList.add('hidden');
+      const data = Object.fromEntries(new FormData(f).entries());
+      for (const k of Object.keys(data)) if (data[k] === '') (data as any)[k] = null;
+      const res = await fetch('/api/admin/outreach/leads', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+      });
+      const out = await res.json();
+      if (!res.ok) { err.textContent = out.error ?? 'Failed to create lead'; err.classList.remove('hidden'); return; }
+      window.location.href = `/admin/outreach/leads/${out.lead.id}`;
+    });
+  </script>
+</AdminLayout>

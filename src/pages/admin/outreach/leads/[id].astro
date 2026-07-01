@@ -1,0 +1,135 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { getLead, listMessagesForLead, listEventsForLead } from '../../../../lib/outreach/db';
+
+const id = Astro.params.id!;
+let lead: any, messages: any[], events: any[];
+try {
+  [lead, messages, events] = await Promise.all([
+    getLead(id), listMessagesForLead(id), listEventsForLead(id),
+  ]);
+} catch {
+  return Astro.redirect('/admin/outreach/leads');
+}
+const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+const msgBadge = (s: string) =>
+  s === 'sent' ? 'bg-emerald-400/15 text-emerald-300'
+  : s === 'queued' || s === 'approved' ? 'bg-[#0066ff]/15 text-[#00e5ff]'
+  : s === 'failed' ? 'bg-[#ff6b6b]/15 text-[#ff6b6b]'
+  : s === 'canceled' ? 'bg-white/5 text-[#5a7089]'
+  : 'bg-amber-400/15 text-amber-300';
+const sentSteps = messages.filter((m) => m.status === 'sent').map((m) => m.sequence_step);
+const nextStep = sentSteps.includes(2) ? 3 : sentSteps.includes(1) ? 2 : 1;
+const hasActiveNext = messages.some((m) => m.sequence_step === nextStep && !['canceled', 'failed'].includes(m.status));
+---
+<AdminLayout title={lead.business_name}>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-[#e6edf5]">{lead.business_name}</h1>
+      <p class="mt-1 text-sm text-[#9fb3c8]">{lead.category} · {lead.town ?? 'town unknown'} · {lead.web_presence.replace('_',' ')} · status <span class="font-semibold text-[#e6edf5]">{lead.status}</span></p>
+    </div>
+    <a href="/admin/outreach/leads" class="btn-ghost">← All leads</a>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <section class="lg:col-span-2 space-y-6">
+      <div class="card p-5">
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold text-[#e6edf5]">Messages</h2>
+          {!hasActiveNext && !['opted_out','invalid','won','lost'].includes(lead.status) && (
+            <button id="genDraft" class="btn-primary" data-step={nextStep}>
+              {nextStep === 1 ? 'Generate opener (AI)' : `Generate follow-up ${nextStep - 1}`}
+            </button>
+          )}
+        </div>
+        <p id="genErr" class="mt-2 hidden text-sm text-[#ff6b6b]" role="alert"></p>
+        <div class="mt-3 space-y-3">
+          {messages.length === 0 && <p class="text-sm text-[#9fb3c8]">No messages yet.</p>}
+          {messages.map((m: any) => (
+            <details class="rounded-lg border border-white/[0.08] p-3">
+              <summary class="flex cursor-pointer flex-wrap items-center gap-2 text-sm">
+                <span class:list={["rounded-full px-2 py-0.5 text-xs font-semibold uppercase", msgBadge(m.status)]}>{m.status}</span>
+                <span class="text-[#9fb3c8]">step {m.sequence_step}</span>
+                <span class="flex-1 truncate font-medium text-[#e6edf5]">{m.subject}</span>
+                <span class="text-xs text-[#9fb3c8]">{m.sent_at ? `sent ${fmt(m.sent_at)}` : m.scheduled_after ? `due ${fmt(m.scheduled_after)}` : ''}</span>
+              </summary>
+              <pre class="mt-3 whitespace-pre-wrap font-sans text-sm text-[#9fb3c8]">{m.body}</pre>
+              {m.error && <p class="mt-2 text-xs text-[#ff6b6b]">{m.error}</p>}
+              {m.status === 'draft' && <p class="mt-2 text-xs text-[#9fb3c8]">Edit and approve this draft in the <a href="/admin/outreach/review" class="text-[#00e5ff] hover:underline">review queue</a>.</p>}
+            </details>
+          ))}
+        </div>
+      </div>
+
+      <div class="card p-5">
+        <h2 class="font-semibold text-[#e6edf5]">Activity</h2>
+        <table class="mt-2 w-full text-sm">
+          <tbody>
+            {events.map((e: any) => (
+              <tr class="border-t border-white/[0.08] first:border-t-0">
+                <td class="p-2 whitespace-nowrap text-xs text-[#9fb3c8]">{fmt(e.created_at)}</td>
+                <td class="p-2"><span class="rounded-full bg-white/5 px-2 py-0.5 text-xs font-semibold">{e.type}</span></td>
+                <td class="p-2 text-xs text-[#9fb3c8]">{e.detail ? JSON.stringify(e.detail) : ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="space-y-6">
+      <div class="card p-5 text-sm">
+        <h2 class="font-semibold text-[#e6edf5]">Contact</h2>
+        <dl class="mt-2 space-y-1 text-[#9fb3c8]">
+          <div><dt class="inline font-semibold text-[#e6edf5]">Email: </dt><dd class="inline">{lead.email ?? 'none on file'}</dd></div>
+          <div><dt class="inline font-semibold text-[#e6edf5]">Phone: </dt><dd class="inline">{lead.phone ?? '—'}</dd></div>
+          {lead.facebook_url && <div><a class="text-[#00e5ff] hover:underline" href={lead.facebook_url} target="_blank" rel="noopener noreferrer">Facebook page ↗</a></div>}
+          {lead.website_url && <div><a class="text-[#00e5ff] hover:underline" href={lead.website_url} target="_blank" rel="noopener noreferrer">Current website ↗</a></div>}
+        </dl>
+        {lead.presence_notes && <p class="mt-3 border-t border-white/[0.08] pt-3 text-xs">{lead.presence_notes}</p>}
+        {lead.pitch_angle && <p class="mt-2 text-xs italic">{lead.pitch_angle}</p>}
+        <a href={`/admin/outreach/leads/${lead.id}/edit`} class="mt-3 inline-block text-xs text-[#00e5ff] hover:underline">Edit lead →</a>
+      </div>
+
+      <div class="card p-5">
+        <h2 class="font-semibold text-[#e6edf5]">Mark as</h2>
+        <div class="mt-2 flex flex-wrap gap-2">
+          {['replied', 'won', 'lost', 'opted_out', 'invalid'].map((s) => (
+            <button class="statusBtn btn-ghost text-xs" data-status={s}>{s.replace('_', ' ')}</button>
+          ))}
+        </div>
+        <p class="mt-2 text-xs text-[#9fb3c8]">"Opted out" also adds the email to the suppression list. Terminal statuses cancel any pending sends.</p>
+        <p id="stErr" class="mt-2 hidden text-sm text-[#ff6b6b]" role="alert"></p>
+      </div>
+    </section>
+  </div>
+
+  <script define:vars={{ leadId: id }}>
+    document.getElementById('genDraft')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const step = Number(btn.dataset.step);
+      btn.disabled = true; btn.textContent = 'Generating…';
+      const res = await fetch(`/api/admin/outreach/leads/${leadId}/draft`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ step }),
+      });
+      if (res.ok) { window.location.reload(); return; }
+      const out = await res.json().catch(() => ({}));
+      const err = document.getElementById('genErr');
+      err.textContent = out.error ?? 'Draft generation failed';
+      err.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = step === 1 ? 'Generate opener (AI)' : `Generate follow-up ${step - 1}`;
+    });
+    document.querySelectorAll('.statusBtn').forEach((b) => b.addEventListener('click', async () => {
+      const res = await fetch(`/api/admin/outreach/leads/${leadId}/status`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: b.dataset.status }),
+      });
+      if (res.ok) { window.location.reload(); return; }
+      const out = await res.json().catch(() => ({}));
+      const err = document.getElementById('stErr');
+      err.textContent = out.error ?? 'Update failed';
+      err.classList.remove('hidden');
+    }));
+  </script>
+</AdminLayout>

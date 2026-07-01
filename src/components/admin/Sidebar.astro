@@ -7,12 +7,32 @@ const links = [
   { href: '/admin/services', label: 'Services' },
   { href: '/admin/settings', label: 'Settings' },
 ];
+const outreachLinks = [
+  { href: '/admin/outreach', label: 'Campaign' },
+  { href: '/admin/outreach/leads', label: 'Leads' },
+  { href: '/admin/outreach/review', label: 'Review Queue' },
+  { href: '/admin/outreach/batches', label: 'Batches' },
+  { href: '/admin/outreach/research', label: 'Find Leads' },
+  { href: '/admin/outreach/suppression', label: 'Suppression' },
+  { href: '/admin/outreach/settings', label: 'Send Settings' },
+];
 const { path } = Astro.props;
 ---
 <nav class="flex h-full flex-col p-4" aria-label="Admin navigation">
   <p class="mb-6 px-2 text-sm font-bold tracking-[0.5px]"><span style="color:var(--color-cyan)">integrity</span> <span class="text-white">WEB CREATIONS</span></p>
   <div class="space-y-1">
     {links.map((l) => (
+      <a href={l.href}
+         aria-current={path === l.href ? 'page' : undefined}
+         class:list={["block rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-[#00e5ff]",
+           path === l.href ? "bg-[#0066ff]/15 text-[#00e5ff] border-l-2 border-[#00e5ff]" : "text-[#9fb3c8] hover:bg-white/5 hover:text-[#e6edf5]"]}>
+        {l.label}
+      </a>
+    ))}
+  </div>
+  <p class="mt-6 mb-1 px-2 text-[10px] font-bold uppercase tracking-[1.5px] text-[#5a7089]">Outreach</p>
+  <div class="space-y-1">
+    {outreachLinks.map((l) => (
       <a href={l.href}
          aria-current={path === l.href ? 'page' : undefined}
          class:list={["block rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-[#00e5ff]",

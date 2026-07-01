@@ -1,0 +1,65 @@
+---
+/**
+ * The send-engine heartbeat. While an outreach admin page with this component
+ * is open AND the toggle is on, it POSTs /api/admin/outreach/tick once a
+ * minute; each tick sends at most one due message. Close the tab and sending
+ * stops — deliberate: campaigns only run with a human nearby.
+ */
+---
+<div id="hb" class="card flex flex-wrap items-center gap-3 p-4">
+  <span id="hbDot" class="inline-block h-2.5 w-2.5 rounded-full bg-[#5a7089]"></span>
+  <div class="min-w-0 flex-1">
+    <p class="text-sm font-semibold text-[#e6edf5]">Send engine <span id="hbState">paused</span></p>
+    <p id="hbDetail" class="truncate text-xs text-[#9fb3c8]">Turn on to process queued sends while this page is open.</p>
+  </div>
+  <label class="flex cursor-pointer items-center gap-2 text-sm text-[#9fb3c8]">
+    <input id="hbToggle" type="checkbox" class="h-4 w-4 accent-[#00e5ff]" />
+    Active
+  </label>
+</div>
+<script>
+  const dot = document.getElementById('hbDot')!;
+  const state = document.getElementById('hbState')!;
+  const detail = document.getElementById('hbDetail')!;
+  const toggle = document.getElementById('hbToggle') as HTMLInputElement;
+  let timer: ReturnType<typeof setInterval> | null = null;
+
+  const setUi = (color: string, s: string, d: string) => {
+    dot.className = `inline-block h-2.5 w-2.5 rounded-full ${color}`;
+    state.textContent = s;
+    detail.textContent = d;
+  };
+
+  async function tick() {
+    try {
+      const res = await fetch('/api/admin/outreach/tick', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { setUi('bg-[#ff6b6b]', 'error', data.error ?? 'Tick failed'); return; }
+      const g = data.gate;
+      if (data.sent) {
+        setUi('bg-emerald-400', 'active', `Sent to ${data.message.to} — ${g.sentToday}/${g.cap} today`);
+      } else if (!g.open) {
+        setUi('bg-amber-400', 'waiting', `${g.reason} — ${g.sentToday}/${g.cap} today`);
+      } else {
+        setUi('bg-[#00e5ff]', 'active', `${data.skipped ?? 'Idle'} — ${g.sentToday}/${g.cap} today`);
+      }
+    } catch {
+      setUi('bg-[#ff6b6b]', 'offline', 'Could not reach the server');
+    }
+  }
+
+  function start() {
+    if (timer) return;
+    tick();
+    timer = setInterval(tick, 60_000);
+    localStorage.setItem('outreachEngine', 'on');
+  }
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    localStorage.setItem('outreachEngine', 'off');
+    setUi('bg-[#5a7089]', 'paused', 'Turn on to process queued sends while this page is open.');
+  }
+
+  toggle.addEventListener('change', () => (toggle.checked ? start() : stop()));
+  if (localStorage.getItem('outreachEngine') === 'on') { toggle.checked = true; start(); }
+</script>

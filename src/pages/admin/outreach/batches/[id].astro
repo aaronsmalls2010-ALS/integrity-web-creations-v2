@@ -1,0 +1,78 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import OutreachHeartbeat from '../../../../components/admin/OutreachHeartbeat.astro';
+import { getBatchWithMessages, getSettings } from '../../../../lib/outreach/db';
+
+const id = Astro.params.id!;
+let batch: any, messages: any[];
+try { ({ batch, messages } = await getBatchWithMessages(id)); }
+catch { return Astro.redirect('/admin/outreach/batches'); }
+const settings = await getSettings();
+const fmt = (iso: string | null) => iso ? new Date(iso).toLocaleString('en-US', { timeZone: settings.timezone, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+const badge = (s: string) =>
+  s === 'sent' ? 'bg-emerald-400/15 text-emerald-300'
+  : s === 'queued' ? 'bg-[#0066ff]/15 text-[#00e5ff]'
+  : s === 'sending' ? 'bg-[#0066ff]/25 text-[#00e5ff]'
+  : s === 'failed' ? 'bg-[#ff6b6b]/15 text-[#ff6b6b]'
+  : s === 'canceled' ? 'bg-white/5 text-[#5a7089]'
+  : 'bg-amber-400/15 text-amber-300';
+const sent = messages.filter((m) => m.status === 'sent').length;
+---
+<AdminLayout title={batch.name}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-[#e6edf5]">{batch.name}</h1>
+      <p class="mt-1 text-sm text-[#9fb3c8]">Status <span class="font-semibold text-[#e6edf5]">{batch.status}</span> · {sent}/{messages.length} sent</p>
+    </div>
+    <div class="flex gap-2">
+      {batch.status === 'open' && <button class="actBtn btn-primary" data-action="approve">Approve & schedule sends</button>}
+      {batch.status === 'sending' && <button class="actBtn btn-ghost" data-action="pause">Pause</button>}
+      {batch.status === 'paused' && <button class="actBtn btn-primary" data-action="resume">Resume</button>}
+      {['open', 'sending', 'paused'].includes(batch.status) && <button class="actBtn rounded-lg px-3 py-2 text-sm text-[#ff6b6b] hover:bg-[#ff6b6b]/10" data-action="cancel">Cancel batch</button>}
+      <a href="/admin/outreach/batches" class="btn-ghost">← Batches</a>
+    </div>
+  </div>
+  <p id="err" class="mt-2 hidden text-sm text-[#ff6b6b]" role="alert"></p>
+  {batch.status === 'open' && <p class="mt-2 text-sm text-[#9fb3c8]">Approving assigns each message a randomized send time ({settings.min_gap_minutes}–{settings.max_gap_minutes} min apart, weekdays {settings.send_window_start}:00–{settings.send_window_end}:00, max {settings.daily_cap}/day). Keep an outreach page open — the engine sends only while you're here.</p>}
+
+  <div class="mt-4"><OutreachHeartbeat /></div>
+
+  <div class="card mt-4 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-[#9fb3c8]">
+        <th class="p-2">To</th><th>Subject</th><th>Status</th><th>Scheduled</th><th>Sent</th>
+      </tr></thead>
+      <tbody>
+        {messages.map((m: any) => (
+          <tr class="border-t border-white/[0.08]">
+            <td class="p-2"><a class="text-[#00e5ff] hover:underline" href={`/admin/outreach/leads/${m.lead?.id}`}>{m.lead?.business_name}</a>
+              <span class="block text-xs text-[#9fb3c8]">{m.lead?.email}</span></td>
+            <td class="max-w-[260px] truncate text-[#9fb3c8]">{m.subject}</td>
+            <td><span class:list={["rounded-full px-2 py-0.5 text-xs font-semibold uppercase", badge(m.status)]}>{m.status}</span>
+              {m.error && <span class="block max-w-[180px] truncate text-xs text-[#ff6b6b]" title={m.error}>{m.error}</span>}</td>
+            <td class="whitespace-nowrap text-[#9fb3c8]">{fmt(m.scheduled_after)}</td>
+            <td class="whitespace-nowrap text-[#9fb3c8]">{fmt(m.sent_at)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <script define:vars={{ batchId: id }}>
+    document.querySelectorAll('.actBtn').forEach((b) => b.addEventListener('click', async () => {
+      const action = b.dataset.action;
+      if (action === 'cancel' && !b.dataset.sure) { b.dataset.sure = '1'; b.textContent = 'Click again to confirm'; return; }
+      b.disabled = true;
+      const res = await fetch(`/api/admin/outreach/batches/${batchId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action }),
+      });
+      if (res.ok) { window.location.reload(); return; }
+      const out = await res.json().catch(() => ({}));
+      const err = document.getElementById('err');
+      err.textContent = out.error ?? 'Action failed';
+      err.classList.remove('hidden');
+      b.disabled = false;
+    }));
+  </script>
+</AdminLayout>

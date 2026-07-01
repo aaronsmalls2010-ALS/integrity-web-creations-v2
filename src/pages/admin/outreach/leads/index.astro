@@ -1,0 +1,75 @@
+---
+export const prerender = false;
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { listLeads } from '../../../../lib/outreach/db';
+import { LEAD_STATUSES } from '../../../../lib/outreach/validation';
+
+const url = Astro.url;
+const filters = {
+  status: url.searchParams.get('status') ?? undefined,
+  category: url.searchParams.get('category') ?? undefined,
+  search: url.searchParams.get('search') ?? undefined,
+  hasEmail: url.searchParams.has('hasEmail') ? url.searchParams.get('hasEmail') === 'true' : undefined,
+};
+const leads = await listLeads(filters);
+const categories = [...new Set(leads.map((l: any) => l.category))].sort();
+const badge = (s: string) =>
+  s === 'won' ? 'bg-emerald-400/15 text-emerald-300'
+  : s === 'replied' ? 'bg-emerald-400/10 text-emerald-200'
+  : ['contacted', 'followup_1', 'followup_2', 'queued'].includes(s) ? 'bg-[#0066ff]/15 text-[#00e5ff]'
+  : ['opted_out', 'lost', 'invalid'].includes(s) ? 'bg-[#ff6b6b]/15 text-[#ff6b6b]'
+  : 'bg-white/5 text-[#9fb3c8]';
+---
+<AdminLayout title="Outreach Leads">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <h1 class="text-2xl font-bold text-[#e6edf5]">Leads <span class="text-base font-normal text-[#9fb3c8]">({leads.length})</span></h1>
+    <div class="flex gap-2">
+      <a href="/admin/outreach/research" class="btn-ghost">Find leads</a>
+      <a href="/admin/outreach/leads/new" class="btn-primary">Add lead</a>
+    </div>
+  </div>
+
+  <form method="get" class="mt-4 flex flex-wrap items-end gap-3">
+    <div><label class="lbl" for="f-status">Status</label>
+      <select id="f-status" name="status" class="input">
+        <option value="">All</option>
+        {LEAD_STATUSES.map((s) => <option value={s} selected={filters.status === s}>{s}</option>)}
+      </select></div>
+    <div><label class="lbl" for="f-cat">Category</label>
+      <select id="f-cat" name="category" class="input">
+        <option value="">All</option>
+        {categories.map((cat) => <option value={cat} selected={filters.category === cat}>{cat}</option>)}
+      </select></div>
+    <div><label class="lbl" for="f-email">Email</label>
+      <select id="f-email" name="hasEmail" class="input">
+        <option value="">Any</option>
+        <option value="true" selected={filters.hasEmail === true}>Has email</option>
+        <option value="false" selected={filters.hasEmail === false}>Missing email</option>
+      </select></div>
+    <div><label class="lbl" for="f-search">Search</label>
+      <input id="f-search" name="search" class="input" placeholder="Business name…" value={filters.search ?? ''} /></div>
+    <button class="btn-ghost" type="submit">Filter</button>
+    <a href="/admin/outreach/leads" class="text-sm text-[#9fb3c8] hover:text-[#e6edf5]">Clear</a>
+  </form>
+
+  <div class="card mt-4 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead><tr class="text-left text-[#9fb3c8]">
+        <th class="p-2">Business</th><th>Category</th><th>Town</th><th>Presence</th><th>Email</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+        {leads.length === 0 && <tr><td colspan="6" class="p-4 text-[#9fb3c8]">No leads match. Run a research pass or add one manually.</td></tr>}
+        {leads.map((l: any) => (
+          <tr class="border-t border-white/[0.08] hover:bg-white/5">
+            <td class="p-2"><a class="text-[#00e5ff] hover:underline" href={`/admin/outreach/leads/${l.id}`}>{l.business_name}</a></td>
+            <td class="text-[#9fb3c8]">{l.category}</td>
+            <td class="text-[#9fb3c8]">{l.town ?? '—'}</td>
+            <td class="text-[#9fb3c8]">{l.web_presence.replace('_', ' ')}</td>
+            <td class="text-[#9fb3c8]">{l.email ?? <span class="text-amber-300/70">none</span>}</td>
+            <td><span class:list={["rounded-full px-2 py-0.5 text-xs font-semibold uppercase", badge(l.status)]}>{l.status}</span></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</AdminLayout>
