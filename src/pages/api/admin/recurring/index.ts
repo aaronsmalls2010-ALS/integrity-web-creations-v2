@@ -11,5 +11,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const parsed = recurringSchema.safeParse(raw);
   if (!parsed.success) return unprocessable(parsed.error.issues[0].message);
   try { return json({ schedule: await createSchedule(cookies, parsed.data) }, 201); }
-  catch (e) { console.error(e); return serverError(); }
+  catch (e: any) {
+    // An unsatisfiable pattern is the admin's mistake, not a server fault.
+    if (String(e?.message ?? '').includes('billing date')) return unprocessable(e.message);
+    console.error(e); return serverError();
+  }
 };

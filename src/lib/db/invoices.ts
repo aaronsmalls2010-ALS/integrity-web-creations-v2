@@ -100,7 +100,8 @@ export async function sendInvoice(cookies: AstroCookies, id: string) {
   }).eq('id', id);
   if (error) throw error;
   await logActivity(cookies, 'invoice', id, 'sent', { invoice_number: numberRow as string });
-  // NOTE: actual email send is Phase 3. For now this marks it sent + creates the public link.
+  // Issuing and emailing are deliberately separate: the /send route emails when
+  // called with `{ email: true }`, and "Email to client" (resend) covers retries.
   return getInvoice(cookies, id);
 }
 

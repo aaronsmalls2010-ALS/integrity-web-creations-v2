@@ -39,16 +39,54 @@ export const recurringLineSchema = z.object({
   taxable: z.boolean().default(false),
 });
 
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD');
+const anchorMonth = z.string().regex(/^\d{4}-\d{2}$/, 'Anchor month must be YYYY-MM').optional();
+const monthsInterval = z.number().int().min(1, 'Repeat every 1 month or more').max(12).default(1);
+
+/** The Nth calendar day(s) of the month — 1st, 15th, or -1 for the last day. */
+const dayOfMonthRuleSchema = z.object({
+  type: z.literal('day_of_month'),
+  days: z.array(z.number().int().refine((d) => d === -1 || (d >= 1 && d <= 31), 'Days must be 1–31, or -1 for the last day'))
+    .min(1, 'Pick at least one day of the month').max(31),
+  months_interval: monthsInterval,
+  anchor_month: anchorMonth,
+});
+
+/** The Nth weekday(s) of the month — e.g. the 2nd and 4th Friday. */
+const nthWeekdayRuleSchema = z.object({
+  type: z.literal('nth_weekday'),
+  weekday: z.number().int().min(0, 'Pick a day of the week').max(6),
+  ordinals: z.array(z.number().int().refine((o) => o === -1 || (o >= 1 && o <= 5), 'Ordinals must be 1–5, or -1 for the last'))
+    .min(1, 'Pick at least one week of the month').max(6),
+  months_interval: monthsInterval,
+  anchor_month: anchorMonth,
+});
+
+export const recurrenceRuleSchema = z.discriminatedUnion('type', [dayOfMonthRuleSchema, nthWeekdayRuleSchema]);
+export type RecurrenceRuleInput = z.infer<typeof recurrenceRuleSchema>;
+
 export const recurringSchema = z.object({
   client_id: z.string().uuid(),
   name: z.string().trim().min(1).max(200),
-  interval: z.enum(['monthly', 'quarterly', 'annual']),
-  interval_count: z.number().int().positive().default(1),
-  next_run_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'next_run_date must be YYYY-MM-DD'),
+  rule: recurrenceRuleSchema,
+  /** No occurrence before this date is ever billed. */
+  start_date: isoDate,
+  /** Generate and send this many days before each billing date. */
+  lead_days: z.number().int().min(0).max(90).default(0),
+  due_mode: z.enum(['net_days', 'on_occurrence']).default('net_days'),
+  /** Net-N override; null falls back to the account default. */
+  due_days: z.number().int().min(0).max(365).nullable().default(null),
   auto_send: z.boolean().default(false),
   active: z.boolean().default(true),
   line_items: z.array(recurringLineSchema).min(1, 'At least one line item is required'),
-});
+}).transform((v) => ({
+  ...v,
+  // An every-N-months stride is meaningless without a month to count from, so
+  // anchor it to the start date when the caller didn't say otherwise.
+  rule: v.rule.months_interval > 1 && !v.rule.anchor_month
+    ? { ...v.rule, anchor_month: v.start_date.slice(0, 7) }
+    : v.rule,
+}));
 export type RecurringInput = z.infer<typeof recurringSchema>;
 
 export const settingsSchema = z.object({

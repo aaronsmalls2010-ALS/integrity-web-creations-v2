@@ -1,11 +1,14 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import RecurrenceFields from '../../../components/admin/RecurrenceFields.astro';
 import { getSchedule } from '../../../lib/db/recurring';
 import { listClients } from '../../../lib/db/clients';
+import { getSettings } from '../../../lib/db/settings';
 import { centsToDollars } from '../../../lib/money';
 const s: any = await getSchedule(Astro.cookies, Astro.params.id!);
 const clients = await listClients(Astro.cookies);
+const settings: any = await getSettings(Astro.cookies).catch(() => null);
 const id = s.id as string;
 ---
 <AdminLayout title={`Edit: ${s.name}`}>
@@ -26,31 +29,28 @@ const id = s.id as string;
         <label class="lbl" for="name">Schedule name *</label>
         <input id="name" name="name" placeholder="e.g. Monthly Hosting" required class="input" value={s.name} />
       </div>
-      <div>
-        <label class="lbl" for="interval">Interval</label>
-        <select id="interval" name="interval" class="input">
-          <option value="monthly" selected={s.interval === 'monthly'}>Monthly</option>
-          <option value="quarterly" selected={s.interval === 'quarterly'}>Quarterly</option>
-          <option value="annual" selected={s.interval === 'annual'}>Annual</option>
-        </select>
-      </div>
-      <div>
-        <label class="lbl" for="interval_count">Every N intervals</label>
-        <input id="interval_count" name="interval_count" type="number" min="1" value={s.interval_count} class="input" />
-      </div>
-      <div>
-        <label class="lbl" for="next_run_date">Next run date *</label>
-        <input id="next_run_date" name="next_run_date" type="date" required class="input" value={s.next_run_date} />
-      </div>
-      <div class="flex flex-col gap-2 justify-end pb-1">
+      <div class="sm:col-span-2 flex flex-col gap-2 justify-end pb-1">
         <label class="flex items-center gap-2 text-sm text-[#9fb3c8] cursor-pointer">
-          <input type="checkbox" name="auto_send" checked={s.auto_send} class="rounded" /> Auto-send (else create as draft for review)
+          <input type="checkbox" name="auto_send" checked={s.auto_send} class="rounded" /> Auto-send: issue and email the invoice automatically (otherwise it's created as a draft for review)
         </label>
         <label class="flex items-center gap-2 text-sm text-[#9fb3c8] cursor-pointer">
           <input type="checkbox" name="active" checked={s.active} class="rounded" /> Active
         </label>
       </div>
     </div>
+    <RecurrenceFields
+      rule={s.rule}
+      startDate={s.start_date}
+      leadDays={s.lead_days}
+      dueMode={s.due_mode}
+      dueDays={s.due_days}
+      defaultDueDays={settings?.default_due_days ?? 14}
+    />
+    {s.last_generated_period && (
+      <p class="text-xs text-[#9fb3c8]">
+        Last invoiced for the {s.last_generated_period} billing date. Edits never re-bill a date that has already gone out.
+      </p>
+    )}
     <table class="w-full text-sm">
       <thead>
         <tr class="text-left text-[#9fb3c8]">
@@ -69,6 +69,8 @@ const id = s.id as string;
   </form>
   <script>
     import { dollarsToCents, centsToDollars } from '../../../lib/money';
+    import { initRecurrenceFields, readScheduleFields, validateSelection } from '../../../lib/recurrence-form';
+    initRecurrenceFields();
     const formEl = document.getElementById('f') as HTMLFormElement;
     const linesEl = document.getElementById('lines')!;
     const scheduleId = formEl.dataset.id!;
@@ -105,13 +107,14 @@ const id = s.id as string;
         taxable: (tr.querySelector('.tax') as HTMLInputElement).checked,
       })).filter((l) => l.description.trim() !== '');
       const err = document.getElementById('err')!;
-      if (line_items.length === 0) { err.textContent = 'Add at least one line item.'; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; return; }
+      const fail = (msg: string) => { err.textContent = msg; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; };
+      if (line_items.length === 0) return fail('Add at least one line item.');
+      const scheduleProblem = validateSelection();
+      if (scheduleProblem) return fail(scheduleProblem);
       const body = {
         client_id: (form.elements.namedItem('client_id') as HTMLSelectElement).value,
         name: (form.elements.namedItem('name') as HTMLInputElement).value,
-        interval: (form.elements.namedItem('interval') as HTMLSelectElement).value,
-        interval_count: Number((form.elements.namedItem('interval_count') as HTMLInputElement).value || '1'),
-        next_run_date: (form.elements.namedItem('next_run_date') as HTMLInputElement).value,
+        ...readScheduleFields(),
         auto_send: (form.elements.namedItem('auto_send') as HTMLInputElement).checked,
         active: (form.elements.namedItem('active') as HTMLInputElement).checked,
         line_items,
@@ -119,7 +122,7 @@ const id = s.id as string;
       const res = await fetch(`/api/admin/recurring/${scheduleId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await res.json();
       if (res.ok) location.reload();
-      else { err.textContent = j.error; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; }
+      else fail(j.error ?? 'Could not save the schedule.');
     });
 
     document.getElementById('deactivate')!.addEventListener('click', async () => {

@@ -2,6 +2,7 @@
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { listSchedules } from '../../../lib/db/recurring';
+import { describeRule } from '../../../lib/cron/recurrence';
 import { formatUSD } from '../../../lib/money';
 const schedules = (await listSchedules(Astro.cookies)) as any[];
 const total = (items: any[]) => (items ?? []).reduce((s: number, l: any) => s + Math.round(l.quantity * l.unit_price_cents), 0);
@@ -17,8 +18,9 @@ const total = (items: any[]) => (items ?? []).reduce((s: number, l: any) => s + 
         <tr class="text-left text-[#9fb3c8]">
           <th scope="col" class="p-2">Name</th>
           <th scope="col">Client</th>
-          <th scope="col">Interval</th>
-          <th scope="col">Next run</th>
+          <th scope="col">Repeats</th>
+          <th scope="col">Next billed</th>
+          <th scope="col">Next sent</th>
           <th scope="col">Amount</th>
           <th scope="col">Mode</th>
           <th scope="col">Active</th>
@@ -29,8 +31,12 @@ const total = (items: any[]) => (items ?? []).reduce((s: number, l: any) => s + 
           <tr class="border-t border-white/[0.08] hover:bg-white/5">
             <td class="p-2"><a class="text-[#00e5ff] hover:underline" href={`/admin/recurring/${s.id}`}>{s.name}</a></td>
             <td>{s.client?.name}</td>
-            <td>{s.interval_count > 1 ? `${s.interval_count}× ` : ''}{s.interval}</td>
-            <td>{s.next_run_date}</td>
+            <td>{describeRule(s.rule)}</td>
+            <td>{s.next_occurrence_date ?? '—'}</td>
+            <td>
+              {s.next_run_date}
+              {s.lead_days > 0 && <span class="text-[#9fb3c8]"> ({s.lead_days}d early)</span>}
+            </td>
             <td>{formatUSD(total(s.line_items))}</td>
             <td>{s.auto_send ? 'Auto-send' : 'Draft'}</td>
             <td>{s.active ? 'Yes' : 'No'}</td>

@@ -1,8 +1,11 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import RecurrenceFields from '../../../components/admin/RecurrenceFields.astro';
 import { listClients } from '../../../lib/db/clients';
+import { getSettings } from '../../../lib/db/settings';
 const clients = await listClients(Astro.cookies);
+const settings: any = await getSettings(Astro.cookies).catch(() => null);
 ---
 <AdminLayout title="New Recurring Schedule">
   <h1 class="text-2xl font-bold text-[#e6edf5]">New recurring schedule</h1>
@@ -19,28 +22,13 @@ const clients = await listClients(Astro.cookies);
         <label class="lbl" for="name">Schedule name *</label>
         <input id="name" name="name" placeholder="e.g. Monthly Hosting" required class="input" />
       </div>
-      <div>
-        <label class="lbl" for="interval">Interval</label>
-        <select id="interval" name="interval" class="input">
-          <option value="monthly">Monthly</option>
-          <option value="quarterly">Quarterly</option>
-          <option value="annual">Annual</option>
-        </select>
-      </div>
-      <div>
-        <label class="lbl" for="interval_count">Every N intervals</label>
-        <input id="interval_count" name="interval_count" type="number" min="1" value="1" class="input" />
-      </div>
-      <div>
-        <label class="lbl" for="next_run_date">Next run date *</label>
-        <input id="next_run_date" name="next_run_date" type="date" required class="input" />
-      </div>
-      <div class="flex items-end pb-1">
+      <div class="sm:col-span-2 flex items-end pb-1">
         <label class="flex items-center gap-2 text-sm text-[#9fb3c8] cursor-pointer">
-          <input type="checkbox" name="auto_send" class="rounded" /> Auto-send (else create as draft for review)
+          <input type="checkbox" name="auto_send" class="rounded" /> Auto-send: issue and email the invoice automatically (otherwise it's created as a draft for review)
         </label>
       </div>
     </div>
+    <RecurrenceFields defaultDueDays={settings?.default_due_days ?? 14} />
     <table class="w-full text-sm">
       <thead>
         <tr class="text-left text-[#9fb3c8]">
@@ -59,6 +47,8 @@ const clients = await listClients(Astro.cookies);
   </form>
   <script>
     import { dollarsToCents } from '../../../lib/money';
+    import { initRecurrenceFields, readScheduleFields, validateSelection } from '../../../lib/recurrence-form';
+    initRecurrenceFields();
     const linesEl = document.getElementById('lines')!;
     function addRow(desc = '', price = '', tax = false, qty = 1) {
       const tr = document.createElement('tr');
@@ -82,13 +72,14 @@ const clients = await listClients(Astro.cookies);
         taxable: (tr.querySelector('.tax') as HTMLInputElement).checked,
       })).filter((l) => l.description.trim() !== '');
       const err = document.getElementById('err')!;
-      if (line_items.length === 0) { err.textContent = 'Add at least one line item.'; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; return; }
+      const fail = (msg: string) => { err.textContent = msg; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; };
+      if (line_items.length === 0) return fail('Add at least one line item.');
+      const scheduleProblem = validateSelection();
+      if (scheduleProblem) return fail(scheduleProblem);
       const body = {
         client_id: (form.elements.namedItem('client_id') as HTMLSelectElement).value,
         name: (form.elements.namedItem('name') as HTMLInputElement).value,
-        interval: (form.elements.namedItem('interval') as HTMLSelectElement).value,
-        interval_count: Number((form.elements.namedItem('interval_count') as HTMLInputElement).value || '1'),
-        next_run_date: (form.elements.namedItem('next_run_date') as HTMLInputElement).value,
+        ...readScheduleFields(),
         auto_send: (form.elements.namedItem('auto_send') as HTMLInputElement).checked,
         active: true,
         line_items,
@@ -96,7 +87,7 @@ const clients = await listClients(Astro.cookies);
       const res = await fetch('/api/admin/recurring', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const j = await res.json();
       if (res.ok) window.location.href = '/admin/recurring';
-      else { err.textContent = j.error; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = prevText; }
+      else fail(j.error ?? 'Could not save the schedule.');
     });
   </script>
 </AdminLayout>

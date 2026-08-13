@@ -11,7 +11,10 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
   const parsed = recurringSchema.safeParse(raw);
   if (!parsed.success) return unprocessable(parsed.error.issues[0].message);
   try { return json({ schedule: await updateSchedule(cookies, params.id!, parsed.data) }); }
-  catch (e) { console.error(e); return serverError(); }
+  catch (e: any) {
+    if (String(e?.message ?? '').includes('billing date')) return unprocessable(e.message);
+    console.error(e); return serverError();
+  }
 };
 
 export const DELETE: APIRoute = async ({ params, cookies }) => {

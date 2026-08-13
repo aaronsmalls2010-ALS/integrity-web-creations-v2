@@ -1,0 +1,168 @@
+---
+/**
+ * The repeat-pattern builder shared by the new and edit recurring-schedule pages.
+ *
+ * Markup only — the behaviour (panel switching, rule assembly, live preview) lives
+ * in src/lib/recurrence-form.ts so both pages get identical logic. Initial values
+ * are handed to that module through data-* attributes on the root element.
+ */
+import { describeRule, type RecurrenceRule } from '../../lib/cron/recurrence';
+
+interface Props {
+  rule?: RecurrenceRule | null;
+  startDate?: string | null;
+  leadDays?: number | null;
+  dueMode?: string | null;
+  dueDays?: number | null;
+  defaultDueDays: number;
+}
+const { rule = null, startDate = null, leadDays = 0, dueMode = 'net_days', dueDays = null, defaultDueDays } = Astro.props;
+
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+const type = rule?.type ?? 'nth_weekday';
+const monthsInterval = rule?.months_interval ?? 1;
+const weekday = rule?.type === 'nth_weekday' ? rule.weekday : 5;
+const ordinals = rule?.type === 'nth_weekday' ? rule.ordinals : [];
+const days = rule?.type === 'day_of_month' ? rule.days : [];
+
+const WEEK_OPTIONS = [
+  { value: 1, label: '1st' }, { value: 2, label: '2nd' }, { value: 3, label: '3rd' },
+  { value: 4, label: '4th' }, { value: 5, label: '5th' }, { value: -1, label: 'Last' },
+];
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTH_STRIDES = [
+  { value: 1, label: 'Every month' }, { value: 2, label: 'Every 2 months' },
+  { value: 3, label: 'Every quarter (3 months)' }, { value: 6, label: 'Every 6 months' },
+  { value: 12, label: 'Every year (12 months)' },
+];
+---
+
+<fieldset
+  id="recurrence"
+  class="rounded-xl border border-white/10 bg-white/[0.02] p-4 sm:p-5"
+  data-initial={JSON.stringify({
+    type, months_interval: monthsInterval, weekday, ordinals, days,
+    start_date: startDate ?? today,
+    lead_days: leadDays ?? 0,
+    due_mode: dueMode ?? 'net_days',
+    due_days: dueDays,
+    default_due_days: defaultDueDays,
+  })}
+>
+  <legend class="px-1 text-sm font-semibold text-[#e6edf5]">Billing schedule</legend>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <label class="lbl" for="rule_type">Repeat pattern</label>
+      <select id="rule_type" class="input">
+        <option value="nth_weekday" selected={type === 'nth_weekday'}>On a weekday of the month (e.g. 2nd &amp; 4th Friday)</option>
+        <option value="day_of_month" selected={type === 'day_of_month'}>On calendar days of the month (e.g. 1st &amp; 15th)</option>
+      </select>
+    </div>
+    <div>
+      <label class="lbl" for="months_interval">How often</label>
+      <select id="months_interval" class="input">
+        {MONTH_STRIDES.map((s) => <option value={s.value} selected={s.value === monthsInterval}>{s.label}</option>)}
+      </select>
+    </div>
+  </div>
+
+  <!-- Nth weekday of the month -->
+  <div id="panel_weekday" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div>
+      <span class="lbl" id="ordinals_label">Which week(s) of the month</span>
+      <div class="flex flex-wrap gap-2" role="group" aria-labelledby="ordinals_label">
+        {WEEK_OPTIONS.map((o) => (
+          <label class="chip">
+            <input type="checkbox" class="ord sr-only" value={o.value} checked={ordinals.includes(o.value)} />
+            <span>{o.label}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+    <div>
+      <label class="lbl" for="weekday">Day of the week</label>
+      <select id="weekday" class="input">
+        {WEEKDAYS.map((d, i) => <option value={i} selected={i === weekday}>{d}</option>)}
+      </select>
+    </div>
+  </div>
+
+  <!-- Specific calendar days -->
+  <div id="panel_dom" class="mt-4 hidden">
+    <span class="lbl" id="days_label">Which day(s) of the month</span>
+    <div class="flex flex-wrap gap-1.5" role="group" aria-labelledby="days_label">
+      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+        <label class="chip chip-sm">
+          <input type="checkbox" class="dom sr-only" value={d} checked={days.includes(d)} />
+          <span>{d}</span>
+        </label>
+      ))}
+      <label class="chip">
+        <input type="checkbox" class="dom sr-only" value="-1" checked={days.includes(-1)} />
+        <span>Last day</span>
+      </label>
+    </div>
+    <p class="mt-2 text-xs text-[#9fb3c8]">A day past the end of a short month bills on that month's last day (the 31st bills on Feb 28).</p>
+  </div>
+
+  <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div>
+      <label class="lbl" for="start_date">Start billing on or after *</label>
+      <input id="start_date" type="date" required class="input" value={startDate ?? today} />
+    </div>
+    <div>
+      <label class="lbl" for="lead_days">Send this many days early</label>
+      <input id="lead_days" type="number" min="0" max="90" class="input" value={leadDays ?? 0} />
+      <p class="mt-1 text-xs text-[#9fb3c8]">0 = generate on the billing date itself.</p>
+    </div>
+    <div>
+      <label class="lbl" for="due_mode">Payment due</label>
+      <select id="due_mode" class="input">
+        <option value="on_occurrence" selected={dueMode === 'on_occurrence'}>On the billing date</option>
+        <option value="net_days" selected={dueMode !== 'on_occurrence'}>A set number of days after it's sent</option>
+      </select>
+      <div id="due_days_wrap" class="mt-2">
+        <label class="lbl" for="due_days">Net days</label>
+        <input id="due_days" type="number" min="0" max="365" class="input" value={dueDays ?? defaultDueDays} />
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-5 rounded-lg border border-white/10 bg-[#0d1b2c] p-3 sm:p-4">
+    <p class="text-xs uppercase tracking-wider text-[#9fb3c8]">Schedule preview</p>
+    <p id="rule_summary" class="mt-1 text-sm font-semibold text-[#00e5ff]">{describeRule(rule)}</p>
+    <div class="mt-3 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-[#9fb3c8]">
+            <th scope="col" class="pb-1 pr-4 font-medium">Invoice sent</th>
+            <th scope="col" class="pb-1 pr-4 font-medium">Billing date</th>
+            <th scope="col" class="pb-1 font-medium">Payment due</th>
+          </tr>
+        </thead>
+        <tbody id="preview_rows"></tbody>
+      </table>
+    </div>
+    <p id="preview_note" class="mt-2 text-xs text-[#9fb3c8]"></p>
+  </div>
+</fieldset>
+
+<style>
+  /* Toggle chips: real checkboxes (visually hidden) so keyboard + screen readers
+     behave normally, with the label carrying the pressed state. */
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 3rem; min-height: 2.75rem; padding: 0 .85rem;
+    border: 1px solid var(--color-line); border-radius: .625rem;
+    background: var(--color-card); color: var(--color-muted);
+    font-size: .875rem; font-weight: 500; cursor: pointer;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .chip-sm { min-width: 2.75rem; padding: 0 .5rem; }
+  .chip:hover { border-color: var(--color-cyan); color: var(--color-text); }
+  .chip:has(input:checked) {
+    background: rgba(0, 229, 255, .12); border-color: var(--color-cyan); color: var(--color-cyan);
+  }
+  .chip:has(input:focus-visible) { outline: 2px solid var(--color-cyan); outline-offset: 2px; }
+</style>
