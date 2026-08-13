@@ -29,14 +29,37 @@ type Result = {
   skipped?: string;
 };
 
-/** Move a schedule to its next billing date after `occurrence` (generated or skipped). */
-async function advance(sb: any, sch: any, occurrence: string) {
-  const pos = computeSchedulePosition({
-    rule: sch.rule as RecurrenceRule,
-    startDate: sch.start_date,
-    leadDays: sch.lead_days ?? 0,
-    lastGenerated: occurrence,
-  });
+/** Is this billing date so far in the past that invoicing it now would be wrong? */
+function isStale(occurrence: string, today: string): boolean {
+  return daysBetween(occurrence, today) > STALE_OCCURRENCE_DAYS;
+}
+
+/**
+ * Move a schedule to its next billing date after `occurrence`, skipping straight
+ * past any dates that are already stale.
+ *
+ * The skipping matters: a schedule paused for six months has ~12 missed dates,
+ * and advancing one per nightly run would leave it looking broken for twelve
+ * days. This lands it on the next real billing date in a single pass.
+ */
+async function advance(sb: any, sch: any, occurrence: string, today: string) {
+  const base = { rule: sch.rule as RecurrenceRule, startDate: sch.start_date, leadDays: sch.lead_days ?? 0 };
+  let pos = computeSchedulePosition({ ...base, lastGenerated: occurrence });
+  const skipped: string[] = [];
+
+  // Bounded so a pathological rule can never spin: 500 occurrences is decades.
+  for (let i = 0; pos && isStale(pos.next_occurrence_date, today) && i < 500; i++) {
+    skipped.push(pos.next_occurrence_date);
+    pos = computeSchedulePosition({ ...base, lastGenerated: pos.next_occurrence_date });
+  }
+
+  if (skipped.length > 0) {
+    await sb.from('activity_log').insert({
+      entity_type: 'recurring_schedule', entity_id: sch.id, action: 'occurrences_skipped',
+      detail: { count: skipped.length, dates: skipped.slice(0, 25), reason: `older than ${STALE_OCCURRENCE_DAYS} days`, today },
+    });
+  }
+
   await sb.from('recurring_schedules').update(
     pos
       ? { next_occurrence_date: pos.next_occurrence_date, next_run_date: pos.next_run_date }
@@ -61,14 +84,14 @@ export async function generateRecurring(today: string) {
     if (!occurrence || !sch.rule) continue; // pre-0009 row that somehow escaped the backfill
 
     // Already billed for this date — just roll forward.
-    if (sch.last_generated_period === occurrence) { await advance(sb, sch, occurrence); continue; }
+    if (sch.last_generated_period === occurrence) { await advance(sb, sch, occurrence, today); continue; }
 
-    if (daysBetween(occurrence, today) > STALE_OCCURRENCE_DAYS) {
+    if (isStale(occurrence, today)) {
       await sb.from('activity_log').insert({
         entity_type: 'recurring_schedule', entity_id: sch.id, action: 'occurrence_skipped',
         detail: { occurrence_date: occurrence, reason: `older than ${STALE_OCCURRENCE_DAYS} days`, today },
       });
-      await advance(sb, sch, occurrence);
+      await advance(sb, sch, occurrence, today);
       out.push({ schedule_id: sch.id, occurrence_date: occurrence, skipped: 'stale occurrence' });
       continue;
     }
@@ -109,7 +132,7 @@ export async function generateRecurring(today: string) {
       // it is the guard doing its job. Roll forward so we don't retry forever.
       if ((error as any)?.code === '23505') {
         await sb.from('recurring_schedules').update({ last_generated_period: occurrence }).eq('id', sch.id);
-        await advance(sb, sch, occurrence);
+        await advance(sb, sch, occurrence, today);
         out.push({ schedule_id: sch.id, occurrence_date: occurrence, skipped: 'already invoiced for this occurrence' });
       } else {
         console.error('[recurring] invoice insert failed for schedule', sch.id, error);
@@ -126,7 +149,7 @@ export async function generateRecurring(today: string) {
     // Claim the occurrence before emailing: a failed send must never cause a
     // second invoice on the next run.
     await sb.from('recurring_schedules').update({ last_generated_period: occurrence, last_invoice_id: inv.id }).eq('id', sch.id);
-    await advance(sb, sch, occurrence);
+    await advance(sb, sch, occurrence, today);
     await sb.from('activity_log').insert({
       entity_type: 'invoice', entity_id: inv.id, action: sch.auto_send ? 'sent' : 'created',
       detail: { recurring_schedule_id: sch.id, occurrence_date: occurrence, rule: describeRule(sch.rule) },
