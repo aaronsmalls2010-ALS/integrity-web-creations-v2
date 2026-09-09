@@ -3,6 +3,7 @@ import { getServerClient } from '../supabase/server';
 import { getAdminClient } from '../supabase/admin';
 import { computeTotals, type TotalsLine } from '../invoice/totals';
 import { applyPayments, type InvoiceStatus } from '../invoice/status';
+import { decideVoid, refusalMessage, normalizeReason, type VoidRefusal } from '../invoice/void';
 import { buildIssuerSnapshot, buildBillToSnapshot } from '../invoice/snapshot';
 import { randomBytes } from 'node:crypto';
 
@@ -129,14 +130,48 @@ export async function duplicateInvoice(cookies: AstroCookies, id: string) {
   });
 }
 
-export async function voidInvoice(cookies: AstroCookies, id: string) {
+export class VoidRefused extends Error {
+  constructor(public readonly reason: VoidRefusal) { super(refusalMessage(reason)); this.name = 'VoidRefused'; }
+}
+
+/**
+ * Void an invoice, or refuse.
+ *
+ * The rules live in lib/invoice/void.ts and are enforced HERE rather than in the
+ * admin page. Previously the only thing stopping a paid invoice being voided was
+ * a condition in the template, so anything posting to /void directly went
+ * straight through.
+ *
+ * A reason is recorded. A void with no reason is a much weaker record than one
+ * that says "wrong amount", which is the whole point of the entry when somebody
+ * asks about it a year later.
+ */
+export async function voidInvoice(cookies: AstroCookies, id: string, rawReason?: unknown) {
   const sb = getServerClient(cookies);
   const inv = await getInvoice(cookies, id);
-  if (inv.status === 'draft') { await sb.from('invoices').delete().eq('id', id); return { deleted: true }; }
+
+  const decision = decideVoid({
+    status: inv.status as InvoiceStatus,
+    amountPaidCents: inv.amount_paid_cents ?? 0,
+  });
+  if (!decision.allowed) throw new VoidRefused(decision.reason);
+
+  const reason = normalizeReason(rawReason);
+
+  if (decision.action === 'delete_draft') {
+    // A draft never consumed an invoice number, so removing the row leaves no
+    // gap and destroys no issued record. The activity entry is written FIRST,
+    // because after the delete there is no row left to explain itself.
+    await logActivity(cookies, 'invoice', id, 'draft_deleted', { reason });
+    const { error } = await sb.from('invoices').delete().eq('id', id);
+    if (error) throw error;
+    return { deleted: true, reason };
+  }
+
   const { error } = await sb.from('invoices').update({ status: 'void' }).eq('id', id);
   if (error) throw error;
-  await logActivity(cookies, 'invoice', id, 'voided', {});
-  return { deleted: false };
+  await logActivity(cookies, 'invoice', id, 'voided', { reason });
+  return { deleted: false, reason };
 }
 
 export async function logActivity(cookies: AstroCookies, entity_type: string, entity_id: string, action: string, detail: object) {

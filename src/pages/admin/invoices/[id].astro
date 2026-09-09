@@ -192,6 +192,17 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
     <div class="card w-full max-w-sm p-6">
       <h2 id="confirmTitle" class="text-lg font-bold text-[#e6edf5]"></h2>
       <p id="confirmMsg" class="mt-2 text-sm text-[#9fb3c8]"></p>
+      <div id="confirmReasonWrap" class="mt-4 hidden">
+        <label for="confirmReason" class="block text-xs font-semibold uppercase tracking-wider text-[#9fb3c8]">
+          Reason
+        </label>
+        <input id="confirmReason" type="text" maxlength="300" autocomplete="off"
+               placeholder="Wrong amount"
+               class="mt-1.5 w-full rounded border border-[#243244] bg-[#0d141d] px-3 py-2 text-sm text-[#e6edf5]" />
+        <p class="mt-1.5 text-xs text-[#9fb3c8]">
+          Recorded against the invoice. This is what answers the question if anyone asks later.
+        </p>
+      </div>
       <div class="mt-5 flex justify-end gap-2">
         <button id="confirmCancel" class="btn-ghost">Cancel</button>
         <button id="confirmOk" class="btn-primary">Confirm</button>
@@ -255,24 +266,31 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
     }
 
     /* ── confirm dialog ── */
-    function confirmDialog(title: string, msg: string, okLabel = 'Confirm'): Promise<boolean> {
+    function confirmDialog(
+      title: string, msg: string, okLabel = 'Confirm', withReason = false,
+    ): Promise<boolean | string> {
       return new Promise((resolve) => {
         const m = document.getElementById('confirmModal')!;
         document.getElementById('confirmTitle')!.textContent = title;
         document.getElementById('confirmMsg')!.textContent = msg;
         const okBtn = document.getElementById('confirmOk') as HTMLButtonElement;
         okBtn.textContent = okLabel;
+        const wrap = document.getElementById('confirmReasonWrap')!;
+        const reasonInput = document.getElementById('confirmReason') as HTMLInputElement;
+        reasonInput.value = '';
+        wrap.classList.toggle('hidden', !withReason);
         m.classList.remove('hidden');
         m.classList.add('flex');
         document.body.style.overflow = 'hidden';
-        const cleanup = (val: boolean) => {
+        const cleanup = (val: boolean | string) => {
           m.classList.add('hidden');
           m.classList.remove('flex');
           document.body.style.overflow = '';
           okBtn.onclick = null;
           resolve(val);
         };
-        okBtn.onclick = () => cleanup(true);
+        okBtn.onclick = () => cleanup(withReason ? reasonInput.value.trim() || true : true);
+        if (withReason) setTimeout(() => reasonInput.focus(), 0);
         document.getElementById('confirmCancel')!.onclick = () => cleanup(false);
         m.onclick = (e: MouseEvent) => { if (e.target === m) cleanup(false); };
       });
@@ -420,11 +438,20 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
       const title = isDraft ? 'Delete draft?' : 'Void invoice?';
       const msg = isDraft
         ? 'This draft will be permanently deleted and cannot be recovered.'
-        : 'This will void the invoice and mark it as uncollectible.';
-      if (!(await confirmDialog(title, msg, isDraft ? 'Delete' : 'Void'))) return;
-      const r = await fetch(`/api/admin/invoices/${id}/void`, { method: 'POST' });
-      if (r.ok) location.href = '/admin/invoices';
-      else showActionErr((await r.json()).error ?? 'Failed to void invoice.');
+        : 'The invoice stays on file, marked void, so the number is not left unexplained.';
+      const answer = await confirmDialog(title, msg, isDraft ? 'Delete' : 'Void', true);
+      if (answer === false) return;
+      const reason = typeof answer === 'string' ? answer : undefined;
+      const r = await fetch(`/api/admin/invoices/${id}/void`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      });
+      if (r.ok) { location.href = '/admin/invoices'; return; }
+      // A 409 is the rules refusing, not a fault. The message already says what
+      // to do instead, so show it as it is.
+      const body = await r.json().catch(() => ({}));
+      showActionErr(body.error ?? 'That invoice could not be voided.');
     });
 
     /* ── record payment ── */
