@@ -54,6 +54,24 @@ export const POST: APIRoute = async ({ request }) => {
             stripe_payment_intent_id: pi,
           }).eq('id', invoiceId);
           await sb.from('activity_log').insert({ entity_type: 'invoice', entity_id: invoiceId, action: 'payment_recorded', detail: { method: 'stripe', amount_cents: amount, event: event.id } });
+          if (i.status === 'rolled') {
+            // The client paid a checkout opened before the invoice was rolled forward.
+            // The money is recorded, but the same debt now also sits on the newer
+            // invoice, so a human must reconcile it to avoid billing the client twice.
+            await sb.from('activity_log').insert({ entity_type: 'invoice', entity_id: invoiceId, action: 'payment_on_rolled_invoice', detail: { amount_cents: amount, event: event.id } });
+            try {
+              const alertTo = import.meta.env.ADMIN_ALLOWLIST_EMAIL;
+              const dollars = (amount / 100).toFixed(2);
+              if (alertTo) {
+                await sendEmail({
+                  to: alertTo,
+                  subject: 'Action needed: payment received on a rolled-over invoice',
+                  htmlBody: `<p>A client paid $${dollars} against an invoice whose balance had already been carried onto a newer invoice.</p><p>Open the invoice in the admin portal and reconcile it with the newer invoice so the client is not billed twice.</p>`,
+                  textBody: `A client paid $${dollars} on an invoice whose balance was already rolled onto a newer invoice. Reconcile the two in the admin portal so the client is not billed twice.`,
+                });
+              }
+            } catch (err) { console.error('[stripe webhook] rolled-payment alert failed:', err); }
+          }
           try {
             const { data: fresh } = await sb.from('invoices').select('*').eq('id', invoiceId).single();
             const f: any = fresh;

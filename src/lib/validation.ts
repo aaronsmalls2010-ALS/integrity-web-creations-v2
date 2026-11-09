@@ -73,7 +73,9 @@ export const recurringSchema = z.object({
   start_date: isoDate,
   /** Generate and send this many days before each billing date. */
   lead_days: z.number().int().min(0).max(90).default(0),
-  due_mode: z.enum(['net_days', 'on_occurrence']).default('net_days'),
+  due_mode: z.enum(['net_days', 'on_occurrence', 'fixed_day']).default('net_days'),
+  /** Day of month the invoice is due when due_mode = fixed_day (clamped to short months). */
+  due_day: z.number().int().min(1).max(31).nullable().default(null),
   /** Net-N override; null falls back to the account default. */
   due_days: z.number().int().min(0).max(365).nullable().default(null),
   auto_send: z.boolean().default(false),
@@ -101,6 +103,7 @@ export const settingsSchema = z.object({
   invoice_number_prefix: z.string().trim().max(20).optional(),
   default_due_days: z.number().int().min(0).max(365),
   default_tax_rate: z.number().min(0).max(1),
+  rollover_enabled: z.boolean().optional(),
   default_terms: z.string().trim().max(5000).optional(),
   payment_instructions: z.string().trim().max(5000).optional(),
 });

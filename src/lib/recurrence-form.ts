@@ -43,13 +43,16 @@ export function readRule(): RecurrenceRule | null {
 
 /** Everything the API needs from this fieldset. */
 export function readScheduleFields() {
-  const dueMode = $<HTMLSelectElement>('due_mode').value === 'on_occurrence' ? 'on_occurrence' : 'net_days';
+  const rawMode = $<HTMLSelectElement>('due_mode').value;
+  const dueMode: 'on_occurrence' | 'fixed_day' | 'net_days' =
+    rawMode === 'on_occurrence' || rawMode === 'fixed_day' ? rawMode : 'net_days';
   return {
     rule: readRule(),
     start_date: $<HTMLInputElement>('start_date').value,
     lead_days: Number($<HTMLInputElement>('lead_days').value || '0'),
     due_mode: dueMode,
     due_days: dueMode === 'net_days' ? Number($<HTMLInputElement>('due_days').value || '0') : null,
+    due_day: dueMode === 'fixed_day' ? Math.min(31, Math.max(1, Number($<HTMLInputElement>('due_day').value || '15'))) : null,
   };
 }
 
@@ -94,8 +97,9 @@ function renderPreview() {
     const send = runDateFor(occurrence, f.lead_days);
     const due = dueDateFor({
       occurrence, issueDate: send,
-      dueMode: f.due_mode as 'on_occurrence' | 'net_days',
+      dueMode: f.due_mode,
       dueDays: f.due_days ?? 0,
+      dueDay: f.due_day,
     });
     return `<tr class="border-t border-white/[0.08]">
       <td class="py-1.5 pr-4 text-[#e6edf5]">${fmt(send)}</td>
@@ -121,8 +125,25 @@ export function initRecurrenceFields() {
     const isDom = $<HTMLSelectElement>('rule_type').value === 'day_of_month';
     $('panel_dom').classList.toggle('hidden', !isDom);
     $('panel_weekday').classList.toggle('hidden', isDom);
-    $('due_days_wrap').classList.toggle('hidden', $<HTMLSelectElement>('due_mode').value === 'on_occurrence');
+    const mode = $<HTMLSelectElement>('due_mode').value;
+    $('due_days_wrap').classList.toggle('hidden', mode === 'on_occurrence' || mode === 'fixed_day');
+    $('due_day_wrap').classList.toggle('hidden', mode !== 'fixed_day');
   }
+
+  // One-click standard cycle: bill the 1st of every month, due the 15th, send
+  // automatically. Everything is still editable afterwards.
+  document.getElementById('preset_monthly')?.addEventListener('click', () => {
+    $<HTMLSelectElement>('rule_type').value = 'day_of_month';
+    $<HTMLSelectElement>('months_interval').value = '1';
+    document.querySelectorAll<HTMLInputElement>('.dom').forEach((el) => { el.checked = el.value === '1'; });
+    $<HTMLInputElement>('lead_days').value = '0';
+    $<HTMLSelectElement>('due_mode').value = 'fixed_day';
+    $<HTMLInputElement>('due_day').value = '15';
+    const auto = document.querySelector<HTMLInputElement>('input[name="auto_send"]');
+    if (auto) auto.checked = true;
+    syncPanels();
+    renderPreview();
+  });
 
   // A brand-new schedule starts on the 1st of the month / 1st Friday so the
   // preview is never empty before the admin has touched anything.

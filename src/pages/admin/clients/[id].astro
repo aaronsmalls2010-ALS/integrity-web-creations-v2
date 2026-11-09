@@ -8,6 +8,10 @@ const c = await getClient(Astro.cookies, Astro.params.id!);
 const { data: clientInvoices } = await getServerClient(Astro.cookies)
   .from('invoices').select('id, invoice_number, status, total_cents, balance_cents')
   .eq('client_id', c.id).order('created_at', { ascending: false });
+// What this client owes right now. A 'rolled' invoice keeps its old balance on
+// record but that money is counted on the invoice it was carried to, not here.
+const OPEN = ['sent', 'viewed', 'partial', 'overdue'];
+const owedCents = (clientInvoices ?? []).filter((i: any) => OPEN.includes(i.status)).reduce((s: number, i: any) => s + i.balance_cents, 0);
 ---
 <AdminLayout title={c.name}>
   <h1 class="text-2xl font-bold text-[#e6edf5]">{c.name}</h1>
@@ -59,6 +63,7 @@ const { data: clientInvoices } = await getServerClient(Astro.cookies)
       <h2 class="font-semibold text-[#e6edf5]">Invoices</h2>
       <a href="/admin/invoices/new" class="text-sm text-[#00e5ff]">+ New invoice</a>
     </div>
+    <p class="mt-1 text-sm text-[#9fb3c8]">Currently owes: <strong class:list={[owedCents > 0 ? 'text-amber-300' : 'text-emerald-300']}>{formatUSD(owedCents)}</strong></p>
     <table class="mt-2 w-full text-sm">
       <tbody>
         {(clientInvoices ?? []).map((inv: any) => (
@@ -66,7 +71,7 @@ const { data: clientInvoices } = await getServerClient(Astro.cookies)
             <td class="py-1"><a class="text-[#00e5ff]" href={`/admin/invoices/${inv.id}`}>{inv.invoice_number ?? 'DRAFT'}</a></td>
             <td class="text-[#9fb3c8]">{inv.status}</td>
             <td class="text-[#e6edf5]">{formatUSD(inv.total_cents)}</td>
-            <td class="text-[#9fb3c8]">Bal {formatUSD(inv.balance_cents)}</td>
+            <td class="text-[#9fb3c8]">{OPEN.includes(inv.status) ? `Bal ${formatUSD(inv.balance_cents)}` : inv.status === 'rolled' ? 'Carried forward' : '—'}</td>
           </tr>
         ))}
       </tbody>

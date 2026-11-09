@@ -10,6 +10,7 @@ import type { InvoiceStatus } from './status';
 export type VoidRefusal =
   | 'already_void'
   | 'has_payments'
+  | 'rolled'
   | 'unknown_status';
 
 export type VoidDecision =
@@ -21,7 +22,7 @@ export type VoidDecision =
   | { allowed: true; action: 'delete_draft' }
   | { allowed: false; reason: VoidRefusal };
 
-const KNOWN: InvoiceStatus[] = ['draft', 'sent', 'viewed', 'partial', 'paid', 'overdue', 'void'];
+const KNOWN: InvoiceStatus[] = ['draft', 'sent', 'viewed', 'partial', 'paid', 'overdue', 'void', 'rolled'];
 
 /**
  * May this invoice be voided?
@@ -36,6 +37,9 @@ export function decideVoid(input: {
 }): VoidDecision {
   if (!KNOWN.includes(input.status)) return { allowed: false, reason: 'unknown_status' };
   if (input.status === 'void') return { allowed: false, reason: 'already_void' };
+  // Its balance now lives on a later invoice. Voiding this one would not remove
+  // that debt, it would just hide where it came from.
+  if (input.status === 'rolled') return { allowed: false, reason: 'rolled' };
   if (input.amountPaidCents > 0 || input.status === 'paid' || input.status === 'partial') {
     return { allowed: false, reason: 'has_payments' };
   }
@@ -50,6 +54,8 @@ export function refusalMessage(reason: VoidRefusal): string {
       return 'This invoice is already voided.';
     case 'has_payments':
       return 'This invoice has a payment against it. Refund the payment first, or issue a credit note. Voiding it would leave money attached to an invoice that says it never existed.';
+    case 'rolled':
+      return 'This invoice was closed because its balance was carried onto a later invoice. Void or adjust that invoice instead; voiding it restores this one.';
     case 'unknown_status':
       return 'This invoice has a status the system does not recognise, so it will not be voided automatically.';
   }

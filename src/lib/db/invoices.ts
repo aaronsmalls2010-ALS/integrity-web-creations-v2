@@ -5,6 +5,7 @@ import { computeTotals, type TotalsLine } from '../invoice/totals';
 import { applyPayments, type InvoiceStatus } from '../invoice/status';
 import { decideVoid, refusalMessage, normalizeReason, type VoidRefusal } from '../invoice/void';
 import { buildIssuerSnapshot, buildBillToSnapshot } from '../invoice/snapshot';
+import { previewRollover, type RolloverPreview } from '../invoice/rollover';
 import { randomBytes } from 'node:crypto';
 
 export interface DraftLine { service_id?: string|null; description: string; quantity: number; unit_price_cents: number; taxable: boolean; }
@@ -101,6 +102,14 @@ export async function sendInvoice(cookies: AstroCookies, id: string) {
   }).eq('id', id);
   if (error) throw error;
   await logActivity(cookies, 'invoice', id, 'sent', { invoice_number: numberRow as string });
+  // Carry any past-due balance for this client onto the invoice just issued.
+  // Atomic in SQL; a failure here must not undo an invoice that is already issued,
+  // so it is logged and the admin can see the invoice has no carried lines.
+  const { error: rollErr } = await sb.rpc('roll_forward_balances', { p_invoice_id: id });
+  if (rollErr) {
+    console.error('[sendInvoice] roll forward failed for', id, rollErr);
+    await logActivity(cookies, 'invoice', id, 'rollover_failed', { error: rollErr.message });
+  }
   // Issuing and emailing are deliberately separate: the /send route emails when
   // called with `{ email: true }`, and "Email to client" (resend) covers retries.
   return getInvoice(cookies, id);
@@ -128,6 +137,25 @@ export async function duplicateInvoice(cookies: AstroCookies, id: string) {
     tax_rate: src.tax_rate, discount_cents: src.discount_cents, terms: src.terms, notes: src.notes,
     lines: src.lines.map((l: any) => ({ service_id: l.service_id, description: l.description, quantity: l.quantity, unit_price_cents: l.unit_price_cents, taxable: l.taxable })),
   });
+}
+
+/**
+ * What would be carried onto a new invoice for this client right now. Mirrors the
+ * eligibility rules in crm.roll_forward_balances, for the admin "will roll
+ * forward" notice. Read-only.
+ */
+export async function getRolloverPreview(cookies: AstroCookies, clientId: string, asOf: string): Promise<RolloverPreview> {
+  const sb = getServerClient(cookies);
+  const { data: settings } = await sb.from('app_settings').select('rollover_enabled').eq('id', true).single();
+  if ((settings as any)?.rollover_enabled === false) return previewRollover([]);
+  const { data } = await sb.from('invoices')
+    .select('id, invoice_number, due_date, balance_cents, lines:invoice_line_items(kind, amount_cents)')
+    .eq('client_id', clientId)
+    .in('status', ['sent', 'viewed', 'partial', 'overdue'])
+    .gt('balance_cents', 0)
+    .lt('due_date', asOf)
+    .order('due_date');
+  return previewRollover((data ?? []) as any[]);
 }
 
 export class VoidRefused extends Error {
@@ -170,6 +198,12 @@ export async function voidInvoice(cookies: AstroCookies, id: string, rawReason?:
 
   const { error } = await sb.from('invoices').update({ status: 'void' }).eq('id', id);
   if (error) throw error;
+  // If this invoice had absorbed earlier balances, hand them back: voiding must
+  // not make a client's outstanding debt disappear.
+  if ((inv.carried_forward_cents ?? 0) > 0) {
+    const { error: unrollErr } = await sb.rpc('unroll_invoice', { p_invoice_id: id });
+    if (unrollErr) throw unrollErr;
+  }
   await logActivity(cookies, 'invoice', id, 'voided', { reason });
   return { deleted: false, reason };
 }

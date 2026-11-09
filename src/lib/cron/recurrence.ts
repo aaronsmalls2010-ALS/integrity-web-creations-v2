@@ -174,16 +174,33 @@ export function runDateFor(occurrence: string, leadDays: number): string {
   return addDays(occurrence, -Math.max(0, Math.trunc(leadDays || 0)));
 }
 
+export type DueMode = 'on_occurrence' | 'net_days' | 'fixed_day';
+
 /**
  * The due date for an invoice.
  *  'on_occurrence' — due on the billing date itself (what CLS wants: issued 5
  *                    days early, due on the 2nd/4th Friday).
  *  'net_days'      — the classic Net-N from the issue date.
+ *  'fixed_day'     — due on a set day of the month ("the 15th"), the first such
+ *                    day strictly after the later of the issue and billing dates.
+ *                    Immune to the cron running a day late, which Net-N is not.
  */
 export function dueDateFor(
-  opts: { occurrence: string; issueDate: string; dueMode: 'on_occurrence' | 'net_days'; dueDays: number },
+  opts: { occurrence: string; issueDate: string; dueMode: DueMode; dueDays: number; dueDay?: number | null },
 ): string {
   if (opts.dueMode === 'on_occurrence') return opts.occurrence;
+  if (opts.dueMode === 'fixed_day' && opts.dueDay && opts.dueDay >= 1) {
+    const base = opts.occurrence > opts.issueDate ? opts.occurrence : opts.issueDate;
+    let [y, m] = parseISO(base);
+    const want = Math.min(31, Math.trunc(opts.dueDay));
+    for (let i = 0; i < 2; i++) {
+      const candidate = iso(y, m, Math.min(want, daysInMonth(y, m)));
+      if (candidate > base) return candidate;
+      m++;
+      if (m > 12) { m = 1; y++; }
+    }
+    return iso(y, m, Math.min(want, daysInMonth(y, m)));
+  }
   return addDays(opts.issueDate, Math.max(0, Math.trunc(opts.dueDays || 0)));
 }
 

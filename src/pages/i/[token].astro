@@ -2,6 +2,8 @@
 export const prerender = false;
 import { getInvoiceByToken, markViewed } from '../../lib/db/invoices';
 import { formatUSD } from '../../lib/money';
+import { getAdminClient } from '../../lib/supabase/admin';
+import { orderLines, summarizeLines } from '../../lib/invoice/rollover';
 const token = Astro.params.token!;
 const inv: any = await getInvoiceByToken(token);
 if (!inv || inv.status === 'void') return new Response('Not found', { status: 404 });
@@ -9,6 +11,17 @@ await markViewed(token);
 const issuer = inv.issuer_snapshot ?? {};
 const bill = inv.bill_to_snapshot ?? {};
 const justPaid = Astro.url.searchParams.get('paid') === '1';
+const lines = orderLines(inv.lines ?? []);
+const sum = summarizeLines(lines);
+const showBreakdown = sum.carriedCents > 0 || sum.lateFeeCents > 0;
+/* A rolled invoice is closed: its balance now lives on a later invoice. Point
+   the client at it instead of leaving them on a dead end. */
+let rolledTo: { invoice_number: string | null; public_token: string | null } | null = null;
+if (inv.status === 'rolled' && inv.rolled_into_invoice_id) {
+  const { data } = await getAdminClient().from('invoices')
+    .select('invoice_number, public_token').eq('id', inv.rolled_into_invoice_id).single();
+  rolledTo = (data as any) ?? null;
+}
 
 /* derived totals from lines */
 const subtotalCents: number = inv.lines.reduce((s: number, l: any) => s + (l.amount_cents ?? 0), 0);
@@ -225,6 +238,13 @@ const notesText = inv.notes && String(inv.notes).trim();
       border-bottom: 1px solid #f1f5f9;
     }
     .line-items-table tbody tr:last-child { border-bottom: none; }
+    .line-items-table tbody tr.row-carry td { background: #f8fafc; color: #334155; }
+    .line-items-table tbody tr.row-fee td { color: #b4541b; }
+    .rolled-banner {
+      background: #f5f3ff; color: #5b21b6; border: 1.5px solid #ddd6fe; border-radius: 8px;
+      padding: 14px 20px; font-weight: 600; font-size: 14px; margin-bottom: 24px; line-height: 1.5;
+    }
+    .rolled-banner a { color: #5b21b6; text-decoration: underline; }
     .line-items-table tbody td {
       padding: 12px 12px;
       color: #1e293b;
@@ -457,6 +477,14 @@ const notesText = inv.notes && String(inv.notes).trim();
         </div>
       </div>
 
+      {inv.status === 'rolled' && (
+        <div class="rolled-banner" role="status">
+          The unpaid balance on this invoice was carried forward
+          {rolledTo?.invoice_number ? <> onto <strong>invoice {rolledTo.invoice_number}</strong></> : ' onto a newer invoice'}.
+          {rolledTo?.public_token && <> <a href={`/i/${rolledTo.public_token}`}>View the current invoice</a> to pay.</>}
+        </div>
+      )}
+
       <!-- Bill To -->
       <div class="bill-to-section">
         <div class="section-label">Bill To</div>
@@ -481,8 +509,8 @@ const notesText = inv.notes && String(inv.notes).trim();
           </tr>
         </thead>
         <tbody>
-          {inv.lines.sort((a: any, b: any) => a.sort_order - b.sort_order).map((l: any) => (
-            <tr>
+          {lines.map((l: any) => (
+            <tr class:list={[l.kind === 'carry_forward' && 'row-carry', l.kind === 'late_fee' && 'row-fee']}>
               <td>{l.description}</td>
               <td>{l.quantity}</td>
               <td>{formatUSD(l.unit_price_cents)}</td>
@@ -496,10 +524,18 @@ const notesText = inv.notes && String(inv.notes).trim();
       <div class="totals-section">
         <table class="totals-table">
           <tbody>
-            <tr>
-              <td>Subtotal</td>
-              <td>{formatUSD(subtotalCents)}</td>
-            </tr>
+            {showBreakdown ? (
+              <>
+                <tr><td>New charges</td><td>{formatUSD(sum.chargesCents)}</td></tr>
+                {sum.carriedCents > 0 && <tr><td>Previous balance</td><td>{formatUSD(sum.carriedCents)}</td></tr>}
+                {sum.lateFeeCents > 0 && <tr><td>Late fees</td><td>{formatUSD(sum.lateFeeCents)}</td></tr>}
+              </>
+            ) : (
+              <tr>
+                <td>Subtotal</td>
+                <td>{formatUSD(subtotalCents)}</td>
+              </tr>
+            )}
             {discountCents > 0 && (
               <tr>
                 <td>Discount</td>
@@ -532,7 +568,7 @@ const notesText = inv.notes && String(inv.notes).trim();
       )}
 
       <!-- Pay now button -->
-      {inv.status !== 'paid' && inv.status !== 'void' && inv.balance_cents > 0 && (
+      {inv.status !== 'paid' && inv.status !== 'void' && inv.status !== 'rolled' && inv.balance_cents > 0 && (
         <div class="pay-section">
           <a href={`/i/${token}/pay`} class="pay-btn">Pay {formatUSD(inv.balance_cents)} Now</a>
         </div>

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { paymentSchema, recordPayment } from '../../../../lib/db/payments';
+import { getInvoice } from '../../../../lib/db/invoices';
 import { badRequest, json, unprocessable, serverError } from '../../../../lib/http';
 import { sendEmail } from '../../../../lib/email/postmark';
 import { receiptEmail, ownerAlertEmail } from '../../../../lib/email/content';
@@ -13,6 +14,10 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
   if (!parsed.success) return unprocessable(parsed.error.issues[0].message);
   if (!raw.invoice_id) return unprocessable('invoice_id required');
   try {
+    const target: any = await getInvoice(cookies, raw.invoice_id);
+    if (target.status === 'rolled') {
+      return unprocessable("This invoice's balance was carried onto a newer invoice. Record the payment there instead.");
+    }
     const inv: any = await recordPayment(cookies, raw.invoice_id, parsed.data);
     try {
       const to = inv.bill_to_snapshot?.email || inv.client?.email;

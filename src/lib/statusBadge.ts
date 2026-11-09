@@ -8,6 +8,7 @@ export function statusBadge(status: string): string {
     paid:    'bg-emerald-400/15 text-emerald-300',
     overdue: 'bg-[#ff6b6b]/20 text-[#ff6b6b]',
     void:    'bg-white/5 text-[#5b7088]',
+    rolled:  'bg-violet-400/15 text-violet-300',
   };
   return map[status] ?? 'bg-white/10 text-[#9fb3c8]';
 }

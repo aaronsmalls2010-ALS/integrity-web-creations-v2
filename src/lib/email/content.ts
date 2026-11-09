@@ -1,4 +1,5 @@
 import { formatUSD } from '../money';
+import { orderLines, summarizeLines } from '../invoice/rollover';
 
 function esc(v: unknown): string {
   return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -35,11 +36,11 @@ export function invoiceEmail(inv: any, baseUrl: string) {
   const balance = inv.balance_cents ?? inv.total_cents ?? 0;
   const isPaid = inv.status === 'paid' || balance <= 0;
 
-  const rows = (inv.lines ?? [])
-    .slice()
-    .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+  const sum = summarizeLines(inv.lines ?? []);
+  const showBreakdown = sum.carriedCents > 0 || sum.lateFeeCents > 0;
+  const rows = orderLines(inv.lines ?? [])
     .map((l: any) => `<tr>
-      <td style="padding:9px 0;border-bottom:1px solid #eef2f7;color:#1e293b;font-size:13px">${esc(l.description)}</td>
+      <td style="padding:9px 0;border-bottom:1px solid #eef2f7;color:${l.kind === 'late_fee' ? '#b4541b' : '#1e293b'};font-size:13px">${esc(l.description)}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;text-align:center">${esc(l.quantity)}</td>
       <td style="padding:9px 8px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;text-align:right;white-space:nowrap">${formatUSD(l.unit_price_cents)}</td>
       <td style="padding:9px 0;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:13px;text-align:right;font-weight:600;white-space:nowrap">${formatUSD(l.amount_cents)}</td>
@@ -52,7 +53,7 @@ export function invoiceEmail(inv: any, baseUrl: string) {
 
   const inner = `
     <p style="margin:0 0 12px;font-size:14px">Hi ${esc(bill.name ?? 'there')},</p>
-    <p style="margin:0 0 20px;font-size:14px;color:#334155">Thank you for the opportunity to support ${esc(clientName)}'s continued growth. Your invoice is below, with a PDF copy attached for your records.</p>
+    <p style="margin:0 0 20px;font-size:14px;color:#334155">Thank you for the opportunity to support ${esc(clientName)}'s continued growth. Your invoice is below, with a PDF copy attached for your records.${sum.hasCarry ? ' It includes the unpaid balance carried forward from your earlier invoice(s), shown as separate lines.' : ''}</p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:10px;border-collapse:separate">
       <tr><td style="padding:18px 20px 0">
@@ -83,7 +84,11 @@ export function invoiceEmail(inv: any, baseUrl: string) {
       </td></tr>
       <tr><td style="padding:8px 20px 18px">
         <table align="right" cellpadding="0" cellspacing="0" style="min-width:240px">
-          ${tRow('Subtotal', formatUSD(inv.subtotal_cents))}
+          ${showBreakdown
+            ? `${tRow('New charges', formatUSD(sum.chargesCents))}
+               ${sum.carriedCents > 0 ? tRow('Previous balance', formatUSD(sum.carriedCents)) : ''}
+               ${sum.lateFeeCents > 0 ? tRow('Late fees', formatUSD(sum.lateFeeCents)) : ''}`
+            : tRow('Subtotal', formatUSD(inv.subtotal_cents))}
           ${inv.discount_cents > 0 ? tRow('Discount', '−' + formatUSD(inv.discount_cents)) : ''}
           ${inv.tax_cents > 0 ? tRow('Tax', formatUSD(inv.tax_cents)) : ''}
           ${tRow('Total', formatUSD(inv.total_cents), { strong: true })}
@@ -102,6 +107,8 @@ export function invoiceEmail(inv: any, baseUrl: string) {
 
   const htmlBody = shell(inner, contact);
   const textBody = `Invoice ${inv.invoice_number} from ${biz}\n`
+    + `${sum.hasCarry ? `Includes ${formatUSD(sum.carriedCents)} carried forward from earlier invoice(s)${sum.lateFeeCents > 0 ? ` and ${formatUSD(sum.lateFeeCents)} in late fees` : ''}.
+` : ''}`
     + `Total: ${formatUSD(inv.total_cents)}${isPaid ? ' · PAID IN FULL' : ` · Balance due: ${formatUSD(balance)}`}${inv.due_date ? ` · Due ${inv.due_date}` : ''}\n`
     + `${isPaid ? '' : `Pay now: ${link}\n`}A PDF copy is attached for your records.\n\n`
     + `Thank you for the opportunity to support ${clientName}'s continued growth.\n\n`

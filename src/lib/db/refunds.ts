@@ -25,6 +25,8 @@ export async function recomputeInvoiceTotals(sb: any, invoiceId: string) {
   if (balance <= 0 && net > 0) status = 'paid';
   else if (net > 0) status = 'partial';
   else status = 'sent'; // fully refunded → back to an outstanding, issued invoice
+  // A rolled invoice stays closed: its balance is owed on the invoice it was carried to.
+  if (i.status === 'rolled') status = 'rolled';
 
   await sb.from('invoices').update({
     amount_paid_cents: net,

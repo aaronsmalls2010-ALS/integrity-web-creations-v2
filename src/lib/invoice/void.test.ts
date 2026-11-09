@@ -45,7 +45,7 @@ describe('decideVoid', () => {
   });
 
   it('every refusal has plain wording that explains the alternative', () => {
-    for (const r of ['already_void', 'has_payments', 'unknown_status'] as const) {
+    for (const r of ['already_void', 'has_payments', 'rolled', 'unknown_status'] as const) {
       const msg = refusalMessage(r);
       expect(msg.length).toBeGreaterThan(15);
       expect(msg).not.toMatch(/error|invalid|failed/i);
@@ -74,5 +74,11 @@ describe('normalizeReason', () => {
     const out = normalizeReason('a'.repeat(1000));
     expect(out).not.toBeNull();
     expect(out!.length).toBe(MAX_REASON_LENGTH);
+  });
+});
+
+describe('decideVoid — rolled invoices', () => {
+  it('refuses: the balance lives on a later invoice now', () => {
+    expect(decideVoid({ status: 'rolled', amountPaidCents: 0 })).toEqual({ allowed: false, reason: 'rolled' });
   });
 });

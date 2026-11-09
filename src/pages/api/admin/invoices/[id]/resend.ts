@@ -18,6 +18,7 @@ export const POST: APIRoute = async ({ params, cookies, url }) => {
     const inv: any = await getInvoice(cookies, params.id!);
     if (inv.status === 'draft') return unprocessable('Send the invoice before resending.');
     if (inv.status === 'void') return unprocessable('Cannot resend a void invoice.');
+    if (inv.status === 'rolled') return unprocessable('This invoice was rolled onto a newer one. Resend that invoice instead.');
 
     const to = inv.bill_to_snapshot?.email || inv.client?.email;
     if (!to) return unprocessable('No recipient email on file for this client.');

@@ -25,6 +25,7 @@ export const POST: APIRoute = async ({ params, cookies, request, url }) => {
     const inv: any = await getInvoice(cookies, params.id!);
     if (inv.status === 'draft') return unprocessable('Issue the invoice before marking it paid.');
     if (inv.status === 'void') return unprocessable('Cannot mark a void invoice as paid.');
+    if (inv.status === 'rolled') return unprocessable("This invoice's balance was carried onto a newer invoice. Record the payment there instead.");
     if ((inv.balance_cents ?? 0) <= 0) return unprocessable('This invoice is already fully paid.');
 
     const amount = inv.balance_cents; // the balance being settled

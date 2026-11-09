@@ -10,6 +10,24 @@ const months = await getMonthlyIncome(Astro.cookies, year);
 const outstanding = await getOutstandingInvoices(Astro.cookies);
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const yearTotal = months.reduce((s, c) => s + c, 0);
+
+// Receivables by age: how much is owed, and how stale. 'current' = not yet due.
+const BUCKETS = ['current', '1-30', '31-60', '61-90', '90+'] as const;
+const BUCKET_LABEL: Record<string, string> = { current: 'Not yet due', '1-30': '1–30 days late', '31-60': '31–60 days', '61-90': '61–90 days', '90+': '90+ days' };
+const aging = Object.fromEntries(BUCKETS.map((b) => [b, 0])) as Record<string, number>;
+for (const i of outstanding) aging[i.due_date ? agingBucket(i.due_date, today) : 'current'] += i.balance_cents;
+const totalOwed = BUCKETS.reduce((s, b) => s + aging[b], 0);
+
+// Per-client balances, largest first — who to chase.
+const byClient = new Map<string, { owed: number; late: number; count: number }>();
+for (const i of outstanding) {
+  const name = i.client?.name ?? 'Unknown';
+  const row = byClient.get(name) ?? { owed: 0, late: 0, count: 0 };
+  row.owed += i.balance_cents; row.count += 1;
+  if (i.due_date && agingBucket(i.due_date, today) !== 'current') row.late += i.balance_cents;
+  byClient.set(name, row);
+}
+const clientRows = [...byClient.entries()].sort((a, b) => b[1].owed - a[1].owed);
 ---
 <AdminLayout title="Reports">
   <div class="flex items-center justify-between">
@@ -38,7 +56,41 @@ const yearTotal = months.reduce((s, c) => s + c, 0);
     </div>
   </section>
   <section class="mt-8">
-    <h2 class="font-semibold">Outstanding / aging</h2>
+    <h2 class="font-semibold">Receivables aging — {formatUSD(totalOwed)} owed</h2>
+    <p class="mt-1 text-xs text-[#9fb3c8]">Balances rolled onto a newer invoice are counted once, on the invoice that now carries them.</p>
+    <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {BUCKETS.map((b) => (
+        <div class="card p-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-[#9fb3c8]">{BUCKET_LABEL[b]}</p>
+          <p class:list={['mt-1 text-lg font-bold', b === 'current' ? 'text-[#e6edf5]' : aging[b] > 0 ? 'text-[#ff6b6b]' : 'text-[#e6edf5]']}>{formatUSD(aging[b])}</p>
+        </div>
+      ))}
+    </div>
+    {clientRows.length > 0 && (
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full max-w-2xl text-sm">
+          <thead>
+            <tr class="text-left text-[#9fb3c8]">
+              <th scope="col" class="p-2">Client</th>
+              <th scope="col" class="text-right">Open invoices</th>
+              <th scope="col" class="text-right">Past due</th>
+              <th scope="col" class="text-right">Total owed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {clientRows.map(([name, r]) => (
+              <tr class="border-t border-white/[0.08] hover:bg-white/5">
+                <td class="p-2">{name}</td>
+                <td class="text-right">{r.count}</td>
+                <td class:list={['text-right', r.late > 0 && 'text-[#ff6b6b]']}>{formatUSD(r.late)}</td>
+                <td class="text-right font-semibold">{formatUSD(r.owed)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+    <h2 class="mt-8 font-semibold">Open invoices</h2>
     <div class="overflow-x-auto">
       <table class="mt-2 w-full text-sm">
         <thead>

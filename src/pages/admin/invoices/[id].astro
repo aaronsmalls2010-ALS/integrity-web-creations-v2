@@ -1,7 +1,8 @@
 ---
 export const prerender = false;
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { getInvoice } from '../../../lib/db/invoices';
+import { getInvoice, getRolloverPreview } from '../../../lib/db/invoices';
+import { orderLines, summarizeLines } from '../../../lib/invoice/rollover';
 import { getAdminClient } from '../../../lib/supabase/admin';
 import { refundableCents } from '../../../lib/db/refunds';
 import { formatUSD } from '../../../lib/money';
@@ -13,6 +14,21 @@ const sbAdmin = getAdminClient();
 const { data: refunds } = await sbAdmin.from('refunds').select('*').eq('invoice_id', inv.id).order('created_at', { ascending: false });
 const refundable = inv.stripe_payment_intent_id ? await refundableCents(sbAdmin, inv.id) : 0;
 const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'void';
+
+const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+const lines = orderLines(inv.lines ?? []);
+const sum = summarizeLines(lines);
+const showBreakdown = sum.carriedCents > 0 || sum.lateFeeCents > 0;
+const isClosed = inv.status === 'void' || inv.status === 'rolled';
+// A draft shows what WILL be carried onto it when it is issued.
+const rollover = inv.status === 'draft' ? await getRolloverPreview(Astro.cookies, inv.client_id, today).catch(() => null) : null;
+// Where a rolled invoice went, and what a carrying invoice absorbed.
+const { data: rolledToRow } = inv.rolled_into_invoice_id
+  ? await sbAdmin.from('invoices').select('id, invoice_number').eq('id', inv.rolled_into_invoice_id).single()
+  : { data: null };
+const { data: rolledFromRows } = (inv.carried_forward_cents ?? 0) > 0
+  ? await sbAdmin.from('invoices').select('id, invoice_number').eq('rolled_into_invoice_id', inv.id).order('due_date')
+  : { data: [] };
 ---
 <AdminLayout title={inv.invoice_number ?? 'Draft invoice'}>
 
@@ -26,6 +42,31 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
     </span>
   </div>
 
+  {rolledToRow && (
+    <p class="mt-4 rounded-lg bg-violet-400/10 px-4 py-3 text-sm text-violet-200" role="status">
+      This invoice is closed: its unpaid balance of <strong>{formatUSD(inv.balance_cents)}</strong> was carried onto
+      <a class="underline" href={`/admin/invoices/${(rolledToRow as any).id}`}> invoice {(rolledToRow as any).invoice_number}</a>.
+      Payments are collected there.
+    </p>
+  )}
+  {rolledFromRows && rolledFromRows.length > 0 && (
+    <p class="mt-4 rounded-lg bg-violet-400/10 px-4 py-3 text-sm text-violet-200" role="status">
+      Includes <strong>{formatUSD(sum.carriedCents + sum.lateFeeCents)}</strong> carried forward from
+      {rolledFromRows.map((r: any, idx: number) => (
+        <>{idx > 0 ? ', ' : ' '}<a class="underline" href={`/admin/invoices/${r.id}`}>{r.invoice_number}</a></>
+      ))}.
+    </p>
+  )}
+  {rollover && rollover.count > 0 && (
+    <p class="mt-4 rounded-lg bg-amber-400/10 px-4 py-3 text-sm text-amber-200" role="status">
+      <strong>{inv.client.name}</strong> has {rollover.count} past-due invoice{rollover.count === 1 ? '' : 's'}
+      ({rollover.items.map((i) => i.invoice_number).join(', ')}). Issuing this invoice will carry
+      <strong> {formatUSD(rollover.totalCents)}</strong> onto it
+      {rollover.lateFeeCents > 0 && <> — {formatUSD(rollover.principalCents)} previous balance plus {formatUSD(rollover.lateFeeCents)} late fees, on separate lines</>}
+      and close the older invoice{rollover.count === 1 ? '' : 's'}.
+    </p>
+  )}
+
   <!-- ── Line items ── -->
   <div class="card mt-6 overflow-x-auto">
     <table class="w-full text-sm">
@@ -38,9 +79,9 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
         </tr>
       </thead>
       <tbody>
-        {inv.lines.sort((a:any,b:any)=>a.sort_order-b.sort_order).map((l:any) => (
-          <tr class="border-t border-white/8">
-            <td class="px-4 py-3 text-[#e6edf5]">{l.description}</td>
+        {lines.map((l:any) => (
+          <tr class:list={['border-t border-white/8', l.kind === 'carry_forward' && 'bg-violet-400/[0.06]']}>
+            <td class:list={['px-4 py-3', l.kind === 'late_fee' ? 'text-amber-300' : 'text-[#e6edf5]']}>{l.description}</td>
             <td class="px-4 py-3 text-[#9fb3c8]">{l.quantity}</td>
             <td class="px-4 py-3 text-[#9fb3c8]">{formatUSD(l.unit_price_cents)}</td>
             <td class="px-4 py-3 text-right text-[#e6edf5]">{formatUSD(l.amount_cents)}</td>
@@ -52,7 +93,15 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
 
   <!-- ── Totals ── -->
   <div class="mt-4 space-y-1 text-right text-sm text-[#9fb3c8]">
-    <div>Subtotal: <span class="text-[#e6edf5]">{formatUSD(inv.subtotal_cents)}</span></div>
+    {showBreakdown ? (
+      <>
+        <div>New charges: <span class="text-[#e6edf5]">{formatUSD(sum.chargesCents)}</span></div>
+        {sum.carriedCents > 0 && <div>Previous balance: <span class="text-[#e6edf5]">{formatUSD(sum.carriedCents)}</span></div>}
+        {sum.lateFeeCents > 0 && <div>Late fees: <span class="text-amber-300">{formatUSD(sum.lateFeeCents)}</span></div>}
+      </>
+    ) : (
+      <div>Subtotal: <span class="text-[#e6edf5]">{formatUSD(inv.subtotal_cents)}</span></div>
+    )}
     <div>Discount: <span class="text-[#e6edf5]">&minus;{formatUSD(inv.discount_cents)}</span></div>
     <div>Tax: <span class="text-[#e6edf5]">{formatUSD(inv.tax_cents)}</span></div>
     <div class="text-lg font-bold text-[#e6edf5]">Total: {formatUSD(inv.total_cents)}</div>
@@ -81,10 +130,10 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
     {inv.status === 'draft' && (
       <button id="issueEmail" class="btn-primary">Issue &amp; email</button>
     )}
-    {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && (
+    {inv.status !== 'draft' && inv.status !== 'paid' && !isClosed && (
       <button id="pay" class="btn-primary">Record payment</button>
     )}
-    {inv.status !== 'draft' && inv.status !== 'paid' && inv.status !== 'void' && (
+    {inv.status !== 'draft' && inv.status !== 'paid' && !isClosed && (
       <button id="markPaid" class="btn-ghost" style="color:#22c55e;border-color:#22c55e55;">Mark as paid</button>
     )}
     {canRefund && (
@@ -93,11 +142,11 @@ const canRefund = refundable > 0 && inv.status !== 'draft' && inv.status !== 'vo
     {inv.status !== 'draft' && (
       <a href={`/api/admin/invoices/${inv.id}/pdf`} class="btn-ghost">Download PDF</a>
     )}
-    {inv.status !== 'draft' && inv.status !== 'void' && (
+    {inv.status !== 'draft' && !isClosed && (
       <button id="resend" class="btn-ghost">Email to client</button>
     )}
     <button id="dup" class="btn-ghost">Duplicate</button>
-    {inv.status !== 'paid' && inv.status !== 'void' && (
+    {inv.status !== 'paid' && !isClosed && (
       <button id="void" class="btn-ghost" style="color:#ff6b6b;border-color:#ff6b6b33;">
         {inv.status === 'draft' ? 'Delete' : 'Void'}
       </button>

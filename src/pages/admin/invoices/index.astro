@@ -30,7 +30,7 @@ const invoices = await listInvoices(Astro.cookies);
             <td>{inv.client?.name}</td>
             <td><span class:list={["rounded-full px-2 py-0.5 text-xs font-semibold uppercase", statusBadge(inv.status)]}>{inv.status}</span></td>
             <td>{formatUSD(inv.total_cents)}</td>
-            <td>{formatUSD(inv.balance_cents)}</td>
+            <td>{inv.status === 'rolled' ? 'Carried forward' : formatUSD(inv.balance_cents)}</td>
             <td>{inv.due_date}</td>
           </tr>
         ))}

@@ -6,7 +6,7 @@ export const prerender = false;
 
 export const GET: APIRoute = async ({ params, url }) => {
   const inv: any = await getInvoiceByToken(params.token!);
-  if (!inv || inv.status === 'void' || inv.status === 'paid' || inv.balance_cents <= 0) {
+  if (!inv || inv.status === 'void' || inv.status === 'rolled' || inv.status === 'paid' || inv.balance_cents <= 0) {
     return new Response('Invoice is not payable', { status: 404 });
   }
   const stripe = getStripe();

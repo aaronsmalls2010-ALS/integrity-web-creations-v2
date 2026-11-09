@@ -14,9 +14,10 @@ interface Props {
   leadDays?: number | null;
   dueMode?: string | null;
   dueDays?: number | null;
+  dueDay?: number | null;
   defaultDueDays: number;
 }
-const { rule = null, startDate = null, leadDays = 0, dueMode = 'net_days', dueDays = null, defaultDueDays } = Astro.props;
+const { rule = null, startDate = null, leadDays = 0, dueMode = 'net_days', dueDays = null, dueDay = null, defaultDueDays } = Astro.props;
 
 const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 const type = rule?.type ?? 'nth_weekday';
@@ -46,10 +47,16 @@ const MONTH_STRIDES = [
     lead_days: leadDays ?? 0,
     due_mode: dueMode ?? 'net_days',
     due_days: dueDays,
+    due_day: dueDay,
     default_due_days: defaultDueDays,
   })}
 >
   <legend class="px-1 text-sm font-semibold text-[#e6edf5]">Billing schedule</legend>
+
+  <div class="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-white/10 bg-[#0d1b2c] p-3">
+    <button type="button" id="preset_monthly" class="btn-ghost text-sm">Monthly: send on the 1st, due the 15th</button>
+    <span class="text-xs text-[#9fb3c8]">One click fills in the standard monthly cycle and turns on auto-send. Any unpaid balance rolls onto the next invoice automatically.</span>
+  </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
@@ -120,11 +127,16 @@ const MONTH_STRIDES = [
       <label class="lbl" for="due_mode">Payment due</label>
       <select id="due_mode" class="input">
         <option value="on_occurrence" selected={dueMode === 'on_occurrence'}>On the billing date</option>
-        <option value="net_days" selected={dueMode !== 'on_occurrence'}>A set number of days after it's sent</option>
+        <option value="fixed_day" selected={dueMode === 'fixed_day'}>On a set day of the month (e.g. the 15th)</option>
+        <option value="net_days" selected={dueMode !== 'on_occurrence' && dueMode !== 'fixed_day'}>A set number of days after it's sent</option>
       </select>
       <div id="due_days_wrap" class="mt-2">
         <label class="lbl" for="due_days">Net days</label>
         <input id="due_days" type="number" min="0" max="365" class="input" value={dueDays ?? defaultDueDays} />
+      </div>
+      <div id="due_day_wrap" class="mt-2 hidden">
+        <label class="lbl" for="due_day">Due on day</label>
+        <input id="due_day" type="number" min="1" max="31" class="input" value={dueDay ?? 15} />
       </div>
     </div>
   </div>

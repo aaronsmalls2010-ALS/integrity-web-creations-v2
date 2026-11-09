@@ -26,6 +26,8 @@ type Result = {
   auto_sent?: boolean;
   emailed?: boolean;
   email_error?: string;
+  rolled_invoices?: number;
+  carried_cents?: number;
   skipped?: string;
 };
 
@@ -98,6 +100,7 @@ export async function generateRecurring(today: string) {
 
     const lines = (sch.line_items ?? []) as any[];
     if (lines.length === 0) continue;
+    let result_rolled: { count: number; cents: number } | null = null;
 
     const t = computeTotals({
       lines: lines.map((l) => ({ quantity: l.quantity, unit_price_cents: l.unit_price_cents, taxable: !!l.taxable })),
@@ -108,8 +111,9 @@ export async function generateRecurring(today: string) {
       issue_date: today,
       due_date: dueDateFor({
         occurrence, issueDate: today,
-        dueMode: sch.due_mode === 'on_occurrence' ? 'on_occurrence' : 'net_days',
+        dueMode: sch.due_mode === 'on_occurrence' || sch.due_mode === 'fixed_day' ? sch.due_mode : 'net_days',
         dueDays: sch.due_days ?? defaultDueDays,
+        dueDay: sch.due_day ?? null,
       }),
       tax_rate: 0, discount_cents: 0, subtotal_cents: t.subtotalCents, tax_cents: t.taxCents,
       total_cents: t.totalCents, balance_cents: t.totalCents,
@@ -146,6 +150,22 @@ export async function generateRecurring(today: string) {
       taxable: !!l.taxable, sort_order: i,
     })));
 
+    // Carry any past-due balance onto this invoice (auto-send only: a draft is
+    // rolled when it is issued, so the lines the admin reviews stay editable).
+    // Done before the claim/email so the client sees the full amount owed; a
+    // failure is logged but never blocks the invoice, which is already issued.
+    if (sch.auto_send) {
+      const { data: rolled, error: rollErr } = await sb.rpc('roll_forward_balances', { p_invoice_id: inv.id });
+      if (rollErr) {
+        console.error('[recurring] roll forward failed for invoice', inv.id, rollErr);
+        await sb.from('activity_log').insert({
+          entity_type: 'invoice', entity_id: inv.id, action: 'rollover_failed', detail: { error: rollErr.message },
+        });
+      } else if ((rolled as any)?.rolled > 0) {
+        result_rolled = { count: (rolled as any).rolled, cents: (rolled as any).carried_cents };
+      }
+    }
+
     // Claim the occurrence before emailing: a failed send must never cause a
     // second invoice on the next run.
     await sb.from('recurring_schedules').update({ last_generated_period: occurrence, last_invoice_id: inv.id }).eq('id', sch.id);
@@ -159,6 +179,7 @@ export async function generateRecurring(today: string) {
       schedule_id: sch.id, occurrence_date: occurrence, invoice_id: inv.id,
       invoice_number: insert.invoice_number ?? null, auto_sent: !!sch.auto_send,
     };
+    if (result_rolled) { result.rolled_invoices = result_rolled.count; result.carried_cents = result_rolled.cents; }
 
     if (sch.auto_send) {
       const r = await emailGeneratedInvoice(sb, inv.id);

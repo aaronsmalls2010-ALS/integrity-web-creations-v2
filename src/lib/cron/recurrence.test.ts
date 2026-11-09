@@ -188,6 +188,42 @@ describe('due date modes', () => {
   });
 });
 
+describe('fixed_day due mode (send on the 1st, due the 15th)', () => {
+  const due = (occurrence: string, issueDate: string, dueDay: number) =>
+    dueDateFor({ occurrence, issueDate, dueMode: 'fixed_day', dueDays: 0, dueDay });
+
+  it('issued on the 1st, due the 15th of the same month', () => {
+    expect(due('2026-12-01', '2026-12-01', 15)).toBe('2026-12-15');
+  });
+
+  it('is not thrown off by a cron that runs a few days late', () => {
+    expect(due('2026-12-01', '2026-12-04', 15)).toBe('2026-12-15');
+  });
+
+  it('rolls to next month when the day has already passed', () => {
+    expect(due('2026-12-20', '2026-12-20', 15)).toBe('2027-01-15');
+  });
+
+  it('is strictly after the issue date (issued on the due day -> next month)', () => {
+    expect(due('2026-12-15', '2026-12-15', 15)).toBe('2027-01-15');
+  });
+
+  it('measures from the billing date when invoices go out early', () => {
+    // Issued Nov 25 for a Dec 1 billing date: due Dec 15, not Nov 30-ish.
+    expect(due('2026-12-01', '2026-11-25', 15)).toBe('2026-12-15');
+  });
+
+  it('clamps to short months', () => {
+    expect(due('2027-02-01', '2027-02-01', 31)).toBe('2027-02-28');
+    expect(due('2028-02-01', '2028-02-01', 31)).toBe('2028-02-29');
+  });
+
+  it('falls back to net days if no due day is given', () => {
+    expect(dueDateFor({ occurrence: '2026-12-01', issueDate: '2026-12-01', dueMode: 'fixed_day', dueDays: 14 }))
+      .toBe('2026-12-15');
+  });
+});
+
 describe('describeRule', () => {
   it('reads like English', () => {
     expect(describeRule(CLS)).toBe('2nd and 4th Friday of every month');

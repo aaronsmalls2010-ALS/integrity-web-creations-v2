@@ -1,6 +1,7 @@
 import { getAdminClient } from '../supabase/admin';
 import { formatUSD } from '../money';
 import { buildIssuerSnapshot, buildBillToSnapshot } from './snapshot';
+import { orderLines, summarizeLines } from './rollover';
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
 
@@ -53,12 +54,12 @@ export function invoiceHtml(inv: any, opts: { preview?: boolean; payUrl?: string
   const biz = issuer.business_name ?? 'Integrity Web Creations';
   const bizEmail = issuer.from_email ?? issuer.reply_to ?? 'asmalls@integritywebcreations.com';
 
+  const sum = summarizeLines(inv.lines ?? []);
+  const showBreakdown = sum.carriedCents > 0 || sum.lateFeeCents > 0;
   const rows =
-    (inv.lines ?? [])
-      .slice()
-      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    orderLines(inv.lines ?? [])
       .map(
-        (l: any) => `<tr>
+        (l: any) => `<tr class="${l.kind === 'carry_forward' ? 'carry' : l.kind === 'late_fee' ? 'fee' : ''}">
           <td class="desc">${esc(l.description)}</td>
           <td class="num">${esc(l.quantity)}</td>
           <td class="num">${formatUSD(l.unit_price_cents)}</td>
@@ -109,6 +110,10 @@ export function invoiceHtml(inv: any, opts: { preview?: boolean; payUrl?: string
     table.items td{padding:11px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top}
     table.items td.desc{text-align:left;padding-left:0;color:#1e293b}
     table.items td.num{text-align:right;color:#475569}
+    table.items tr.carry td{background:#f8fafc}
+    table.items tr.fee td{color:#b4541b}
+    table.items tr.fee td.amt{color:#b4541b}
+    .rolled-note{margin-bottom:20px;background:#f5f3ff;border:1px solid #ddd6fe;color:#5b21b6;border-radius:8px;padding:10px 14px;font-size:12.5px;font-weight:600}
     table.items td.amt{padding-right:0;color:#0f172a;font-weight:600}
     .totals{width:100%;max-width:280px;margin-left:auto;margin-top:14px;font-size:13px}
     .totals tr td{padding:5px 0;color:#475569}
@@ -155,13 +160,18 @@ export function invoiceHtml(inv: any, opts: { preview?: boolean; payUrl?: string
         <address>${billAddr ? `${billAddr}<br/>` : ''}${bill.email ? esc(bill.email) : ''}</address>
       </div>
 
+      ${inv.status === 'rolled' ? '<div class="rolled-note">The unpaid balance on this invoice was carried forward onto a newer invoice.</div>' : ''}
       <table class="items">
         <thead><tr><th>Description</th><th>Qty</th><th>Unit Price</th><th>Amount</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
 
       <table class="totals"><tbody>
-        <tr><td>Subtotal</td><td>${formatUSD(inv.subtotal_cents)}</td></tr>
+        ${showBreakdown
+          ? `<tr><td>New charges</td><td>${formatUSD(sum.chargesCents)}</td></tr>
+        ${sum.carriedCents > 0 ? `<tr><td>Previous balance</td><td>${formatUSD(sum.carriedCents)}</td></tr>` : ''}
+        ${sum.lateFeeCents > 0 ? `<tr><td>Late fees</td><td>${formatUSD(sum.lateFeeCents)}</td></tr>` : ''}`
+          : `<tr><td>Subtotal</td><td>${formatUSD(inv.subtotal_cents)}</td></tr>`}
         ${inv.discount_cents > 0 ? `<tr><td>Discount</td><td>−${formatUSD(inv.discount_cents)}</td></tr>` : ''}
         ${inv.tax_cents > 0 ? `<tr><td>Tax</td><td>${formatUSD(inv.tax_cents)}</td></tr>` : ''}
         <tr class="total"><td>Total</td><td>${formatUSD(inv.total_cents)}</td></tr>

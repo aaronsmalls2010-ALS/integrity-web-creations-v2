@@ -1,5 +1,6 @@
 import { getAdminClient } from '../supabase/admin';
 import { computeTotals } from '../invoice/totals';
+import { lateFeeBaseCents, lateFeeAmountCents } from '../invoice/rollover';
 import { renderInvoicePdf } from '../invoice/pdf';
 import { invoiceEmail } from '../email/content';
 import { sendEmail } from '../email/postmark';
@@ -24,12 +25,13 @@ async function applyLateFee(sb: any, inv: any, feeCents: number, pct: number) {
 
   await sb.from('invoice_line_items').insert({
     invoice_id: inv.id,
-    description: `Late Fee (${pct}% of overdue balance)`,
+    description: `Late fee — ${pct}% of overdue balance`,
     quantity: 1,
     unit_price_cents: feeCents,
     amount_cents: feeCents,
     taxable: false,
     sort_order: sortOrder,
+    kind: 'late_fee',
   });
 
   const allLines = [
@@ -112,7 +114,10 @@ export async function sweepOverdue(today: string) {
     if (!inv.due_date) continue;
     if (addDays(inv.due_date, inv.late_fee_grace_days ?? 0) >= today) continue; // still within grace
     const pct = Number(inv.late_fee_percent ?? 0);
-    const feeCents = Math.round((inv.balance_cents ?? 0) * (pct / 100));
+    // The fee is a percentage of what is owed EXCLUDING fees already on the
+    // invoice (carried in from an earlier one), so a fee is never charged on a fee.
+    const base = lateFeeBaseCents(inv.balance_cents ?? 0, inv.lines ?? []);
+    const feeCents = lateFeeAmountCents(base, pct);
     if (pct <= 0 || feeCents <= 0) continue;
     try {
       await applyLateFee(sb, inv, feeCents, pct);

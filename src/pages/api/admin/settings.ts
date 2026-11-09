@@ -16,6 +16,7 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
     invoice_number_prefix: raw.invoice_number_prefix,
     default_due_days: Number(raw.default_due_days ?? 14),
     default_tax_rate: Number(raw.default_tax_rate ?? 0),
+    rollover_enabled: raw.rollover_enabled === undefined ? undefined : !!raw.rollover_enabled,
     default_terms: raw.default_terms, payment_instructions: raw.payment_instructions,
   };
   const parsed = settingsSchema.safeParse(patch);

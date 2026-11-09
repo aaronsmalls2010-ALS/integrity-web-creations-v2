@@ -14,6 +14,10 @@ describe('applyPayments', () => {
     const r = applyPayments({ totalCents: 10000, currentStatus: 'void' }, [{ amount_cents: 10000 }]);
     expect(r.status).toBe('void');
   });
+  it('keeps a rolled invoice closed even if a late payment arrives', () => {
+    const r = applyPayments({ totalCents: 10000, currentStatus: 'rolled' }, [{ amount_cents: 10000 }]);
+    expect(r.status).toBe('rolled'); expect(r.balanceCents).toBe(0);
+  });
   it('handles overpayment as paid with zero balance floor', () => {
     const r = applyPayments({ totalCents: 10000, currentStatus: 'viewed' }, [{ amount_cents: 12000 }]);
     expect(r.status).toBe('paid'); expect(r.balanceCents).toBe(0);
