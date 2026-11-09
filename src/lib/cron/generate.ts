@@ -204,7 +204,7 @@ async function emailGeneratedInvoice(sb: any, invoiceId: string): Promise<{ emai
   const owner = import.meta.env.INVOICE_CC ?? import.meta.env.SMTP_USER;
   try {
     const { data: inv } = await sb.from('invoices')
-      .select('*, lines:invoice_line_items(*), client:clients(*)').eq('id', invoiceId).single();
+      .select('*, lines:invoice_line_items!invoice_id(*), client:clients(*)').eq('id', invoiceId).single();
     const to = inv?.bill_to_snapshot?.email || inv?.client?.email;
     if (!to) throw new Error('no email address on file for this client');
 

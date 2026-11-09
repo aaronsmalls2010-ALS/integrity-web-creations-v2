@@ -78,7 +78,7 @@ async function applyLateFee(sb: any, inv: any, feeCents: number, pct: number) {
   // auto-resend the updated invoice to the client (CC owner)
   const { data: fresh } = await sb
     .from('invoices')
-    .select('*, lines:invoice_line_items(*), client:clients(*)')
+    .select('*, lines:invoice_line_items!invoice_id(*), client:clients(*)')
     .eq('id', inv.id)
     .single();
   const f: any = fresh;
@@ -103,7 +103,7 @@ export async function sweepOverdue(today: string) {
   //    not yet applied, and past their due date + grace period.
   const { data: candidates } = await sb
     .from('invoices')
-    .select('*, lines:invoice_line_items(*), client:clients(*)')
+    .select('*, lines:invoice_line_items!invoice_id(*), client:clients(*)')
     .in('status', ['sent', 'viewed', 'partial', 'overdue'])
     .gt('balance_cents', 0)
     .eq('late_fee_enabled', true)

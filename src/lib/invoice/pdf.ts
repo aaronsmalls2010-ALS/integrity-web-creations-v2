@@ -218,7 +218,7 @@ export async function renderInvoicePdfBytes(
 ): Promise<{ bytes: Uint8Array; isPreview: boolean }> {
   const sb = getAdminClient();
   const { data: inv, error } = await sb.from('invoices')
-    .select('*, lines:invoice_line_items(*)').eq('id', invoiceId).single();
+    .select('*, lines:invoice_line_items!invoice_id(*)').eq('id', invoiceId).single();
   if (error || !inv) throw new Error('Invoice not found');
 
   // A draft has no snapshots yet (they're frozen at issue time). Synthesize them

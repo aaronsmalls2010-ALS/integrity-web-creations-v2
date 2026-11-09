@@ -57,7 +57,7 @@ export async function replaceLines(cookies: AstroCookies, invoiceId: string, lin
 export async function getInvoice(cookies: AstroCookies, id: string) {
   const sb = getServerClient(cookies);
   const { data, error } = await sb.from('invoices')
-    .select('*, client:clients(*), lines:invoice_line_items(*), payments(*)')
+    .select('*, client:clients(*), lines:invoice_line_items!invoice_id(*), payments(*)')
     .eq('id', id).single();
   if (error) throw error;
   return data as any;
@@ -149,7 +149,7 @@ export async function getRolloverPreview(cookies: AstroCookies, clientId: string
   const { data: settings } = await sb.from('app_settings').select('rollover_enabled').eq('id', true).single();
   if ((settings as any)?.rollover_enabled === false) return previewRollover([]);
   const { data } = await sb.from('invoices')
-    .select('id, invoice_number, due_date, balance_cents, lines:invoice_line_items(kind, amount_cents)')
+    .select('id, invoice_number, due_date, balance_cents, lines:invoice_line_items!invoice_id(kind, amount_cents)')
     .eq('client_id', clientId)
     .in('status', ['sent', 'viewed', 'partial', 'overdue'])
     .gt('balance_cents', 0)
@@ -217,7 +217,7 @@ export async function logActivity(cookies: AstroCookies, entity_type: string, en
 export async function getInvoiceByToken(token: string) {
   const sb = getAdminClient();
   const { data, error } = await sb.from('invoices')
-    .select('*, lines:invoice_line_items(*)')
+    .select('*, lines:invoice_line_items!invoice_id(*)')
     .eq('public_token', token).single();
   if (error) return null;
   return data as any;
