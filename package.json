@@ -12,7 +12,8 @@
     "astro": "astro",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:rls-proposals": "node scripts/test-rls-proposals.mjs"
+    "test:rls-proposals": "node scripts/test-rls-proposals.mjs",
+    "test:pricing": "vitest run src/lib/proposals/pricing.test.ts"
   },
   "dependencies": {
     "@astrojs/react": "^5.0.7",

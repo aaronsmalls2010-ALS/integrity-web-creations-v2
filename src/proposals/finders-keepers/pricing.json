@@ -1,0 +1,46 @@
+{
+  "currency": "USD",
+  "website_routes": {
+    "files_only": {
+      "label": "Files only",
+      "price_one_time": 1000,
+      "monthly": 0,
+      "includes": "Full website with 3 history articles, no online store. Files handed over at the end. No hosting, updates, or support after delivery."
+    },
+    "website_support": {
+      "label": "Website + support",
+      "price_one_time": 0,
+      "monthly": 100,
+      "minimum_months": 15,
+      "includes": "Same website, hosted and cared for by IWC. You own it after 15 payments, then cancel anytime with no fees or balance."
+    }
+  },
+  "store_packages": {
+    "featured_finds": { "label": "Featured Finds", "price": 300, "items_loaded": 20, "categories": 1, "checkout": false, "phone_app": false, "labels_consignment": false, "collector_features": false, "monthly_support": 100 },
+    "shop_window": { "label": "Shop Window", "price": 2400, "items_loaded": 50, "categories": 5, "checkout": true, "phone_app": true, "labels_consignment": false, "collector_features": false, "monthly_support": 125, "recommended": true },
+    "main_street": { "label": "Main Street", "price": 3350, "items_loaded": 150, "categories": 8, "checkout": true, "phone_app": true, "labels_consignment": true, "collector_features": false, "monthly_support": 125 },
+    "full_showroom": { "label": "Full Showroom", "price": 4700, "items_loaded": 300, "categories": 12, "checkout": true, "phone_app": true, "labels_consignment": true, "collector_features": true, "monthly_support": 125 }
+  },
+  "store_requires_route": "website_support",
+  "payment_plans": {
+    "full": { "label": "Pay in full", "discount_pct": 10 },
+    "split": { "label": "Half now, half at launch" },
+    "monthly": { "label": "15 monthly payments", "markup_pct": 10, "months": 15 }
+  },
+  "computed_store_plans": {
+    "featured_finds": { "full": 270, "split": [150, 150], "monthly": 22 },
+    "shop_window": { "full": 2160, "split": [1200, 1200], "monthly": 176 },
+    "main_street": { "full": 3015, "split": [1675, 1675], "monthly": 246 },
+    "full_showroom": { "full": 4230, "split": [2350, 2350], "monthly": 345 }
+  },
+  "add_ons": {
+    "standard_pack_10": 60,
+    "collector_pack_10": 100,
+    "own_photos_discount_per_10": 20,
+    "extra_category": 100,
+    "extra_history_article": 75
+  },
+  "featured_finds_upgrade_credit_months": 6,
+  "store_support_hours_included": 2,
+  "hourly_rate_beyond_support": "[IWC hourly rate]"
+}
